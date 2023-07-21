@@ -14,6 +14,7 @@
 #include <sstream>
 #include <utility>
 
+#include <algorithm>
 #include <math.h>
 
 namespace glfw
@@ -233,10 +234,66 @@ namespace gl
   }
 }
 
+static constexpr float CAMERA_MOVEMENT_SPEED = 2.5f;
+static constexpr float CAMERA_ROTATION_SPEED = 0.1f;
+
+glm::vec3 camera_position = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 camera_forward  = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camera_up       = glm::vec3(0.0f, 1.0f,  0.0f);
+
+float yaw   = -90.0f;
+float pitch = 0.0f;
+float fov   = 45.0f;
+
+bool first = true;
+float last_xpos;
+float last_ypos;
+
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
   fprintf(stderr, "Callback\n");
   glViewport(0, 0, width, height);
+}
+
+void cursor_enter_callback(GLFWwindow* window, int entered)
+{
+  fprintf(stderr, "entered = %d\n", entered);
+  first = entered;
+}
+
+void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+{
+  fprintf(stderr, "pos = %f, %f\n", xpos, ypos);
+  if(first) {
+    first = false;
+    last_xpos = xpos;
+    last_ypos = ypos;
+    return;
+  }
+
+  float dx = xpos - last_xpos;
+  float dy = ypos - last_ypos;
+
+  last_xpos = xpos;
+  last_ypos = ypos;
+
+  yaw   += dx * CAMERA_ROTATION_SPEED;
+  pitch -= dy * CAMERA_ROTATION_SPEED;
+
+  pitch = std::clamp(pitch, -89.0f, 89.0f);
+
+  glm::vec3 direction;
+  direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+  direction.y = sin(glm::radians(pitch));
+  direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+  camera_forward = glm::normalize(direction);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    fov -= (float)yoffset;
+    fov = std::clamp(fov, 1.0f, 45.0f);
 }
 
 int main()
@@ -251,6 +308,10 @@ int main()
   gl::init_debug();
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorEnterCallback(window, cursor_enter_callback);
+  glfwSetCursorPosCallback  (window, cursor_pos_callback);
+  glfwSetScrollCallback     (window, scroll_callback);
 
   float vertices[] = {
       -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -331,10 +392,24 @@ int main()
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_DEPTH_TEST);
 
+  float previous_time = glfwGetTime();
+  float current_time;
+
   while(!glfwWindowShouldClose(window)) {
     glfwPollEvents();
+
+    current_time = glfwGetTime();
+    float dt = current_time - previous_time;
+    previous_time = current_time;
+
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera_position += dt * CAMERA_MOVEMENT_SPEED * camera_forward;
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera_position -= dt * CAMERA_MOVEMENT_SPEED * camera_forward;
+
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera_position += dt * CAMERA_MOVEMENT_SPEED * glm::normalize(glm::cross(camera_up, camera_forward));
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera_position -= dt * CAMERA_MOVEMENT_SPEED * glm::normalize(glm::cross(camera_up, camera_forward));
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -353,19 +428,20 @@ int main()
 
     // Transform
     glBindVertexArray(vao);
+
+    glm::mat4 view       = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
+
+    view       = glm::lookAt(camera_position, camera_position + camera_forward, camera_up);
+    projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+
     for(size_t i=0; i<sizeof cubePositions / sizeof cubePositions[0]; ++i)
     {
-      glm::mat4 model      = glm::mat4(1.0f);
-      glm::mat4 view       = glm::mat4(1.0f);
-      glm::mat4 projection = glm::mat4(1.0f);
-
+      glm::mat4 model = glm::mat4(1.0f);
       model = glm::translate(model, cubePositions[i]);
       model = glm::rotate(model, glm::radians(i * 20.0f), glm::vec3(0.5f, 1.0f, 0.0f));
       if(i % 3 == 0)
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-      view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-      projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
       glm::mat4 transform = projection * view * model;
       glUniformMatrix4fv(glGetUniformLocation(program, "transform"), 1, GL_FALSE, glm::value_ptr(transform));
