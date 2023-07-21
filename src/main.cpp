@@ -282,10 +282,12 @@ struct Camera
 
   void translate(float x, float y)
   {
-    position += MOVEMENT_SPEED * (
+    glm::vec3 offset = MOVEMENT_SPEED * (
         x * right() +
         y * forward()
     );
+    offset.y = 0.0f;
+    position += offset;
   }
 
   void zoom(float factor)
