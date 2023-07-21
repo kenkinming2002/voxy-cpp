@@ -234,16 +234,68 @@ namespace gl
   }
 }
 
-static constexpr float CAMERA_MOVEMENT_SPEED = 2.5f;
-static constexpr float CAMERA_ROTATION_SPEED = 0.1f;
+struct Camera
+{
+  glm::vec3 position = glm::vec3(0.0f, 0.0f,  3.0f);
+  float yaw          = -90.0f;
+  float pitch        = 0.0f;
+  float fov          = 45.0f;
 
-glm::vec3 camera_position = glm::vec3(0.0f, 0.0f,  3.0f);
-glm::vec3 camera_forward  = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up       = glm::vec3(0.0f, 1.0f,  0.0f);
+  glm::vec3 up() const
+  {
+    return glm::vec3(0.0f, 1.0f,  0.0f);
+  }
 
-float yaw   = -90.0f;
-float pitch = 0.0f;
-float fov   = 45.0f;
+  glm::vec3 forward() const
+  {
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    return direction;
+  }
+
+  glm::vec3 right() const
+  {
+    return glm::normalize(glm::cross(forward(), up()));
+  }
+
+  glm::mat4 view() const
+  {
+    return glm::lookAt(position, position + forward(), up());
+  }
+
+  glm::mat4 projection() const
+  {
+    return glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+  }
+
+  static constexpr float MOVEMENT_SPEED = 2.5f;
+  static constexpr float ROTATION_SPEED = 0.1f;
+
+  void rotate(float x, float y)
+  {
+    yaw   += x * ROTATION_SPEED;
+    pitch += y * ROTATION_SPEED;
+    pitch = std::clamp(pitch, -89.0f, 89.0f);
+  }
+
+  void translate(float x, float y)
+  {
+    position += MOVEMENT_SPEED * (
+        x * right() +
+        y * forward()
+    );
+  }
+
+  void zoom(float factor)
+  {
+    fov += factor;
+    fov = std::clamp(fov, 1.0f, 45.0f);
+  }
+};
+
+Camera camera;
 
 bool first = true;
 float last_xpos;
@@ -278,22 +330,12 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
   last_xpos = xpos;
   last_ypos = ypos;
 
-  yaw   += dx * CAMERA_ROTATION_SPEED;
-  pitch -= dy * CAMERA_ROTATION_SPEED;
-
-  pitch = std::clamp(pitch, -89.0f, 89.0f);
-
-  glm::vec3 direction;
-  direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  direction.y = sin(glm::radians(pitch));
-  direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  camera_forward = glm::normalize(direction);
+  camera.rotate(dx, -dy);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    fov -= (float)yoffset;
-    fov = std::clamp(fov, 1.0f, 45.0f);
+  camera.zoom(-yoffset);
 }
 
 int main()
@@ -405,11 +447,10 @@ int main()
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera_position += dt * CAMERA_MOVEMENT_SPEED * camera_forward;
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera_position -= dt * CAMERA_MOVEMENT_SPEED * camera_forward;
-
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera_position += dt * CAMERA_MOVEMENT_SPEED * glm::normalize(glm::cross(camera_up, camera_forward));
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera_position -= dt * CAMERA_MOVEMENT_SPEED * glm::normalize(glm::cross(camera_up, camera_forward));
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.translate(0.0f,  dt);
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.translate(0.0f, -dt);
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.translate( dt, 0.0f);
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.translate(-dt, 0.0f);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -432,8 +473,8 @@ int main()
     glm::mat4 view       = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
 
-    view       = glm::lookAt(camera_position, camera_position + camera_forward, camera_up);
-    projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+    view       = camera.view();
+    projection = camera.projection();
 
     for(size_t i=0; i<sizeof cubePositions / sizeof cubePositions[0]; ++i)
     {
