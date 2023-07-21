@@ -1,7 +1,6 @@
 #version 330 core
 out vec4 outColor;
 
-in vec3 fragColor;
 in vec2 fragUV;
 
 uniform sampler2D texture0;
