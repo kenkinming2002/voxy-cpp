@@ -40,13 +40,13 @@ void Camera::rotate(float x, float y)
   pitch = std::clamp(pitch, -89.0f, 89.0f);
 }
 
-void Camera::translate(float x, float y)
+void Camera::translate(float x, float y, float z)
 {
   glm::vec3 offset = MOVEMENT_SPEED * (
       x * right() +
-      y * forward()
-      );
-  offset.y = 0.0f;
+      y * forward() +
+      z * up()
+  );
   position += offset;
 }
 

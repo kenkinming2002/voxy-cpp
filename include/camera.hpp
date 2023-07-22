@@ -21,7 +21,7 @@ struct Camera
   glm::mat4 projection() const;
 
   void rotate(float x, float y);
-  void translate(float x, float y);
+  void translate(float x, float y, float z);
   void zoom(float factor);
 };
 

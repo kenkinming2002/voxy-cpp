@@ -14,6 +14,7 @@
 #include <sstream>
 #include <utility>
 
+#include <iostream>
 #include <algorithm>
 #include <math.h>
 
@@ -67,7 +68,7 @@ static const Vertex vertices[] = {
   {{-0.5f,  0.5f, -0.5f,}, { 0.0f, 1.0f }, {1.0f, 1.0f, 1.0f}},
 };
 
-static const uint16_t indices[] = {
+static const uint32_t indices[] = {
   0, 1, 2, 3, 4, 5,
   6, 7, 8, 9, 10, 11,
   12, 13, 14, 15, 16, 17,
@@ -76,6 +77,79 @@ static const uint16_t indices[] = {
   30, 31, 32, 33, 34, 35,
 };
 
+struct Chunk
+{
+  static constexpr size_t WIDTH = 16;
+  uint16_t blocks[WIDTH][WIDTH][WIDTH];
+
+  Mesh generate_mesh()
+  {
+    std::vector<uint32_t> indices;
+    std::vector<Vertex>   vertices;
+    for(size_t z=0; z<WIDTH; ++z)
+      for(size_t y=0; y<WIDTH; ++y)
+        for(size_t x=0; x<WIDTH; ++x)
+          if(blocks[z][y][x])
+          {
+            static constexpr uint32_t cube_indices[] = {
+              0,  1,  2,  2,  1,  3,
+              6,  5,  4,  7,  5,  6,
+              10,  9,  8, 11, 9,  10,
+              12, 13, 14, 14, 13, 15,
+              16, 17, 18, 18, 17, 19,
+              22, 21, 20, 23, 21, 22,
+            };
+
+            static constexpr Vertex cube_vertices[] = {
+              {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 1.0f}},
+              {{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}},
+              {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 1.0f}},
+              {{1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 1.0f}},
+
+              {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+              {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+              {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+              {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+
+              {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+              {{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+              {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+              {{1.0f, 0.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+
+              {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+              {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+              {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+              {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+
+              {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+              {{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+              {{0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+              {{0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+
+              {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+              {{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+              {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+              {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+            };
+
+            uint32_t index_base = vertices.size();
+            for(uint32_t cube_index : cube_indices)
+            {
+              cube_index += index_base;
+              indices.push_back(cube_index);
+            }
+
+            glm::vec3 pos_base = glm::vec3(x, y, z);
+            for(Vertex cube_vertex : cube_vertices)
+            {
+              cube_vertex.pos += pos_base;
+              vertices.push_back(cube_vertex);
+            }
+          }
+
+    return Mesh(indices, vertices);
+  }
+};
 
 int main()
 {
@@ -88,33 +162,26 @@ int main()
 
   gl::init_debug();
 
-  glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-  };
-
   Mesh mesh(indices, vertices);
+
+  Chunk chunk;
+  for(size_t z=0; z<Chunk::WIDTH; ++z)
+    for(size_t y=0; y<Chunk::WIDTH; ++y)
+      for(size_t x=0; x<Chunk::WIDTH; ++x)
+        chunk.blocks[y][x][z] = (x+y+z+1) % 2;
+
+  Mesh chunk_mesh = chunk.generate_mesh();
+
   gl::Texture texture0 = gl::load_texture("assets/container.jpg");
   gl::Texture texture1 = gl::load_texture("assets/awesomeface.png");
   gl::Program program = gl::compile_program("assets/shader.vert", "assets/shader.frag");
 
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   Timer timer;
 
-  bool up    = false;
-  bool down  = false;
-  bool right = false;
-  bool left  = false;
   bool running = true;
   while(running) {
     float dt = timer.tick();
@@ -124,19 +191,7 @@ int main()
       switch(event.type) {
         case SDL_KEYDOWN:
           switch(event.key.keysym.sym) {
-            case SDLK_w: up     = true; break;
-            case SDLK_s: down   = true; break;
-            case SDLK_d: right  = true; break;
-            case SDLK_a: left   = true; break;
             case SDLK_ESCAPE: running = false; break;
-          }
-          break;
-        case SDL_KEYUP:
-          switch(event.key.keysym.sym) {
-            case SDLK_w: up     = false; break;
-            case SDLK_s: down   = false; break;
-            case SDLK_d: right  = false; break;
-            case SDLK_a: left   = false; break;
           }
           break;
         case SDL_MOUSEMOTION:
@@ -150,16 +205,20 @@ int main()
           break;
       }
 
-    glm::vec2 translation = glm::vec2(0.0f);
-    if(up)    translation.y += 1.0f;
-    if(down)  translation.y -= 1.0f;
-    if(right) translation.x += 1.0f;
-    if(left)  translation.x -= 1.0f;
+    glm::vec3 translation = glm::vec3(0.0f);
+
+    const Uint8 *keys = SDL_GetKeyboardState(nullptr);
+    if(keys[SDL_SCANCODE_SPACE])  translation.z += 1.0f;
+    if(keys[SDL_SCANCODE_LSHIFT]) translation.z -= 1.0f;
+    if(keys[SDL_SCANCODE_W])      translation.y += 1.0f;
+    if(keys[SDL_SCANCODE_S])      translation.y -= 1.0f;
+    if(keys[SDL_SCANCODE_D])      translation.x += 1.0f;
+    if(keys[SDL_SCANCODE_A])      translation.x -= 1.0f;
     if(glm::length(translation) != 0.0f)
     {
       translation = glm::normalize(translation);
       translation *= dt;
-      camera.translate(translation.x, translation.y);
+      camera.translate(translation.x, translation.y, translation.z);
     }
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -183,19 +242,10 @@ int main()
     view       = camera.view();
     projection = camera.projection();
 
-    for(size_t i=0; i<sizeof cubePositions / sizeof cubePositions[0]; ++i)
-    {
-      glm::mat4 model = glm::mat4(1.0f);
-      model = glm::translate(model, cubePositions[i]);
-      model = glm::rotate(model, glm::radians(i * 20.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-      if(i % 3 == 0)
-        model = glm::rotate(model, (float)SDL_GetTicks() / 1000.0f * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-      glm::mat4 transform = projection * view * model;
-      glUniformMatrix4fv(glGetUniformLocation(program, "transform"), 1, GL_FALSE, glm::value_ptr(transform));
-
-      mesh.draw();
-    }
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 transform = projection * view * model;
+    glUniformMatrix4fv(glGetUniformLocation(program, "transform"), 1, GL_FALSE, glm::value_ptr(transform));
+    chunk_mesh.draw();
 
     SDL_GL_SwapWindow(window);
   }

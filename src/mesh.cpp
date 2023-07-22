@@ -1,6 +1,6 @@
 #include <mesh.hpp>
 
-Mesh::Mesh(std::span<const uint16_t> indices, std::span<const Vertex> vertices)
+Mesh::Mesh(std::span<const uint32_t> indices, std::span<const Vertex> vertices)
 {
   glBindVertexArray(vao);
 
@@ -23,5 +23,5 @@ Mesh::Mesh(std::span<const uint16_t> indices, std::span<const Vertex> vertices)
 void Mesh::draw()
 {
   glBindVertexArray(vao);
-  glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, (void*)0);
+  glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)0);
 }
