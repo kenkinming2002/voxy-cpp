@@ -4,14 +4,16 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <vector>
+#include <random>
 
 #include <math.h>
 
 static glm::vec2 perlin_gradient(glm::ivec2 node)
 {
-  size_t n = std::hash<glm::ivec2>{}(node);
-  float  t = (float)n / (float)SIZE_MAX;
-  float  a = t * M_PI * 2.0;
+  std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
+  std::uniform_real_distribution<float> dist(0.0f, 2.0f * M_PI);
+
+  float a = dist(prng);
   return glm::vec2(std::cos(a), std::sin(a));
 }
 
