@@ -6,15 +6,15 @@
 
 glm::vec3 Camera::up() const
 {
-  return glm::vec3(0.0f, 1.0f,  0.0f);
+  return glm::vec3(0.0f, 0.0f,  1.0f);
 }
 
 glm::vec3 Camera::forward() const
 {
   glm::vec3 direction;
   direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  direction.y = sin(glm::radians(pitch));
-  direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+  direction.y = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+  direction.z = sin(glm::radians(pitch));
   return direction;
 }
 

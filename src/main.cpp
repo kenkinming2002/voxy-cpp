@@ -68,7 +68,7 @@ int main()
           }
           break;
         case SDL_MOUSEMOTION:
-          camera.rotate(event.motion.xrel, -event.motion.yrel);
+          camera.rotate(-event.motion.xrel, -event.motion.yrel);
           break;
         case SDL_MOUSEWHEEL:
           camera.zoom(-event.wheel.y);
