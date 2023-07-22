@@ -1,6 +1,6 @@
 #include <camera.hpp>
 #include <gl.hpp>
-#include <glfw.hpp>
+#include <sdl2.hpp>
 #include <mesh.hpp>
 #include <timer.hpp>
 
@@ -22,42 +22,6 @@ Camera camera;
 bool first = true;
 float last_xpos;
 float last_ypos;
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-  fprintf(stderr, "Callback\n");
-  glViewport(0, 0, width, height);
-}
-
-void cursor_enter_callback(GLFWwindow* window, int entered)
-{
-  fprintf(stderr, "entered = %d\n", entered);
-  first = entered;
-}
-
-void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
-{
-  fprintf(stderr, "pos = %f, %f\n", xpos, ypos);
-  if(first) {
-    first = false;
-    last_xpos = xpos;
-    last_ypos = ypos;
-    return;
-  }
-
-  float dx = xpos - last_xpos;
-  float dy = ypos - last_ypos;
-
-  last_xpos = xpos;
-  last_ypos = ypos;
-
-  camera.rotate(dx, -dy);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-  camera.zoom(-yoffset);
-}
 
 static const Vertex vertices[] = {
   {{-0.5f, -0.5f, -0.5f,}, { 0.0f, 0.0f,}, {1.0f, 1.0f, 1.0f}},
@@ -115,20 +79,14 @@ static const uint16_t indices[] = {
 
 int main()
 {
-  glfw::Context glfw_context;
-  glfw::Window window("voxy", 800, 600);
+  sdl2::Context sdl2_context;
+  sdl2::Window window("voxy", 800, 600);
+  SDL_SetRelativeMouseMode(SDL_TRUE);
 
-  glfwMakeContextCurrent(window);
-  if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  if(!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     throw std::runtime_error("Failed to load OpenGL functions with GLAD");
 
   gl::init_debug();
-
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorEnterCallback(window, cursor_enter_callback);
-  glfwSetCursorPosCallback  (window, cursor_pos_callback);
-  glfwSetScrollCallback     (window, scroll_callback);
 
   glm::vec3 cubePositions[] = {
     glm::vec3( 0.0f,  0.0f,  0.0f),
@@ -152,17 +110,57 @@ int main()
   glEnable(GL_DEPTH_TEST);
 
   Timer timer;
-  while(!glfwWindowShouldClose(window)) {
+
+  bool up    = false;
+  bool down  = false;
+  bool right = false;
+  bool left  = false;
+  bool running = true;
+  while(running) {
     float dt = timer.tick();
-    glfwPollEvents();
 
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-      glfwSetWindowShouldClose(window, GLFW_TRUE);
+    SDL_Event event;
+    while(SDL_PollEvent(&event))
+      switch(event.type) {
+        case SDL_KEYDOWN:
+          switch(event.key.keysym.sym) {
+            case SDLK_w: up     = true; break;
+            case SDLK_s: down   = true; break;
+            case SDLK_d: right  = true; break;
+            case SDLK_a: left   = true; break;
+            case SDLK_ESCAPE: running = false; break;
+          }
+          break;
+        case SDL_KEYUP:
+          switch(event.key.keysym.sym) {
+            case SDLK_w: up     = false; break;
+            case SDLK_s: down   = false; break;
+            case SDLK_d: right  = false; break;
+            case SDLK_a: left   = false; break;
+          }
+          break;
+        case SDL_MOUSEMOTION:
+          camera.rotate(event.motion.xrel, -event.motion.yrel);
+          break;
+        case SDL_MOUSEWHEEL:
+          camera.zoom(-event.wheel.y);
+          break;
+        case SDL_QUIT:
+          running = false;
+          break;
+      }
 
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.translate(0.0f,  dt);
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.translate(0.0f, -dt);
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.translate( dt, 0.0f);
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.translate(-dt, 0.0f);
+    glm::vec2 translation = glm::vec2(0.0f);
+    if(up)    translation.y += 1.0f;
+    if(down)  translation.y -= 1.0f;
+    if(right) translation.x += 1.0f;
+    if(left)  translation.x -= 1.0f;
+    if(glm::length(translation) != 0.0f)
+    {
+      translation = glm::normalize(translation);
+      translation *= dt;
+      camera.translate(translation.x, translation.y);
+    }
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -191,7 +189,7 @@ int main()
       model = glm::translate(model, cubePositions[i]);
       model = glm::rotate(model, glm::radians(i * 20.0f), glm::vec3(0.5f, 1.0f, 0.0f));
       if(i % 3 == 0)
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        model = glm::rotate(model, (float)SDL_GetTicks() / 1000.0f * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
       glm::mat4 transform = projection * view * model;
       glUniformMatrix4fv(glGetUniformLocation(program, "transform"), 1, GL_FALSE, glm::value_ptr(transform));
@@ -199,6 +197,6 @@ int main()
       mesh.draw();
     }
 
-    glfwSwapBuffers(window);
+    SDL_GL_SwapWindow(window);
   }
 }

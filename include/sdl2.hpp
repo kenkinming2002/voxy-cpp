@@ -1,9 +1,9 @@
 #ifndef GLFW_HPP
 #define GLFW_HPP
 
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
-namespace glfw
+namespace sdl2
 {
   struct Context
   {
@@ -16,8 +16,10 @@ namespace glfw
     Window(const char *name, unsigned width, unsigned height);
     ~Window();
 
-    operator GLFWwindow *() { return window; }
-    GLFWwindow *window;
+    operator SDL_Window *() { return window; }
+
+    SDL_Window    *window;
+    SDL_GLContext  context;
   };
 }
 

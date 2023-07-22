@@ -1,16 +1,14 @@
 #include <timer.hpp>
 
-#include <GLFW/glfw3.h>
-
 Timer::Timer()
 {
-  previous_time = glfwGetTime();
+  previous_tick = SDL_GetTicks();
 }
 
 float Timer::tick()
 {
-  float time = glfwGetTime();
-  float dt = time - previous_time;
-  previous_time = time;
+  Uint32 tick = SDL_GetTicks();
+  float dt = (float)(tick - previous_tick) / 1000.0f;
+  previous_tick = tick;
   return dt;
 }
