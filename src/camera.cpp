@@ -30,7 +30,7 @@ glm::mat4 Camera::view() const
 
 glm::mat4 Camera::projection() const
 {
-  return glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+  return glm::perspective(glm::radians(fov), aspect, 0.1f, 100.0f);
 }
 
 void Camera::rotate(float x, float y)

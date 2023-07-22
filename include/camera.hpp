@@ -9,6 +9,7 @@ struct Camera
   static constexpr float ROTATION_SPEED = 0.1f;
 
   glm::vec3 position = glm::vec3(-5.0f, -5.0f,  50.0f);
+  float aspect       = 1024.0f / 720.0f;
   float yaw          = 45.0f;
   float pitch        = -45.0f;
   float fov          = 45.0f;

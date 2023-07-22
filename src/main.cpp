@@ -29,7 +29,7 @@ float last_ypos;
 int main()
 {
   sdl2::Context sdl2_context;
-  sdl2::Window window("voxy", 800, 600);
+  sdl2::Window window("voxy", 1024, 720);
   SDL_SetRelativeMouseMode(SDL_TRUE);
 
   if(!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
