@@ -5,11 +5,13 @@
 
 #include <vector>
 #include <random>
+#include <iostream>
 
 #include <math.h>
 
 static glm::vec2 perlin_gradient(glm::ivec2 node)
 {
+  std::cout << "Hash:" << std::hash<glm::ivec2>{}(node) << '\n';
   std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
   std::uniform_real_distribution<float> dist(0.0f, 2.0f * M_PI);
 
@@ -49,6 +51,11 @@ static float perlin(glm::vec2 pos)
   return (noise + 1.0f) * 0.5f;
 }
 
+static float perlin(glm::vec2 pos, float frequency, float amplitude)
+{
+  return perlin(pos * frequency) * amplitude;
+}
+
 void World::generate_chunk(glm::ivec3 cpos)
 {
   Chunk chunk;
@@ -56,10 +63,14 @@ void World::generate_chunk(glm::ivec3 cpos)
   int heights[Chunk::WIDTH][Chunk::WIDTH];
   for(int cy=0; cy<Chunk::WIDTH; ++cy)
     for(int cx=0; cx<Chunk::WIDTH; ++cx)
-      heights[cy][cx] = perlin(glm::vec2(cpos.x, cpos.y) + glm::vec2(
-          (float)cx / (float)Chunk::WIDTH,
-          (float)cy / (float)Chunk::WIDTH
-      )) * Chunk::WIDTH;
+    {
+      glm::vec2 pos = (float)Chunk::WIDTH * glm::vec2(cpos.x, cpos.y) + glm::vec2(cx, cy);
+
+      heights[cy][cx] = 0.0f;
+      heights[cy][cx] += perlin(pos, 0.25f / Chunk::WIDTH, Chunk::WIDTH * 0.25f);
+      heights[cy][cx] += perlin(pos, 0.5f  / Chunk::WIDTH, Chunk::WIDTH * 0.5f);
+      heights[cy][cx] += perlin(pos, 1.0f  / Chunk::WIDTH, Chunk::WIDTH);
+    }
 
   for(int cz=0; cz<Chunk::WIDTH; ++cz)
     for(int cy=0; cy<Chunk::WIDTH; ++cy)
