@@ -39,13 +39,6 @@ int main()
 
   World world;
 
-  for(int y=-3; y<=3; ++y)
-    for(int x=-3; x<=3; ++x)
-    {
-      world.generate_chunk     (glm::ivec3(x, y, 0));
-      world.generate_chunk_mesh(glm::ivec3(x, y, 0));
-    }
-
   gl::Texture texture0 = gl::load_texture("assets/container.jpg");
   gl::Texture texture1 = gl::load_texture("assets/awesomeface.png");
   gl::Program program = gl::compile_program("assets/shader.vert", "assets/shader.frag");
@@ -94,6 +87,9 @@ int main()
       translation *= dt;
       camera.translate(translation.x, translation.y, translation.z);
     }
+
+    world.unload(camera.position, 300.0f);
+    world.load  (camera.position, 300.0f);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

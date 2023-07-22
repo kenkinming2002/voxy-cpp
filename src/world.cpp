@@ -54,19 +54,22 @@ static float perlin(glm::vec2 pos, float frequency, float amplitude)
   return perlin(pos * frequency) * amplitude;
 }
 
-void World::generate_chunk(glm::ivec3 cpos)
+void World::generate_chunk(glm::ivec2 cpos)
 {
+  if(chunks.contains(cpos))
+    return;
+
   int heights[Layer::WIDTH][Layer::WIDTH];
   for(int cy=0; cy<Layer::WIDTH; ++cy)
     for(int cx=0; cx<Layer::WIDTH; ++cx)
     {
-      glm::vec2 pos = (float)Layer::WIDTH * glm::vec2(cpos.x, cpos.y) + glm::vec2(cx, cy);
+      glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
 
       heights[cy][cx] = 0.0f;
       heights[cy][cx] += perlin(pos, 0.1f  / Layer::WIDTH, 1.0f);
       heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 5.0f);
       heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 10.0f);
-      heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 30.0f);
+      heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 20.0f);
     }
 
   int max_height = 0;
@@ -89,11 +92,14 @@ void World::generate_chunk(glm::ivec3 cpos)
     chunk.layers.push_back(layer);
   }
 
-  chunks.insert_or_assign(cpos, chunk);
+  chunks.insert({cpos, std::move(chunk)});
 }
 
-void World::generate_chunk_mesh(glm::ivec3 cpos)
+void World::generate_chunk_mesh(glm::ivec2 cpos)
 {
+  if(chunk_meshes.contains(cpos))
+    return;
+
   Chunk& chunk = chunks.at(cpos);
 
   std::vector<uint32_t> indices;
@@ -160,16 +166,54 @@ void World::generate_chunk_mesh(glm::ivec3 cpos)
         }
 
   Mesh mesh(indices, vertices);
-  chunk_meshes.insert_or_assign(cpos, std::move(mesh));
+  chunk_meshes.insert({cpos, std::move(mesh)});
+}
+
+void World::unload(glm::vec2 center, float radius)
+{
+  glm::ivec2 ccenter = center / (float)Layer::WIDTH;
+  int        cradius = radius / Layer::WIDTH;
+
+  for(auto it = chunk_meshes.begin(); it != chunk_meshes.end();)
+  {
+    const auto& [cpos, chunk_mesh] = *it;
+    glm::ivec2 coff = cpos - ccenter;
+    if(coff.x * coff.x + coff.y * coff.y > cradius)
+      it = chunk_meshes.erase(it);
+    else
+      ++it;
+  }
+}
+
+void World::load(glm::vec2 center, float radius)
+{
+  glm::ivec2 ccenter = center / (float)Layer::WIDTH;
+  int        cradius = radius / Layer::WIDTH;
+
+  for(int yoff = -cradius; yoff <= cradius; ++yoff)
+    for(int xoff = -cradius; xoff <= cradius; ++xoff)
+    {
+      glm::ivec2 coff(xoff, yoff);
+      if(xoff * xoff + yoff * yoff < cradius)
+      {
+        glm::ivec2 cpos = ccenter + coff;
+        generate_chunk(cpos);
+        generate_chunk_mesh(cpos);
+      }
+    }
 }
 
 void World::draw(const Camera& camera)
 {
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
-  for(const auto& [pos, chunk_mesh] : chunk_meshes)
+  for(const auto& [cpos, chunk_mesh] : chunk_meshes)
   {
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), (float)Layer::WIDTH * glm::vec3(pos));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(
+      Layer::WIDTH * cpos.x,
+      Layer::WIDTH * cpos.y,
+      0.0f
+    ));
     glm::mat4 transform = projection * view * model;
 
     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(transform));

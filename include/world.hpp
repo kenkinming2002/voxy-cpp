@@ -26,11 +26,14 @@ struct Chunk
 
 struct World
 {
-  std::unordered_map<glm::ivec3, Chunk> chunks;
-  std::unordered_map<glm::ivec3, Mesh>  chunk_meshes;
+  std::unordered_map<glm::ivec2, Chunk> chunks;
+  std::unordered_map<glm::ivec2, Mesh>  chunk_meshes;
 
-  void generate_chunk(glm::ivec3 cpos);
-  void generate_chunk_mesh(glm::ivec3 cpos);
+  void generate_chunk(glm::ivec2 cpos);
+  void generate_chunk_mesh(glm::ivec2 cpos);
+
+  void unload(glm::vec2 center, float radius);
+  void load(glm::vec2 center, float radius);
 
   void draw(const Camera& camera);
 };
