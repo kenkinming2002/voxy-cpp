@@ -1,7 +1,8 @@
+#include <camera.hpp>
 #include <gl.hpp>
 #include <glfw.hpp>
-#include <camera.hpp>
 #include <mesh.hpp>
+#include <timer.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -150,15 +151,10 @@ int main()
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_DEPTH_TEST);
 
-  float previous_time = glfwGetTime();
-  float current_time;
-
+  Timer timer;
   while(!glfwWindowShouldClose(window)) {
+    float dt = timer.tick();
     glfwPollEvents();
-
-    current_time = glfwGetTime();
-    float dt = current_time - previous_time;
-    previous_time = current_time;
 
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, GLFW_TRUE);
