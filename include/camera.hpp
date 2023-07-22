@@ -5,7 +5,7 @@
 
 struct Camera
 {
-  static constexpr float MOVEMENT_SPEED = 2.5f;
+  static constexpr float MOVEMENT_SPEED = 50.0f;
   static constexpr float ROTATION_SPEED = 0.1f;
 
   glm::vec3 position = glm::vec3(-5.0f, -5.0f,  50.0f);
