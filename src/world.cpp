@@ -8,6 +8,11 @@
 
 #include <math.h>
 
+World::World() :
+  texture0(gl::load_texture("assets/container.jpg")),
+  texture1(gl::load_texture("assets/awesomeface.png")),
+  program(gl::compile_program("assets/shader.vert", "assets/shader.frag")) {}
+
 static glm::vec2 perlin_gradient(glm::ivec2 node)
 {
   std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
@@ -203,8 +208,56 @@ void World::load(glm::vec2 center, float radius)
     }
 }
 
-void World::draw(const Camera& camera)
+void World::handle_event(SDL_Event event)
 {
+  switch(event.type) {
+    case SDL_MOUSEMOTION:
+      camera.rotate(-event.motion.xrel, -event.motion.yrel);
+      break;
+    case SDL_MOUSEWHEEL:
+      camera.zoom(-event.wheel.y);
+      break;
+  }
+}
+
+void World::update(float dt)
+{
+  glm::vec3 translation = glm::vec3(0.0f);
+
+  const Uint8 *keys = SDL_GetKeyboardState(nullptr);
+  if(keys[SDL_SCANCODE_SPACE])  translation.z += 1.0f;
+  if(keys[SDL_SCANCODE_LSHIFT]) translation.z -= 1.0f;
+  if(keys[SDL_SCANCODE_W])      translation.y += 1.0f;
+  if(keys[SDL_SCANCODE_S])      translation.y -= 1.0f;
+  if(keys[SDL_SCANCODE_D])      translation.x += 1.0f;
+  if(keys[SDL_SCANCODE_A])      translation.x -= 1.0f;
+  if(glm::length(translation) != 0.0f)
+  {
+    translation = glm::normalize(translation);
+    translation *= dt;
+    camera.translate(translation.x, translation.y, translation.z);
+  }
+
+  unload(camera.position, 300.0f);
+  load  (camera.position, 300.0f);
+}
+
+void World::render()
+{
+  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glUseProgram(program);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture0);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, texture1);
+
+  glUniform1i(glGetUniformLocation(program, "texture0"), 0);
+  glUniform1i(glGetUniformLocation(program, "texture1"), 1);
+
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
   for(const auto& [cpos, chunk_mesh] : chunk_meshes)
