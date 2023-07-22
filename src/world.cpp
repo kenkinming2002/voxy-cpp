@@ -5,25 +5,82 @@
 
 #include <vector>
 
-void World::generate_chunk(glm::ivec3 pos)
+#include <math.h>
+
+static glm::vec2 perlin_gradient(glm::ivec2 node)
 {
-  Chunk chunk;
-  for(size_t z=0; z<Chunk::WIDTH; ++z)
-    for(size_t y=0; y<Chunk::WIDTH; ++y)
-      for(size_t x=0; x<Chunk::WIDTH; ++x)
-        chunk.blocks[z][y][x] = (x+y+z+1) % 2;
-  chunks.insert_or_assign(pos, chunk);
+  size_t n = std::hash<glm::ivec2>{}(node);
+  float  t = (float)n / (float)SIZE_MAX;
+  float  a = t * M_PI * 2.0;
+  return glm::vec2(std::cos(a), std::sin(a));
 }
 
-void World::generate_chunk_mesh(glm::ivec3 pos)
+static float interpolate(float a0, float a1, float t)
 {
-  Chunk& chunk = chunks.at(pos);
+  float factor = 6  * std::pow(t, 5)
+               - 15 * std::pow(t, 4)
+               + 10 * std::pow(t, 3);
+  return a0 + (a1 - a0) * factor;
+}
+
+static float perlin(glm::vec2 pos)
+{
+  float influences[2][2];
+  for(int cy=0; cy<2; ++cy)
+      for(int cx=0; cx<2; ++cx)
+      {
+        glm::ivec2 anchor = glm::floor(pos);
+        glm::ivec2 corner = anchor + glm::ivec2(cx, cy);
+
+        glm::vec2 gradient = perlin_gradient(corner);
+        glm::vec2 offset   = pos - glm::vec2(corner);
+
+        influences[cy][cx] = glm::dot(gradient, offset);
+      }
+
+  glm::vec2 factor = glm::fract(pos);
+  float noise = interpolate(
+    interpolate(influences[0][0], influences[0][1], factor.x),
+    interpolate(influences[1][0], influences[1][1], factor.x),
+    factor.y
+  );
+  return (noise + 1.0f) * 0.5f;
+}
+
+void World::generate_chunk(glm::ivec3 cpos)
+{
+  Chunk chunk;
+
+  int heights[Chunk::WIDTH][Chunk::WIDTH];
+  for(int cy=0; cy<Chunk::WIDTH; ++cy)
+    for(int cx=0; cx<Chunk::WIDTH; ++cx)
+      heights[cy][cx] = perlin(glm::vec2(cpos.x, cpos.y) + glm::vec2(
+          (float)cx / (float)Chunk::WIDTH,
+          (float)cy / (float)Chunk::WIDTH
+      )) * Chunk::WIDTH;
+
+  for(int cz=0; cz<Chunk::WIDTH; ++cz)
+    for(int cy=0; cy<Chunk::WIDTH; ++cy)
+      for(int cx=0; cx<Chunk::WIDTH; ++cx)
+      {
+        if(cz <= heights[cx][cy])
+          chunk.blocks[cz][cy][cx] = 1;
+        else
+          chunk.blocks[cz][cy][cx] = 0;
+      }
+
+  chunks.insert_or_assign(cpos, chunk);
+}
+
+void World::generate_chunk_mesh(glm::ivec3 cpos)
+{
+  Chunk& chunk = chunks.at(cpos);
 
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
-  for(size_t z=0; z<Chunk::WIDTH; ++z)
-    for(size_t y=0; y<Chunk::WIDTH; ++y)
-      for(size_t x=0; x<Chunk::WIDTH; ++x)
+  for(int z=0; z<Chunk::WIDTH; ++z)
+    for(int y=0; y<Chunk::WIDTH; ++y)
+      for(int x=0; x<Chunk::WIDTH; ++x)
         if(chunk.blocks[z][y][x])
         {
           static constexpr uint32_t cube_indices[] = {
@@ -83,7 +140,7 @@ void World::generate_chunk_mesh(glm::ivec3 pos)
         }
 
   Mesh mesh(indices, vertices);
-  chunk_meshes.insert_or_assign(pos, std::move(mesh));
+  chunk_meshes.insert_or_assign(cpos, std::move(mesh));
 }
 
 void World::draw(const Camera& camera)

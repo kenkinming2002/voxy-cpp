@@ -13,6 +13,21 @@
 #include <stdint.h>
 
 template<>
+struct std::hash<glm::ivec2>
+{
+  std::size_t operator()(const glm::ivec2& v) const noexcept
+  {
+    std::size_t hash = 0b0111011101010101011011101111011001000011101010110101001111110010;
+    hash ^= v.x *      0b1010111011010110101010110101010101101010101010101010010101010101;
+    hash ^= v.y *      0b1010111010101110101010101101010101010001010111010101101101010100;
+    hash = (hash * 17) ^ (hash * 31) ^ (hash * 71);
+    hash = hash ^ (hash << 21);
+    return hash;
+  }
+};
+
+
+template<>
 struct std::hash<glm::ivec3>
 {
   std::size_t operator()(const glm::ivec3& v) const noexcept
@@ -27,7 +42,7 @@ struct std::hash<glm::ivec3>
 
 struct Chunk
 {
-  static constexpr size_t WIDTH = 16;
+  static constexpr int WIDTH = 16;
 
   typedef uint16_t Layer[WIDTH][WIDTH];
   uint16_t blocks[WIDTH][WIDTH][WIDTH];
@@ -38,8 +53,8 @@ struct World
   std::unordered_map<glm::ivec3, Chunk> chunks;
   std::unordered_map<glm::ivec3, Mesh>  chunk_meshes;
 
-  void generate_chunk(glm::ivec3 pos);
-  void generate_chunk_mesh(glm::ivec3 pos);
+  void generate_chunk(glm::ivec3 cpos);
+  void generate_chunk_mesh(glm::ivec3 cpos);
 
   void draw(const Camera& camera);
 };

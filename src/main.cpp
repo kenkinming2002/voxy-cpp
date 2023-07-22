@@ -39,11 +39,12 @@ int main()
 
   World world;
 
-  world.generate_chunk     (glm::ivec3(0, 0, 0));
-  world.generate_chunk_mesh(glm::ivec3(0, 0, 0));
-
-  world.generate_chunk     (glm::ivec3(1, 1, 1));
-  world.generate_chunk_mesh(glm::ivec3(1, 1, 1));
+  for(int y=-3; y<=3; ++y)
+    for(int x=-3; x<=3; ++x)
+    {
+      world.generate_chunk     (glm::ivec3(x, y, 0));
+      world.generate_chunk_mesh(glm::ivec3(x, y, 0));
+    }
 
   gl::Texture texture0 = gl::load_texture("assets/container.jpg");
   gl::Texture texture1 = gl::load_texture("assets/awesomeface.png");
