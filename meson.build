@@ -6,7 +6,8 @@ voxy_exe = executable('voxy', [
     'src/main.cpp',
     'src/glfw.cpp',
     'src/gl.cpp',
-    'src/glad.c'
+    'src/camera.cpp',
+    'src/glad.c',
   ],
   include_directories : 'include',
   dependencies : [glfw_dep, glm_dep]

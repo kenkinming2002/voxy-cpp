@@ -1,5 +1,6 @@
 #include <gl.hpp>
 #include <glfw.hpp>
+#include <camera.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,75 +15,11 @@
 #include <algorithm>
 #include <math.h>
 
-struct Camera
-{
-  glm::vec3 position = glm::vec3(0.0f, 0.0f,  3.0f);
-  float yaw          = -90.0f;
-  float pitch        = 0.0f;
-  float fov          = 45.0f;
-
-  glm::vec3 up() const
-  {
-    return glm::vec3(0.0f, 1.0f,  0.0f);
-  }
-
-  glm::vec3 forward() const
-  {
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    return direction;
-  }
-
-  glm::vec3 right() const
-  {
-    return glm::normalize(glm::cross(forward(), up()));
-  }
-
-  glm::mat4 view() const
-  {
-    return glm::lookAt(position, position + forward(), up());
-  }
-
-  glm::mat4 projection() const
-  {
-    return glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-  }
-
-  static constexpr float MOVEMENT_SPEED = 2.5f;
-  static constexpr float ROTATION_SPEED = 0.1f;
-
-  void rotate(float x, float y)
-  {
-    yaw   += x * ROTATION_SPEED;
-    pitch += y * ROTATION_SPEED;
-    pitch = std::clamp(pitch, -89.0f, 89.0f);
-  }
-
-  void translate(float x, float y)
-  {
-    glm::vec3 offset = MOVEMENT_SPEED * (
-        x * right() +
-        y * forward()
-    );
-    offset.y = 0.0f;
-    position += offset;
-  }
-
-  void zoom(float factor)
-  {
-    fov += factor;
-    fov = std::clamp(fov, 1.0f, 45.0f);
-  }
-};
-
 Camera camera;
 
 bool first = true;
 float last_xpos;
 float last_ypos;
-
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
