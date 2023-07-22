@@ -16,7 +16,7 @@ namespace gl
     type& operator=(const type& other) = delete;                                      \
     type(type&& other) : handle(0) { std::swap(handle, other.handle); };              \
     type& operator=(type&& other) { std::swap(handle, other.handle); return *this; }; \
-    operator GLuint() { return handle; }                                              \
+    operator GLuint() const { return handle; }                                        \
     GLuint handle;                                                                    \
   }
 

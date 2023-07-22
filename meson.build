@@ -9,6 +9,7 @@ voxy_exe = executable('voxy', [
     'src/sdl2.cpp',
     'src/main.cpp',
     'src/mesh.cpp',
+    'src/world.cpp',
     'src/timer.cpp',
   ],
   include_directories : 'include',

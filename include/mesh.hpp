@@ -22,7 +22,7 @@ struct Mesh
   size_t count;
 
   Mesh(std::span<const uint32_t> indices, std::span<const Vertex> vertices);
-  void draw();
+  void draw() const;
 };
 
 

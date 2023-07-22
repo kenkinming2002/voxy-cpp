@@ -20,7 +20,7 @@ Mesh::Mesh(std::span<const uint32_t> indices, std::span<const Vertex> vertices)
   glEnableVertexAttribArray(2);
 }
 
-void Mesh::draw()
+void Mesh::draw() const
 {
   glBindVertexArray(vao);
   glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)0);
