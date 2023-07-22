@@ -13,12 +13,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct Chunk
+struct Layer
 {
   static constexpr int WIDTH = 16;
+  uint16_t blocks[WIDTH][WIDTH];
+};
 
-  typedef uint16_t Layer[WIDTH][WIDTH];
-  uint16_t blocks[WIDTH][WIDTH][WIDTH];
+struct Chunk
+{
+  std::vector<Layer> layers;
 };
 
 struct World

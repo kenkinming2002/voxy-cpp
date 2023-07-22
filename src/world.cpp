@@ -5,13 +5,11 @@
 
 #include <vector>
 #include <random>
-#include <iostream>
 
 #include <math.h>
 
 static glm::vec2 perlin_gradient(glm::ivec2 node)
 {
-  std::cout << "Hash:" << std::hash<glm::ivec2>{}(node) << '\n';
   std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
   std::uniform_real_distribution<float> dist(0.0f, 2.0f * M_PI);
 
@@ -58,29 +56,38 @@ static float perlin(glm::vec2 pos, float frequency, float amplitude)
 
 void World::generate_chunk(glm::ivec3 cpos)
 {
-  Chunk chunk;
-
-  int heights[Chunk::WIDTH][Chunk::WIDTH];
-  for(int cy=0; cy<Chunk::WIDTH; ++cy)
-    for(int cx=0; cx<Chunk::WIDTH; ++cx)
+  int heights[Layer::WIDTH][Layer::WIDTH];
+  for(int cy=0; cy<Layer::WIDTH; ++cy)
+    for(int cx=0; cx<Layer::WIDTH; ++cx)
     {
-      glm::vec2 pos = (float)Chunk::WIDTH * glm::vec2(cpos.x, cpos.y) + glm::vec2(cx, cy);
+      glm::vec2 pos = (float)Layer::WIDTH * glm::vec2(cpos.x, cpos.y) + glm::vec2(cx, cy);
 
       heights[cy][cx] = 0.0f;
-      heights[cy][cx] += perlin(pos, 0.25f / Chunk::WIDTH, Chunk::WIDTH * 0.25f);
-      heights[cy][cx] += perlin(pos, 0.5f  / Chunk::WIDTH, Chunk::WIDTH * 0.5f);
-      heights[cy][cx] += perlin(pos, 1.0f  / Chunk::WIDTH, Chunk::WIDTH);
+      heights[cy][cx] += perlin(pos, 0.1f  / Layer::WIDTH, 1.0f);
+      heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 5.0f);
+      heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 10.0f);
+      heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 30.0f);
     }
 
-  for(int cz=0; cz<Chunk::WIDTH; ++cz)
-    for(int cy=0; cy<Chunk::WIDTH; ++cy)
-      for(int cx=0; cx<Chunk::WIDTH; ++cx)
-      {
+  int max_height = 0;
+  for(int cy=0; cy<Layer::WIDTH; ++cy)
+    for(int cx=0; cx<Layer::WIDTH; ++cx)
+      if(max_height < heights[cy][cx])
+        max_height = heights[cy][cx];
+
+  Chunk chunk;
+  for(int cz=0; cz<max_height; ++cz)
+  {
+    Layer layer;
+    for(int cy=0; cy<Layer::WIDTH; ++cy)
+      for(int cx=0; cx<Layer::WIDTH; ++cx)
         if(cz <= heights[cx][cy])
-          chunk.blocks[cz][cy][cx] = 1;
+          layer.blocks[cy][cx] = 1;
         else
-          chunk.blocks[cz][cy][cx] = 0;
-      }
+          layer.blocks[cy][cx] = 0;
+
+    chunk.layers.push_back(layer);
+  }
 
   chunks.insert_or_assign(cpos, chunk);
 }
@@ -91,10 +98,10 @@ void World::generate_chunk_mesh(glm::ivec3 cpos)
 
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
-  for(int z=0; z<Chunk::WIDTH; ++z)
-    for(int y=0; y<Chunk::WIDTH; ++y)
-      for(int x=0; x<Chunk::WIDTH; ++x)
-        if(chunk.blocks[z][y][x])
+  for(int z=0; z<chunk.layers.size(); ++z)
+    for(int y=0; y<Layer::WIDTH; ++y)
+      for(int x=0; x<Layer::WIDTH; ++x)
+        if(chunk.layers[z].blocks[y][x])
         {
           static constexpr uint32_t cube_indices[] = {
             0,  1,  2,  2,  1,  3,
@@ -162,7 +169,7 @@ void World::draw(const Camera& camera)
   glm::mat4 projection = camera.projection();
   for(const auto& [pos, chunk_mesh] : chunk_meshes)
   {
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), (float)Chunk::WIDTH * glm::vec3(pos));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), (float)Layer::WIDTH * glm::vec3(pos));
     glm::mat4 transform = projection * view * model;
 
     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(transform));
