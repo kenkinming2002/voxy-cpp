@@ -2,6 +2,9 @@
 
 #include <perlin.hpp>
 
+#include <optional>
+#include <iostream>
+
 static std::vector<Layer> generate_layers(glm::ivec2 cpos)
 {
   int stone_heights[Layer::WIDTH][Layer::WIDTH];
@@ -72,6 +75,8 @@ struct Face
   };
   glm::vec3 positions[VERTEX_COUNT];
   glm::vec3 normal;
+
+  glm::ivec3 dir;
 };
 
 static constexpr Face FACE_NEGATIVE_X = {
@@ -82,6 +87,7 @@ static constexpr Face FACE_NEGATIVE_X = {
     {-0.5f, -0.5f,  0.5f},
   },
   .normal = {-1.0f, 0.0f, 0.0f},
+  .dir = {-1, 0, 0},
 };
 
 static constexpr Face FACE_POSITIVE_X = {
@@ -92,6 +98,7 @@ static constexpr Face FACE_POSITIVE_X = {
     {0.5f,  0.5f,  0.5f},
   },
   .normal = {1.0f, 0.0f, 0.0f},
+  .dir = {1, 0, 0},
 };
 
 static constexpr Face FACE_NEGATIVE_Y = {
@@ -102,16 +109,18 @@ static constexpr Face FACE_NEGATIVE_Y = {
     { 0.5f, -0.5f,  0.5f},
   },
   .normal = {0.0f, -1.0f, 0.0f},
+  .dir = {0, -1, 0},
 };
 
 static constexpr Face FACE_POSITIVE_Y = {
   .positions = {
-    { 0.5f, -0.5f, -0.5f},
-    {-0.5f, -0.5f, -0.5f},
-    { 0.5f, -0.5f,  0.5f},
-    {-0.5f, -0.5f,  0.5f},
+    { 0.5f, 0.5f, -0.5f},
+    {-0.5f, 0.5f, -0.5f},
+    { 0.5f, 0.5f,  0.5f},
+    {-0.5f, 0.5f,  0.5f},
   },
   .normal = {0.0f, 1.0f, 0.0f},
+  .dir = {0, 1, 0},
 };
 
 static constexpr Face FACE_NEGATIVE_Z = {
@@ -122,6 +131,7 @@ static constexpr Face FACE_NEGATIVE_Z = {
     { 0.5f, -0.5f, -0.5f},
   },
   .normal = {0.0f, 0.0f, -1.0f},
+  .dir = {0, 0, -1},
 };
 
 static constexpr Face FACE_POSITIVE_Z = {
@@ -132,6 +142,16 @@ static constexpr Face FACE_POSITIVE_Z = {
     { 0.5f,  0.5f, 0.5f},
   },
   .normal = {0.0f, 0.0f, 1.0f},
+  .dir = {0, 0, 1},
+};
+
+static constexpr Face FACES[] = {
+  FACE_NEGATIVE_X,
+  FACE_POSITIVE_X,
+  FACE_NEGATIVE_Y,
+  FACE_POSITIVE_Y,
+  FACE_NEGATIVE_Z,
+  FACE_POSITIVE_Z,
 };
 
 struct Vertex
@@ -155,6 +175,14 @@ static void add_face(std::vector<uint32_t>& indices, std::vector<Vertex>& vertic
     });
 }
 
+static std::optional<Block> layers_get_block(const std::vector<Layer>& layers, glm::ivec3 position)
+{
+  if(position.x < 0 || position.x >= Layer::WIDTH)  return std::nullopt;
+  if(position.y < 0 || position.y >= Layer::WIDTH)  return std::nullopt;
+  if(position.y < 0 || position.z >= layers.size()) return Block{ .presence = false };
+  return layers[position.z].blocks[position.y][position.x];
+}
+
 static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& layers)
 {
   std::vector<uint32_t> indices;
@@ -164,19 +192,16 @@ static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& laye
       for(int x=0; x<Layer::WIDTH; ++x)
       {
         const Block& block = layers[z].blocks[y][x];
+        glm::ivec3 position = {x, y, z};
         if(block.presence)
-        {
-          glm::vec3 position(x, y, z);
+          for(Face face : FACES)
+          {
+            auto adjacent_block = layers_get_block(layers, position + face.dir);
+            if(adjacent_block && adjacent_block->presence)
+              continue; // Culling
 
-          add_face(indices, vertices, FACE_NEGATIVE_X, position, block.color);
-          add_face(indices, vertices, FACE_POSITIVE_X, position, block.color);
-
-          add_face(indices, vertices, FACE_NEGATIVE_Y, position, block.color);
-          add_face(indices, vertices, FACE_POSITIVE_Y, position, block.color);
-
-          add_face(indices, vertices, FACE_NEGATIVE_Z, position, block.color);
-          add_face(indices, vertices, FACE_POSITIVE_Z, position, block.color);
-        }
+            add_face(indices, vertices, face, position, block.color);
+          }
       }
 
   return Mesh(indices, VertexLayout{
