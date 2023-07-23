@@ -7,14 +7,14 @@ out vec3 fragPos;
 out vec3 fragNormal;
 out vec3 fragColor;
 
-layout (location = 0) uniform mat4 model;
-layout (location = 1) uniform mat4 view;
-layout (location = 2) uniform mat4 projection;
+uniform mat4 model;
+uniform mat4 normal;
+uniform mat4 MVP;
 
 void main()
 {
-  gl_Position = projection * view * model * vec4(aPos, 1.0);
-  fragPos    = vec3(model * vec4(aPos, 1.0));             // World Space
-  fragNormal = mat3(transpose(inverse(model))) * aNormal; // World Space
+  gl_Position = MVP * vec4(aPos, 1.0);
+  fragPos    = vec3(model  * vec4(aPos,    1.0));
+  fragNormal = vec3(normal * vec4(aNormal, 0.0));
   fragColor  = aColor;
 }

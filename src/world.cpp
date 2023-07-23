@@ -208,23 +208,22 @@ void World::render()
 
   glUseProgram(program);
 
-  glUniform3f(3, 1.0f,  1.0f, 1.0f); // Light Color
-  glUniform3f(4, 0.0f, 0.0f, 50.0f); // Light Pos
+  glUniform3f(glGetUniformLocation(program, "lightColor"), 1.0f,  1.0f, 1.0f);
+  glUniform3f(glGetUniformLocation(program, "lightPos"),   0.0f, 0.0f, 50.0f);
 
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
 
-  glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(view));
-  glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(projection));
-
   for(const auto& [cpos, chunk_mesh] : chunk_meshes)
   {
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(
-      Layer::WIDTH * cpos.x,
-      Layer::WIDTH * cpos.y,
-      0.0f
-    ));
-    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(model));
+    glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Layer::WIDTH * cpos.x, Layer::WIDTH * cpos.y, 0.0f));
+    glm::mat4 normal = glm::transpose(glm::inverse(model));
+    glm::mat4 MVP    = projection * view * model;
+
+    glUniformMatrix4fv(glGetUniformLocation(program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(glGetUniformLocation(program, "model"),  1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
+
     chunk_mesh.draw();
   }
 }

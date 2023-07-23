@@ -5,8 +5,8 @@ in vec3 fragPos;
 in vec3 fragNormal;
 in vec3 fragColor;
 
-layout (location = 3) uniform vec3 lightColor;
-layout (location = 4) uniform vec3 lightPos;
+uniform vec3 lightColor;
+uniform vec3 lightPos;
 
 void main()
 {
