@@ -107,118 +107,17 @@ World::World() :
   }
 {}
 
-void World::generate_chunk(glm::ivec2 cpos)
-{
-  if(chunks.contains(cpos))
-    return;
-
-  int stone_heights[Layer::WIDTH][Layer::WIDTH];
-  for(int cy=0; cy<Layer::WIDTH; ++cy)
-    for(int cx=0; cx<Layer::WIDTH; ++cx)
-    {
-      glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
-      stone_heights[cy][cx] = 0.0f;
-      stone_heights[cy][cx] += perlin(pos, 0.1f  / Layer::WIDTH, 1.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 5.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 10.0f);
-      stone_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 20.0f);
-    }
-
-  int grass_heights[Layer::WIDTH][Layer::WIDTH];
-  for(int cy=0; cy<Layer::WIDTH; ++cy)
-    for(int cx=0; cx<Layer::WIDTH; ++cx)
-    {
-      glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
-      grass_heights[cy][cx] = 0.0f;
-      grass_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 2.0f);
-      grass_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 5.0f);
-    }
-
-  int max_height = 0;
-  for(int cy=0; cy<Layer::WIDTH; ++cy)
-    for(int cx=0; cx<Layer::WIDTH; ++cx)
-      if(max_height < stone_heights[cy][cx]+grass_heights[cy][cx])
-        max_height = stone_heights[cy][cx]+grass_heights[cy][cx];
-
-  Chunk chunk;
-  for(int cz=0; cz<max_height; ++cz)
-  {
-    Layer layer;
-    for(int cy=0; cy<Layer::WIDTH; ++cy)
-      for(int cx=0; cx<Layer::WIDTH; ++cx)
-        if(cz <= stone_heights[cy][cx])
-          layer.blocks[cy][cx] = Block {
-            .presence = true,
-            .color    = glm::vec3(0.2, 1.0, 0.2),
-          };
-        else if(cz <= stone_heights[cy][cx] + grass_heights[cy][cx])
-          layer.blocks[cy][cx] = Block {
-            .presence = true,
-            .color    = glm::vec3(0.7, 0.7, 0.7),
-          };
-        else
-          layer.blocks[cy][cx] = Block {
-            .presence = false,
-          };
-
-    chunk.layers.push_back(layer);
-  }
-
-  chunks.insert({cpos, std::move(chunk)});
-}
-
-void World::generate_chunk_mesh(glm::ivec2 cpos)
-{
-  if(chunk_meshes.contains(cpos))
-    return;
-
-  Chunk& chunk = chunks.at(cpos);
-
-  std::vector<uint32_t> indices;
-  std::vector<Vertex>   vertices;
-  for(int z=0; z<chunk.layers.size(); ++z)
-    for(int y=0; y<Layer::WIDTH; ++y)
-      for(int x=0; x<Layer::WIDTH; ++x)
-      {
-        const Block& block = chunk.layers[z].blocks[y][x];
-        if(block.presence)
-        {
-          uint32_t index_base = vertices.size();
-          for(uint32_t cube_index : CUBE_INDICES)
-            indices.push_back(index_base + cube_index);
-
-          glm::vec3 position_base = glm::vec3(x, y, z);
-          for(auto [cube_position, cube_normal] : CUBE_VERTICES)
-            vertices.push_back(Vertex{
-                .pos    = position_base + cube_position,
-                .normal = cube_normal,
-                .color  = block.color,
-            });
-        }
-      }
-
-  Mesh mesh(indices, VertexLayout{
-    .stride = sizeof(Vertex),
-    .attributes = {
-      { .offset = offsetof(Vertex, pos),    .count = 3, },
-      { .offset = offsetof(Vertex, normal), .count = 3, },
-      { .offset = offsetof(Vertex, color),  .count = 3, },
-    },
-  }, std::as_bytes(std::span(vertices)));
-  chunk_meshes.insert({cpos, std::move(mesh)});
-}
-
 void World::unload(glm::vec2 center, float radius)
 {
   glm::ivec2 ccenter = center / (float)Layer::WIDTH;
   int        cradius = radius / Layer::WIDTH;
 
-  for(auto it = chunk_meshes.begin(); it != chunk_meshes.end();)
+  for(auto it = chunks.begin(); it != chunks.end();)
   {
     const auto& [cpos, chunk_mesh] = *it;
     glm::ivec2 coff = cpos - ccenter;
     if(coff.x * coff.x + coff.y * coff.y > cradius)
-      it = chunk_meshes.erase(it);
+      it = chunks.erase(it);
     else
       ++it;
   }
@@ -236,8 +135,11 @@ void World::load(glm::vec2 center, float radius)
       if(xoff * xoff + yoff * yoff < cradius)
       {
         glm::ivec2 cpos = ccenter + coff;
-        generate_chunk(cpos);
-        generate_chunk_mesh(cpos);
+        if(!chunks.contains(cpos))
+          chunks.emplace(std::piecewise_construct,
+            std::forward_as_tuple(cpos),
+            std::forward_as_tuple(cpos)
+          );
       }
     }
 }
@@ -309,7 +211,7 @@ void World::render()
     glUniform3fv(glGetUniformLocation(chunk_program, "material.specular"),  1, glm::value_ptr(chunk_material.specular));
     glUniform1f (glGetUniformLocation(chunk_program, "material.shininess"), chunk_material.shininess);
 
-    for(const auto& [cpos, chunk_mesh] : chunk_meshes)
+    for(const auto& [cpos, chunk] : chunks)
     {
       glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Layer::WIDTH * cpos.x, Layer::WIDTH * cpos.y, 0.0f));
       glm::mat4 normal = glm::transpose(glm::inverse(model));
@@ -319,7 +221,7 @@ void World::render()
       glUniformMatrix4fv(glGetUniformLocation(chunk_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
       glUniformMatrix4fv(glGetUniformLocation(chunk_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
 
-      chunk_mesh.draw();
+      chunk.layers_mesh.draw();
     }
   }
 }

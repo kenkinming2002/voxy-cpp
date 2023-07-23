@@ -4,6 +4,7 @@
 #include <mesh.hpp>
 #include <camera.hpp>
 #include <timer.hpp>
+#include <chunk.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -30,23 +31,6 @@ struct Material
   float     shininess;
 };
 
-struct Block
-{
-  bool      presence;
-  glm::vec3 color;
-};
-
-struct Layer
-{
-  static constexpr int WIDTH = 16;
-  Block blocks[WIDTH][WIDTH];
-};
-
-struct Chunk
-{
-  std::vector<Layer> layers;
-};
-
 struct World
 {
   Camera camera;
@@ -59,14 +43,9 @@ struct World
 
   Material                              chunk_material;
   std::unordered_map<glm::ivec2, Chunk> chunks;
-  std::unordered_map<glm::ivec2, Mesh>  chunk_meshes;
-
 
   // Chunk generation
   World();
-
-  void generate_chunk(glm::ivec2 cpos);
-  void generate_chunk_mesh(glm::ivec2 cpos);
 
   void unload(glm::vec2 center, float radius);
   void load(glm::vec2 center, float radius);

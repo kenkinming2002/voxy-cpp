@@ -12,6 +12,7 @@ voxy_exe = executable('voxy', [
     'src/sdl2.cpp',
     'src/timer.cpp',
     'src/world.cpp',
+    'src/chunk.cpp',
   ],
   include_directories : 'include',
   dependencies : [sdl2_dep, glm_dep]
