@@ -4,6 +4,13 @@
 
 #include <random>
 
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
 static float interpolate(float a0, float a1, float t)
 {
   float factor = 6  * std::pow(t, 5)
@@ -12,19 +19,22 @@ static float interpolate(float a0, float a1, float t)
   return a0 + (a1 - a0) * factor;
 }
 
-static glm::vec2 perlin_gradient(glm::ivec2 node)
+static glm::vec2 perlin_gradient(size_t seed, glm::ivec2 node)
 {
-  std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
+  hash_combine(seed, node);
+
+  std::mt19937                          prng(seed);
   std::uniform_real_distribution<float> dist(0.0f, 2.0f * M_PI);
 
   float a = dist(prng);
   return glm::vec2(std::cos(a), std::sin(a));
 }
 
-static glm::vec3 perlin_gradient(glm::ivec3 node)
+static glm::vec3 perlin_gradient(size_t seed, glm::ivec3 node)
 {
-  std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
+  hash_combine(seed, node);
 
+  std::mt19937                          prng(seed);
   std::uniform_real_distribution<float> dist_z(-1.0, 1.0);
   std::uniform_real_distribution<float> dist_a(0.0f, 2.0f * M_PI);
 
@@ -34,7 +44,7 @@ static glm::vec3 perlin_gradient(glm::ivec3 node)
   return glm::vec3(r*std::cos(a), r*std::sin(a), z);
 }
 
-static float perlin(glm::vec2 pos)
+static float perlin(size_t seed, glm::vec2 pos)
 {
   float influences[2][2];
   for(int cy=0; cy<2; ++cy)
@@ -43,7 +53,7 @@ static float perlin(glm::vec2 pos)
         glm::ivec2 anchor = glm::floor(pos);
         glm::ivec2 corner = anchor + glm::ivec2(cx, cy);
 
-        glm::vec2 gradient = perlin_gradient(corner);
+        glm::vec2 gradient = perlin_gradient(seed, corner);
         glm::vec2 offset   = pos - glm::vec2(corner);
 
         influences[cy][cx] = glm::dot(gradient, offset);
@@ -58,7 +68,7 @@ static float perlin(glm::vec2 pos)
   return (noise + 1.0f) * 0.5f;
 }
 
-static float perlin(glm::vec3 pos)
+static float perlin(size_t seed, glm::vec3 pos)
 {
   float influences[2][2][2];
   for(int cz=0; cz<2; ++cz)
@@ -68,7 +78,7 @@ static float perlin(glm::vec3 pos)
         glm::ivec3 anchor = glm::floor(pos);
         glm::ivec3 corner = anchor + glm::ivec3(cx, cy, cz);
 
-        glm::vec3 gradient = perlin_gradient(corner);
+        glm::vec3 gradient = perlin_gradient(seed, corner);
         glm::vec3 offset   = pos - glm::vec3(corner);
 
         influences[cz][cy][cx] = glm::dot(gradient, offset);
@@ -91,13 +101,13 @@ static float perlin(glm::vec3 pos)
   return (noise + 1.0f) * 0.5f;
 }
 
-float perlin(glm::vec2 pos, float frequency, float amplitude)
+float perlin(size_t seed, glm::vec2 pos, float frequency, float amplitude)
 {
-  return perlin(pos * frequency) * amplitude;
+  return perlin(seed, pos * frequency) * amplitude;
 }
 
-float perlin(glm::vec3 pos, float frequency, float amplitude)
+float perlin(size_t seed, glm::vec3 pos, float frequency, float amplitude)
 {
-  return perlin(pos * frequency) * amplitude;
+  return perlin(seed, pos * frequency) * amplitude;
 }
 

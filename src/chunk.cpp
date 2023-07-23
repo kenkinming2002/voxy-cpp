@@ -5,6 +5,10 @@
 #include <optional>
 #include <iostream>
 
+static constexpr size_t STONE_SEED = 0b1101101011011010101011100000011101001010101010000010111101000110;
+static constexpr size_t GRASS_SEED = 0b0101110111011101010110111101101010101010101010001010111100010100;
+static constexpr size_t CAVE_SEED  = 0b1101111110111100001110100000110110101010111010000101010101010011;
+
 static std::vector<Layer> generate_layers(glm::ivec2 cpos)
 {
   int stone_heights[Layer::WIDTH][Layer::WIDTH];
@@ -13,10 +17,10 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
     {
       glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
       stone_heights[cy][cx] = 0.0f;
-      stone_heights[cy][cx] += perlin(pos, 1.0f   / Layer::WIDTH, 5.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.5f   / Layer::WIDTH, 10.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.25f  / Layer::WIDTH, 20.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.125f / Layer::WIDTH, 40.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 1.0f   / Layer::WIDTH, 5.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.5f   / Layer::WIDTH, 10.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.25f  / Layer::WIDTH, 20.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.125f / Layer::WIDTH, 40.0f);
     }
 
   int grass_heights[Layer::WIDTH][Layer::WIDTH];
@@ -25,9 +29,9 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
     {
       glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
       grass_heights[cy][cx] = 0.0f;
-      grass_heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 1.25f);
-      grass_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 2.5f);
-      grass_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 5.0f);
+      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 0.25f / Layer::WIDTH, 1.25f);
+      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 0.5f  / Layer::WIDTH, 2.5f);
+      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 1.0f  / Layer::WIDTH, 5.0f);
     }
 
   int max_height = 0;
@@ -73,12 +77,12 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
             cz
         );
         float noise = 0.0f;
-        noise += perlin(pos, 16.0 / Layer::WIDTH, 0.03125f);
-        noise += perlin(pos, 8.0  / Layer::WIDTH, 0.0625f);
-        noise += perlin(pos, 4.0  / Layer::WIDTH, 0.125f);
-        noise += perlin(pos, 2.0  / Layer::WIDTH, 0.25f);
-        noise += perlin(pos, 1.0  / Layer::WIDTH, 0.5f);
-        if(noise<=0.4)
+        noise += perlin(CAVE_SEED, pos, 16.0 / Layer::WIDTH, 0.03125f);
+        noise += perlin(CAVE_SEED, pos, 8.0  / Layer::WIDTH, 0.0625f);
+        noise += perlin(CAVE_SEED, pos, 4.0  / Layer::WIDTH, 0.125f);
+        noise += perlin(CAVE_SEED, pos, 2.0  / Layer::WIDTH, 0.25f);
+        noise += perlin(CAVE_SEED, pos, 1.0  / Layer::WIDTH, 0.5f);
+        if(noise<=0.45)
           block.presence = false;
       }
 
