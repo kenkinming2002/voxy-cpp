@@ -211,6 +211,8 @@ void World::render()
   glUniform3f(glGetUniformLocation(program, "lightColor"), 1.0f,  1.0f, 1.0f);
   glUniform3f(glGetUniformLocation(program, "lightPos"),   0.0f, 0.0f, 50.0f);
 
+  glUniform3fv(glGetUniformLocation(program, "viewPos"), 1, glm::value_ptr(camera.position));
+
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
 
