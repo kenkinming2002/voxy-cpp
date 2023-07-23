@@ -13,10 +13,10 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
     {
       glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
       stone_heights[cy][cx] = 0.0f;
-      stone_heights[cy][cx] += perlin(pos, 0.1f  / Layer::WIDTH, 1.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 5.0f);
-      stone_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 10.0f);
-      stone_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 20.0f);
+      stone_heights[cy][cx] += perlin(pos, 1.0f   / Layer::WIDTH, 5.0f);
+      stone_heights[cy][cx] += perlin(pos, 0.5f   / Layer::WIDTH, 10.0f);
+      stone_heights[cy][cx] += perlin(pos, 0.25f  / Layer::WIDTH, 20.0f);
+      stone_heights[cy][cx] += perlin(pos, 0.125f / Layer::WIDTH, 40.0f);
     }
 
   int grass_heights[Layer::WIDTH][Layer::WIDTH];
@@ -25,7 +25,8 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
     {
       glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
       grass_heights[cy][cx] = 0.0f;
-      grass_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 2.0f);
+      grass_heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 1.25f);
+      grass_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 2.5f);
       grass_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 5.0f);
     }
 
@@ -58,6 +59,29 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
 
     layers.push_back(layer);
   }
+
+
+  // Hopefully carve some caves
+  for(int cz=0; cz<max_height; ++cz)
+    for(int cy=0; cy<Layer::WIDTH; ++cy)
+      for(int cx=0; cx<Layer::WIDTH; ++cx)
+      {
+        Block& block = layers[cz].blocks[cy][cx];
+        glm::vec3 pos = glm::vec3(
+            cpos.x * Layer::WIDTH + cx,
+            cpos.y * Layer::WIDTH + cy,
+            cz
+        );
+        float noise = 0.0f;
+        noise += perlin(pos, 16.0 / Layer::WIDTH, 0.03125f);
+        noise += perlin(pos, 8.0  / Layer::WIDTH, 0.0625f);
+        noise += perlin(pos, 4.0  / Layer::WIDTH, 0.125f);
+        noise += perlin(pos, 2.0  / Layer::WIDTH, 0.25f);
+        noise += perlin(pos, 1.0  / Layer::WIDTH, 0.5f);
+        if(noise<=0.4)
+          block.presence = false;
+      }
+
   return layers;
 }
 

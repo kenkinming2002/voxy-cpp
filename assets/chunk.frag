@@ -15,7 +15,7 @@ uniform struct Light {
 
 void main()
 {
-  float ambientStrength  = 0.1;
+  float ambientStrength  = 0.5;
   float specularStrength = 0.5;
 
   vec3 normal = normalize(fragNormal);

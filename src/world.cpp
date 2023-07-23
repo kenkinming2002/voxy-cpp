@@ -102,6 +102,8 @@ World::World() :
 
 void World::unload(glm::vec2 center, float radius)
 {
+  return;
+
   glm::ivec2 ccenter = center / (float)Layer::WIDTH;
   int        cradius = radius / Layer::WIDTH;
 
@@ -118,6 +120,11 @@ void World::unload(glm::vec2 center, float radius)
 
 void World::load(glm::vec2 center, float radius)
 {
+  static bool once = false;
+  if(once)
+    return;
+  once = true;
+
   glm::ivec2 ccenter = center / (float)Layer::WIDTH;
   int        cradius = radius / Layer::WIDTH;
 
