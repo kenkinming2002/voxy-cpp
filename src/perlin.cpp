@@ -21,6 +21,19 @@ static glm::vec2 perlin_gradient(glm::ivec2 node)
   return glm::vec2(std::cos(a), std::sin(a));
 }
 
+static glm::vec3 perlin_gradient(glm::ivec3 node)
+{
+  std::mt19937                          prng(std::hash<glm::ivec2>{}(node));
+
+  std::uniform_real_distribution<float> dist_z(-1.0, 1.0);
+  std::uniform_real_distribution<float> dist_a(0.0f, 2.0f * M_PI);
+
+  float z = dist_z(prng);
+  float a = dist_a(prng);
+  float r = std::sqrt(1.0-z*z);
+  return glm::vec3(r*std::cos(a), r*std::sin(a), z);
+}
+
 static float perlin(glm::vec2 pos)
 {
   float influences[2][2];
@@ -45,7 +58,45 @@ static float perlin(glm::vec2 pos)
   return (noise + 1.0f) * 0.5f;
 }
 
+static float perlin(glm::vec3 pos)
+{
+  float influences[2][2][2];
+  for(int cz=0; cz<2; ++cz)
+    for(int cy=0; cy<2; ++cy)
+      for(int cx=0; cx<2; ++cx)
+      {
+        glm::ivec3 anchor = glm::floor(pos);
+        glm::ivec3 corner = anchor + glm::ivec3(cx, cy, cz);
+
+        glm::vec3 gradient = perlin_gradient(corner);
+        glm::vec3 offset   = pos - glm::vec3(corner);
+
+        influences[cz][cy][cx] = glm::dot(gradient, offset);
+      }
+
+  glm::vec3 factor = glm::fract(pos);
+  float noise = interpolate(
+    interpolate(
+      interpolate(influences[0][0][0], influences[0][0][1], factor.x),
+      interpolate(influences[0][1][0], influences[0][1][1], factor.x),
+      factor.y
+    ),
+    interpolate(
+      interpolate(influences[1][0][0], influences[1][0][1], factor.x),
+      interpolate(influences[1][1][0], influences[1][1][1], factor.x),
+      factor.y
+    ),
+    factor.z
+  );
+  return (noise + 1.0f) * 0.5f;
+}
+
 float perlin(glm::vec2 pos, float frequency, float amplitude)
+{
+  return perlin(pos * frequency) * amplitude;
+}
+
+float perlin(glm::vec3 pos, float frequency, float amplitude)
 {
   return perlin(pos * frequency) * amplitude;
 }
