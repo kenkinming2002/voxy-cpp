@@ -72,6 +72,11 @@ World::World() :
     });
 
   light_mesh = Mesh(indices, vertices);
+
+  chunk_material.ambient   = glm::vec3(1.0f, 0.5f, 0.31f);
+  chunk_material.diffuse   = glm::vec3(1.0f, 0.5f, 0.31f);
+  chunk_material.specular  = glm::vec3(0.5f, 0.5f, 0.5f);
+  chunk_material.shininess = 32.0f;
 }
 
 void World::generate_chunk(glm::ivec2 cpos)
@@ -247,6 +252,11 @@ void World::render()
     glUniform3fv(glGetUniformLocation(chunk_program, "viewPos"),    1, glm::value_ptr(camera.position));
     glUniform3fv(glGetUniformLocation(chunk_program, "lightPos"),   1, glm::value_ptr(light.pos));
     glUniform3fv(glGetUniformLocation(chunk_program, "lightColor"), 1, glm::value_ptr(light.color));
+
+    glUniform3fv(glGetUniformLocation(chunk_program, "material.ambient"),   1, glm::value_ptr(chunk_material.ambient));
+    glUniform3fv(glGetUniformLocation(chunk_program, "material.diffuse"),   1, glm::value_ptr(chunk_material.diffuse));
+    glUniform3fv(glGetUniformLocation(chunk_program, "material.specular"),  1, glm::value_ptr(chunk_material.specular));
+    glUniform1f (glGetUniformLocation(chunk_program, "material.shininess"), chunk_material.shininess);
 
     for(const auto& [cpos, chunk_mesh] : chunk_meshes)
     {

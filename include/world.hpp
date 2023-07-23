@@ -20,6 +20,14 @@ struct Light
   glm::vec3 color;
 };
 
+struct Material
+{
+  glm::vec3 ambient;
+  glm::vec3 diffuse;
+  glm::vec3 specular;
+  float     shininess;
+};
+
 struct Block
 {
   bool      presence;
@@ -45,6 +53,7 @@ struct World
   Light light;
   Mesh  light_mesh;
 
+  Material                              chunk_material;
   std::unordered_map<glm::ivec2, Chunk> chunks;
   std::unordered_map<glm::ivec2, Mesh>  chunk_meshes;
 
