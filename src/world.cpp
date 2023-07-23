@@ -10,8 +10,6 @@
 #include <math.h>
 
 World::World() :
-  texture0(gl::load_texture("assets/container.jpg")),
-  texture1(gl::load_texture("assets/awesomeface.png")),
   program(gl::compile_program("assets/shader.vert", "assets/shader.frag")) {}
 
 void World::generate_chunk(glm::ivec2 cpos)
@@ -45,9 +43,14 @@ void World::generate_chunk(glm::ivec2 cpos)
     for(int cy=0; cy<Layer::WIDTH; ++cy)
       for(int cx=0; cx<Layer::WIDTH; ++cx)
         if(cz <= heights[cx][cy])
-          layer.blocks[cy][cx] = 1;
+          layer.blocks[cy][cx] = Block {
+            .presence = true,
+            .color    = glm::vec3(0.0, 1.0, 0.0),
+          };
         else
-          layer.blocks[cy][cx] = 0;
+          layer.blocks[cy][cx] = Block {
+            .presence = false,
+          };
 
     chunk.layers.push_back(layer);
   }
@@ -67,7 +70,9 @@ void World::generate_chunk_mesh(glm::ivec2 cpos)
   for(int z=0; z<chunk.layers.size(); ++z)
     for(int y=0; y<Layer::WIDTH; ++y)
       for(int x=0; x<Layer::WIDTH; ++x)
-        if(chunk.layers[z].blocks[y][x])
+      {
+        const Block& block = chunk.layers[z].blocks[y][x];
+        if(block.presence)
         {
           static constexpr uint32_t cube_indices[] = {
             0,  1,  2,  2,  1,  3,
@@ -78,52 +83,50 @@ void World::generate_chunk_mesh(glm::ivec2 cpos)
             22, 21, 20, 23, 21, 22,
           };
 
-          static constexpr Vertex cube_vertices[] = {
-            {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 1.0f}},
-            {{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}},
-            {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 1.0f}},
-            {{1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 1.0f}},
+          static constexpr glm::vec3 cube_positions[] = {
+            {0.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 1.0f, 0.0f},
 
-            {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-            {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 1.0f, 1.0f},
+            {1.0f, 0.0f, 1.0f},
+            {1.0f, 1.0f, 1.0f},
 
-            {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-            {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{1.0f, 0.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+            {0.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 1.0f},
 
-            {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-            {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 1.0f},
+            {1.0f, 1.0f, 0.0f},
+            {1.0f, 1.0f, 1.0f},
 
-            {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-            {{0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+            {0.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 1.0f},
 
-            {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-            {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 1.0f},
+            {1.0f, 1.0f, 0.0f},
+            {1.0f, 1.0f, 1.0f},
           };
 
           uint32_t index_base = vertices.size();
           for(uint32_t cube_index : cube_indices)
-          {
-            cube_index += index_base;
-            indices.push_back(cube_index);
-          }
+            indices.push_back(index_base + cube_index);
 
-          glm::vec3 pos_base = glm::vec3(x, y, z);
-          for(Vertex cube_vertex : cube_vertices)
-          {
-            cube_vertex.pos += pos_base;
-            vertices.push_back(cube_vertex);
-          }
+          glm::vec3 position_base = glm::vec3(x, y, z);
+          for(glm::vec3 cube_position : cube_positions)
+            vertices.push_back(Vertex{
+                .pos   = position_base + cube_position,
+                .color = block.color,
+            });
         }
+      }
 
   Mesh mesh(indices, vertices);
   chunk_meshes.insert({cpos, std::move(mesh)});
@@ -203,15 +206,6 @@ void World::render()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glUseProgram(program);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture0);
-
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, texture1);
-
-  glUniform1i(glGetUniformLocation(program, "texture0"), 0);
-  glUniform1i(glGetUniformLocation(program, "texture1"), 1);
 
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();

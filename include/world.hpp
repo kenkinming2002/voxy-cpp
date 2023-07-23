@@ -14,10 +14,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct Block
+{
+  bool      presence;
+  glm::vec3 color;
+};
+
 struct Layer
 {
   static constexpr int WIDTH = 16;
-  uint16_t blocks[WIDTH][WIDTH];
+  Block blocks[WIDTH][WIDTH];
 };
 
 struct Chunk
@@ -27,8 +33,6 @@ struct Chunk
 
 struct World
 {
-  gl::Texture texture0;
-  gl::Texture texture1;
   gl::Program program;
 
   std::unordered_map<glm::ivec2, Chunk> chunks;
