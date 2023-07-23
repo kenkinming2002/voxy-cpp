@@ -58,56 +58,167 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
   return layers;
 }
 
-static constexpr uint32_t CUBE_INDICES[] = {
-  0,  1,  2,  2,  1,  3,
-  6,  5,  4,  7,  5,  6,
-  10,  9,  8, 11, 9,  10,
-  12, 13, 14, 14, 13, 15,
-  16, 17, 18, 18, 17, 19,
-  22, 21, 20, 23, 21, 22,
+
+struct Face
+{
+  static constexpr uint32_t INDICES[] = {0, 1, 2, 2, 1, 3};
+
+  static constexpr size_t VERTEX_COUNT = 4;
+
+  glm::vec3 positions[VERTEX_COUNT];
+  glm::vec3 normals  [VERTEX_COUNT];
+  glm::vec2 uvs      [VERTEX_COUNT];
 };
 
-static constexpr std::pair<glm::vec3, glm::vec3> CUBE_VERTICES[] = {
-  {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-  {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-  {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-  {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-
-  {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-  {{0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-  {{1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-  {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-
-  {{0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
-  {{0.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-  {{1.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
-  {{1.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-
-  {{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-  {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-  {{1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-  {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-
-  {{0.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
-  {{0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-  {{0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
-  {{0.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-
-  {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-  {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-  {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-  {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+static constexpr Face FACE_NEGATIVE_X = {
+  .positions = {
+    {-0.5f, -0.5f, -0.5f},
+    {-0.5f, -0.5f,  0.5f},
+    {-0.5f,  0.5f, -0.5f},
+    {-0.5f,  0.5f,  0.5f}
+  },
+  .normals = {
+    {-1.0f, 0.0f, 0.0f},
+    {-1.0f, 0.0f, 0.0f},
+    {-1.0f, 0.0f, 0.0f},
+    {-1.0f, 0.0f, 0.0f}
+  },
+  .uvs = {
+    {0.0f, 0.0f},
+    {0.0f, 1.0f},
+    {1.0f, 0.0f},
+    {1.0f, 1.0f}
+  },
 };
+
+static constexpr Face FACE_POSITIVE_X = {
+  .positions = {
+    {0.5f, -0.5f, -0.5f},
+    {0.5f,  0.5f, -0.5f},
+    {0.5f, -0.5f,  0.5f},
+    {0.5f,  0.5f,  0.5f}
+  },
+  .normals = {
+    {1.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f}
+  },
+  .uvs = {
+    {0.0f, 0.0f},
+    {1.0f, 0.0f},
+    {0.0f, 1.0f},
+    {1.0f, 1.0f}
+  },
+};
+
+static constexpr Face FACE_NEGATIVE_Y = {
+  .positions = {
+    {-0.5f, -0.5f, -0.5f},
+    { 0.5f, -0.5f, -0.5f},
+    {-0.5f, -0.5f,  0.5f},
+    { 0.5f, -0.5f,  0.5f}
+  },
+  .normals = {
+    {0.0f, -1.0f, 0.0f},
+    {0.0f, -1.0f, 0.0f},
+    {0.0f, -1.0f, 0.0f},
+    {0.0f, -1.0f, 0.0f}
+  },
+  .uvs = {
+    {0.0f, 0.0f},
+    {1.0f, 0.0f},
+    {0.0f, 1.0f},
+    {1.0f, 1.0f}
+  },
+};
+
+static constexpr Face FACE_POSITIVE_Y = {
+  .positions = {
+    {-0.5f,  0.5f, -0.5f},
+    {-0.5f,  0.5f,  0.5f},
+    { 0.5f,  0.5f, -0.5f},
+    { 0.5f,  0.5f,  0.5f}
+  },
+  .normals = {
+    {0.0f, 1.0f, 0.0f},
+    {0.0f, 1.0f, 0.0f},
+    {0.0f, 1.0f, 0.0f},
+    {0.0f, 1.0f, 0.0f}
+  },
+  .uvs = {
+    {0.0f, 0.0f},
+    {0.0f, 1.0f},
+    {1.0f, 0.0f},
+    {1.0f, 1.0f}
+  },
+};
+
+static constexpr Face FACE_NEGATIVE_Z = {
+  .positions = {
+    {-0.5f, -0.5f, -0.5f},
+    {-0.5f,  0.5f, -0.5f},
+    { 0.5f, -0.5f, -0.5f},
+    { 0.5f,  0.5f, -0.5f}
+  },
+  .normals = {
+    {0.0f, 0.0f, -1.0f},
+    {0.0f, 0.0f, -1.0f},
+    {0.0f, 0.0f, -1.0f},
+    {0.0f, 0.0f, -1.0f}
+  },
+  .uvs = {
+    {0.0f, 0.0f},
+    {0.0f, 1.0f},
+    {1.0f, 0.0f},
+    {1.0f, 1.0f}
+  },
+};
+
+static constexpr Face FACE_POSITIVE_Z = {
+  .positions = {
+    {-0.5f, -0.5f,  0.5f},
+    { 0.5f, -0.5f,  0.5f},
+    {-0.5f,  0.5f,  0.5f},
+    { 0.5f,  0.5f,  0.5f}
+  },
+  .normals = {
+    {0.0f, 0.0f,  1.0f},
+    {0.0f, 0.0f,  1.0f},
+    {0.0f, 0.0f,  1.0f},
+    {0.0f, 0.0f,  1.0f}
+  },
+  .uvs = {
+    {0.0f, 0.0f},
+    {1.0f, 0.0f},
+    {0.0f, 1.0f},
+    {1.0f, 1.0f}
+  },
+};
+
+struct Vertex
+{
+  glm::vec3 position;
+  glm::vec3 normal;
+  glm::vec3 color;
+};
+
+static void add_face(std::vector<uint32_t>& indices, std::vector<Vertex>& vertices, const Face& face, glm::vec3 position, glm::vec3 color)
+{
+  uint32_t index_base = vertices.size();
+  for(uint32_t index : Face::INDICES)
+    indices.push_back(index_base + index);
+
+  for(size_t i=0; i<Face::VERTEX_COUNT; ++i)
+    vertices.push_back(Vertex{
+      .position = position + face.positions[i],
+      .normal   = face.normals[i],
+      .color    = color,
+    });
+}
 
 static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& layers)
 {
-  struct Vertex
-  {
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec3 color;
-  };
-
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
   for(int z=0; z<layers.size(); ++z)
@@ -117,26 +228,25 @@ static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& laye
         const Block& block = layers[z].blocks[y][x];
         if(block.presence)
         {
-          uint32_t index_base = vertices.size();
-          for(uint32_t cube_index : CUBE_INDICES)
-            indices.push_back(index_base + cube_index);
+          glm::vec3 position(x, y, z);
 
-          glm::vec3 position_base = glm::vec3(x, y, z);
-          for(auto [cube_position, cube_normal] : CUBE_VERTICES)
-            vertices.push_back(Vertex{
-                .pos    = position_base + cube_position,
-                .normal = cube_normal,
-                .color  = block.color,
-            });
+          add_face(indices, vertices, FACE_NEGATIVE_X, position, block.color);
+          add_face(indices, vertices, FACE_POSITIVE_X, position, block.color);
+
+          add_face(indices, vertices, FACE_NEGATIVE_Y, position, block.color);
+          add_face(indices, vertices, FACE_POSITIVE_Y, position, block.color);
+
+          add_face(indices, vertices, FACE_NEGATIVE_Z, position, block.color);
+          add_face(indices, vertices, FACE_POSITIVE_Z, position, block.color);
         }
       }
 
   return Mesh(indices, VertexLayout{
     .stride = sizeof(Vertex),
     .attributes = {
-      { .offset = offsetof(Vertex, pos),    .count = 3, },
-      { .offset = offsetof(Vertex, normal), .count = 3, },
-      { .offset = offsetof(Vertex, color),  .count = 3, },
+      { .offset = offsetof(Vertex, position), .count = 3, },
+      { .offset = offsetof(Vertex, normal),   .count = 3, },
+      { .offset = offsetof(Vertex, color),    .count = 3, },
     },
   }, std::as_bytes(std::span(vertices)));
 }
