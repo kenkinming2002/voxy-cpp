@@ -96,15 +96,8 @@ World::World() :
     .pos      = glm::vec3(0.0f, 0.0f, 30.0f),
     .ambient  = glm::vec3(0.2f, 0.2f, 0.2f),
     .diffuse  = glm::vec3(0.5f, 0.5f, 0.5f),
-    .specular = glm::vec3(1.0f, 1.0f, 1.0f),
   },
-  light_mesh(generate_light_mesh(light)),
-  chunk_material{
-    .ambient   = glm::vec3(1.0f, 0.5f, 0.31f),
-    .diffuse   = glm::vec3(1.0f, 0.5f, 0.31f),
-    .specular  = glm::vec3(0.5f, 0.5f, 0.5f),
-    .shininess = 32.0f,
-  }
+  light_mesh(generate_light_mesh(light))
 {}
 
 void World::unload(glm::vec2 center, float radius)
@@ -203,13 +196,7 @@ void World::render()
     glUniform3fv(glGetUniformLocation(chunk_program, "viewPos"),        1, glm::value_ptr(camera.position));
     glUniform3fv(glGetUniformLocation(chunk_program, "light.pos"),      1, glm::value_ptr(light.pos));
     glUniform3fv(glGetUniformLocation(chunk_program, "light.ambient"),  1, glm::value_ptr(light.ambient));
-    glUniform3fv(glGetUniformLocation(chunk_program, "light.diffuse"),  1, glm::value_ptr(light.ambient));
-    glUniform3fv(glGetUniformLocation(chunk_program, "light.specular"), 1, glm::value_ptr(light.specular));
-
-    glUniform3fv(glGetUniformLocation(chunk_program, "material.ambient"),   1, glm::value_ptr(chunk_material.ambient));
-    glUniform3fv(glGetUniformLocation(chunk_program, "material.diffuse"),   1, glm::value_ptr(chunk_material.diffuse));
-    glUniform3fv(glGetUniformLocation(chunk_program, "material.specular"),  1, glm::value_ptr(chunk_material.specular));
-    glUniform1f (glGetUniformLocation(chunk_program, "material.shininess"), chunk_material.shininess);
+    glUniform3fv(glGetUniformLocation(chunk_program, "light.diffuse"),  1, glm::value_ptr(light.diffuse));
 
     for(const auto& [cpos, chunk] : chunks)
     {
