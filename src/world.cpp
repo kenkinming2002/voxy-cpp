@@ -83,36 +83,36 @@ void World::generate_chunk_mesh(glm::ivec2 cpos)
             22, 21, 20, 23, 21, 22,
           };
 
-          static constexpr glm::vec3 cube_positions[] = {
-            {0.0f, 0.0f, 0.0f},
-            {0.0f, 1.0f, 0.0f},
-            {1.0f, 0.0f, 0.0f},
-            {1.0f, 1.0f, 0.0f},
+          static constexpr std::pair<glm::vec3, glm::vec3> cube_vertices[] = {
+            {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+            {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+            {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+            {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
 
-            {0.0f, 0.0f, 1.0f},
-            {0.0f, 1.0f, 1.0f},
-            {1.0f, 0.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f},
+            {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+            {{0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+            {{1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+            {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
 
-            {0.0f, 0.0f, 0.0f},
-            {0.0f, 0.0f, 1.0f},
-            {1.0f, 0.0f, 0.0f},
-            {1.0f, 0.0f, 1.0f},
+            {{0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+            {{0.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
+            {{1.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+            {{1.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
 
-            {0.0f, 1.0f, 0.0f},
-            {0.0f, 1.0f, 1.0f},
-            {1.0f, 1.0f, 0.0f},
-            {1.0f, 1.0f, 1.0f},
+            {{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+            {{1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
 
-            {0.0f, 0.0f, 0.0f},
-            {0.0f, 0.0f, 1.0f},
-            {0.0f, 1.0f, 0.0f},
-            {0.0f, 1.0f, 1.0f},
+            {{0.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+            {{0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+            {{0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+            {{0.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
 
-            {1.0f, 0.0f, 0.0f},
-            {1.0f, 0.0f, 1.0f},
-            {1.0f, 1.0f, 0.0f},
-            {1.0f, 1.0f, 1.0f},
+            {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+            {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+            {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+            {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
           };
 
           uint32_t index_base = vertices.size();
@@ -120,10 +120,11 @@ void World::generate_chunk_mesh(glm::ivec2 cpos)
             indices.push_back(index_base + cube_index);
 
           glm::vec3 position_base = glm::vec3(x, y, z);
-          for(glm::vec3 cube_position : cube_positions)
+          for(auto [cube_position, cube_normal] : cube_vertices)
             vertices.push_back(Vertex{
-                .pos   = position_base + cube_position,
-                .color = block.color,
+                .pos    = position_base + cube_position,
+                .normal = cube_normal,
+                .color  = block.color,
             });
         }
       }
@@ -207,8 +208,15 @@ void World::render()
 
   glUseProgram(program);
 
+  glUniform3f(3, 1.0f,  1.0f, 1.0f); // Light Color
+  glUniform3f(4, 0.0f, 0.0f, 50.0f); // Light Pos
+
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
+
+  glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(view));
+  glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(projection));
+
   for(const auto& [cpos, chunk_mesh] : chunk_meshes)
   {
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(
@@ -216,9 +224,7 @@ void World::render()
       Layer::WIDTH * cpos.y,
       0.0f
     ));
-    glm::mat4 transform = projection * view * model;
-
-    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(transform));
+    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(model));
     chunk_mesh.draw();
   }
 }
