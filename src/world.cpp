@@ -86,24 +86,33 @@ void World::generate_chunk(glm::ivec2 cpos)
   if(chunks.contains(cpos))
     return;
 
-  int heights[Layer::WIDTH][Layer::WIDTH];
+  int stone_heights[Layer::WIDTH][Layer::WIDTH];
   for(int cy=0; cy<Layer::WIDTH; ++cy)
     for(int cx=0; cx<Layer::WIDTH; ++cx)
     {
       glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
+      stone_heights[cy][cx] = 0.0f;
+      stone_heights[cy][cx] += perlin(pos, 0.1f  / Layer::WIDTH, 1.0f);
+      stone_heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 5.0f);
+      stone_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 10.0f);
+      stone_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 20.0f);
+    }
 
-      heights[cy][cx] = 0.0f;
-      heights[cy][cx] += perlin(pos, 0.1f  / Layer::WIDTH, 1.0f);
-      heights[cy][cx] += perlin(pos, 0.25f / Layer::WIDTH, 5.0f);
-      heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 10.0f);
-      heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 20.0f);
+  int grass_heights[Layer::WIDTH][Layer::WIDTH];
+  for(int cy=0; cy<Layer::WIDTH; ++cy)
+    for(int cx=0; cx<Layer::WIDTH; ++cx)
+    {
+      glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
+      grass_heights[cy][cx] = 0.0f;
+      grass_heights[cy][cx] += perlin(pos, 0.5f  / Layer::WIDTH, 2.0f);
+      grass_heights[cy][cx] += perlin(pos, 1.0f  / Layer::WIDTH, 5.0f);
     }
 
   int max_height = 0;
   for(int cy=0; cy<Layer::WIDTH; ++cy)
     for(int cx=0; cx<Layer::WIDTH; ++cx)
-      if(max_height < heights[cy][cx])
-        max_height = heights[cy][cx];
+      if(max_height < stone_heights[cy][cx]+grass_heights[cy][cx])
+        max_height = stone_heights[cy][cx]+grass_heights[cy][cx];
 
   Chunk chunk;
   for(int cz=0; cz<max_height; ++cz)
@@ -111,10 +120,15 @@ void World::generate_chunk(glm::ivec2 cpos)
     Layer layer;
     for(int cy=0; cy<Layer::WIDTH; ++cy)
       for(int cx=0; cx<Layer::WIDTH; ++cx)
-        if(cz <= heights[cx][cy])
+        if(cz <= stone_heights[cy][cx])
           layer.blocks[cy][cx] = Block {
             .presence = true,
-            .color    = glm::vec3(0.0, 1.0, 0.0),
+            .color    = glm::vec3(0.2, 1.0, 0.2),
+          };
+        else if(cz <= stone_heights[cy][cx] + grass_heights[cy][cx])
+          layer.blocks[cy][cx] = Block {
+            .presence = true,
+            .color    = glm::vec3(0.7, 0.7, 0.7),
           };
         else
           layer.blocks[cy][cx] = Block {
