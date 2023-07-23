@@ -58,37 +58,30 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
   return layers;
 }
 
-
 struct Face
 {
-  static constexpr uint32_t INDICES[] = {0, 1, 2, 2, 1, 3};
-
+  static constexpr size_t INDEX_COUNT  = 6;
   static constexpr size_t VERTEX_COUNT = 4;
 
+  static constexpr uint32_t INDICES[INDEX_COUNT] = {0, 1, 2, 2, 1, 3};
+  static constexpr glm::vec2 UVS[VERTEX_COUNT] = {
+    {0.0, 0.0},
+    {1.0, 0.0},
+    {0.0, 1.0},
+    {1.0, 1.0},
+  };
   glm::vec3 positions[VERTEX_COUNT];
-  glm::vec3 normals  [VERTEX_COUNT];
-  glm::vec2 uvs      [VERTEX_COUNT];
+  glm::vec3 normal;
 };
 
 static constexpr Face FACE_NEGATIVE_X = {
   .positions = {
-    {-0.5f, -0.5f, -0.5f},
-    {-0.5f, -0.5f,  0.5f},
     {-0.5f,  0.5f, -0.5f},
-    {-0.5f,  0.5f,  0.5f}
+    {-0.5f, -0.5f, -0.5f},
+    {-0.5f,  0.5f,  0.5f},
+    {-0.5f, -0.5f,  0.5f},
   },
-  .normals = {
-    {-1.0f, 0.0f, 0.0f},
-    {-1.0f, 0.0f, 0.0f},
-    {-1.0f, 0.0f, 0.0f},
-    {-1.0f, 0.0f, 0.0f}
-  },
-  .uvs = {
-    {0.0f, 0.0f},
-    {0.0f, 1.0f},
-    {1.0f, 0.0f},
-    {1.0f, 1.0f}
-  },
+  .normal = {-1.0f, 0.0f, 0.0f},
 };
 
 static constexpr Face FACE_POSITIVE_X = {
@@ -96,20 +89,9 @@ static constexpr Face FACE_POSITIVE_X = {
     {0.5f, -0.5f, -0.5f},
     {0.5f,  0.5f, -0.5f},
     {0.5f, -0.5f,  0.5f},
-    {0.5f,  0.5f,  0.5f}
+    {0.5f,  0.5f,  0.5f},
   },
-  .normals = {
-    {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f}
-  },
-  .uvs = {
-    {0.0f, 0.0f},
-    {1.0f, 0.0f},
-    {0.0f, 1.0f},
-    {1.0f, 1.0f}
-  },
+  .normal = {1.0f, 0.0f, 0.0f},
 };
 
 static constexpr Face FACE_NEGATIVE_Y = {
@@ -117,83 +99,39 @@ static constexpr Face FACE_NEGATIVE_Y = {
     {-0.5f, -0.5f, -0.5f},
     { 0.5f, -0.5f, -0.5f},
     {-0.5f, -0.5f,  0.5f},
-    { 0.5f, -0.5f,  0.5f}
+    { 0.5f, -0.5f,  0.5f},
   },
-  .normals = {
-    {0.0f, -1.0f, 0.0f},
-    {0.0f, -1.0f, 0.0f},
-    {0.0f, -1.0f, 0.0f},
-    {0.0f, -1.0f, 0.0f}
-  },
-  .uvs = {
-    {0.0f, 0.0f},
-    {1.0f, 0.0f},
-    {0.0f, 1.0f},
-    {1.0f, 1.0f}
-  },
+  .normal = {0.0f, -1.0f, 0.0f},
 };
 
 static constexpr Face FACE_POSITIVE_Y = {
   .positions = {
-    {-0.5f,  0.5f, -0.5f},
-    {-0.5f,  0.5f,  0.5f},
-    { 0.5f,  0.5f, -0.5f},
-    { 0.5f,  0.5f,  0.5f}
+    { 0.5f, -0.5f, -0.5f},
+    {-0.5f, -0.5f, -0.5f},
+    { 0.5f, -0.5f,  0.5f},
+    {-0.5f, -0.5f,  0.5f},
   },
-  .normals = {
-    {0.0f, 1.0f, 0.0f},
-    {0.0f, 1.0f, 0.0f},
-    {0.0f, 1.0f, 0.0f},
-    {0.0f, 1.0f, 0.0f}
-  },
-  .uvs = {
-    {0.0f, 0.0f},
-    {0.0f, 1.0f},
-    {1.0f, 0.0f},
-    {1.0f, 1.0f}
-  },
+  .normal = {0.0f, 1.0f, 0.0f},
 };
 
 static constexpr Face FACE_NEGATIVE_Z = {
   .positions = {
-    {-0.5f, -0.5f, -0.5f},
     {-0.5f,  0.5f, -0.5f},
+    { 0.5f,  0.5f, -0.5f},
+    {-0.5f, -0.5f, -0.5f},
     { 0.5f, -0.5f, -0.5f},
-    { 0.5f,  0.5f, -0.5f}
   },
-  .normals = {
-    {0.0f, 0.0f, -1.0f},
-    {0.0f, 0.0f, -1.0f},
-    {0.0f, 0.0f, -1.0f},
-    {0.0f, 0.0f, -1.0f}
-  },
-  .uvs = {
-    {0.0f, 0.0f},
-    {0.0f, 1.0f},
-    {1.0f, 0.0f},
-    {1.0f, 1.0f}
-  },
+  .normal = {0.0f, 0.0f, -1.0f},
 };
 
 static constexpr Face FACE_POSITIVE_Z = {
   .positions = {
-    {-0.5f, -0.5f,  0.5f},
-    { 0.5f, -0.5f,  0.5f},
-    {-0.5f,  0.5f,  0.5f},
-    { 0.5f,  0.5f,  0.5f}
+    {-0.5f, -0.5f, 0.5f},
+    { 0.5f, -0.5f, 0.5f},
+    {-0.5f,  0.5f, 0.5f},
+    { 0.5f,  0.5f, 0.5f},
   },
-  .normals = {
-    {0.0f, 0.0f,  1.0f},
-    {0.0f, 0.0f,  1.0f},
-    {0.0f, 0.0f,  1.0f},
-    {0.0f, 0.0f,  1.0f}
-  },
-  .uvs = {
-    {0.0f, 0.0f},
-    {1.0f, 0.0f},
-    {0.0f, 1.0f},
-    {1.0f, 1.0f}
-  },
+  .normal = {0.0f, 0.0f, 1.0f},
 };
 
 struct Vertex
@@ -212,7 +150,7 @@ static void add_face(std::vector<uint32_t>& indices, std::vector<Vertex>& vertic
   for(size_t i=0; i<Face::VERTEX_COUNT; ++i)
     vertices.push_back(Vertex{
       .position = position + face.positions[i],
-      .normal   = face.normals[i],
+      .normal   = face.normal,
       .color    = color,
     });
 }
