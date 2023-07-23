@@ -9,8 +9,70 @@
 
 #include <math.h>
 
+static constexpr uint32_t CUBE_INDICES[] = {
+  0,  1,  2,  2,  1,  3,
+  6,  5,  4,  7,  5,  6,
+  10,  9,  8, 11, 9,  10,
+  12, 13, 14, 14, 13, 15,
+  16, 17, 18, 18, 17, 19,
+  22, 21, 20, 23, 21, 22,
+};
+
+static constexpr std::pair<glm::vec3, glm::vec3> CUBE_VERTICES[] = {
+  {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+  {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+  {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+  {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+
+  {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+  {{0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+  {{1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+  {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+
+  {{0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+  {{0.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
+  {{1.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
+  {{1.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
+
+  {{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+  {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+  {{1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+  {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+
+  {{0.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+  {{0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+  {{0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
+  {{0.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
+
+  {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+  {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+  {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+  {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+};
+
 World::World() :
-  program(gl::compile_program("assets/shader.vert", "assets/shader.frag")) {}
+  light_program(gl::compile_program("assets/light.vert", "assets/light.frag")),
+  chunk_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
+  light_mesh({}, {})
+{
+  light.pos   = glm::vec3(0.0f, 0.0f, 30.0f);
+  light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+  std::vector<uint32_t> indices;
+  std::vector<Vertex>   vertices;
+
+  for(uint32_t cube_index : CUBE_INDICES)
+    indices.push_back(cube_index);
+
+  for(auto [cube_position, cube_normal] : CUBE_VERTICES)
+    vertices.push_back(Vertex{
+        .pos    = cube_position,
+        .normal = cube_normal,
+        .color  = light.color,
+    });
+
+  light_mesh = Mesh(indices, vertices);
+}
 
 void World::generate_chunk(glm::ivec2 cpos)
 {
@@ -74,53 +136,12 @@ void World::generate_chunk_mesh(glm::ivec2 cpos)
         const Block& block = chunk.layers[z].blocks[y][x];
         if(block.presence)
         {
-          static constexpr uint32_t cube_indices[] = {
-            0,  1,  2,  2,  1,  3,
-            6,  5,  4,  7,  5,  6,
-            10,  9,  8, 11, 9,  10,
-            12, 13, 14, 14, 13, 15,
-            16, 17, 18, 18, 17, 19,
-            22, 21, 20, 23, 21, 22,
-          };
-
-          static constexpr std::pair<glm::vec3, glm::vec3> cube_vertices[] = {
-            {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-            {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-            {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-            {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
-
-            {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-            {{0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-            {{1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-            {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-
-            {{0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
-            {{0.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-            {{1.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}},
-            {{1.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}},
-
-            {{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-            {{1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-
-            {{0.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
-            {{0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-            {{0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}},
-            {{0.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}},
-
-            {{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-            {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-            {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-          };
-
           uint32_t index_base = vertices.size();
-          for(uint32_t cube_index : cube_indices)
+          for(uint32_t cube_index : CUBE_INDICES)
             indices.push_back(index_base + cube_index);
 
           glm::vec3 position_base = glm::vec3(x, y, z);
-          for(auto [cube_position, cube_normal] : cube_vertices)
+          for(auto [cube_position, cube_normal] : CUBE_VERTICES)
             vertices.push_back(Vertex{
                 .pos    = position_base + cube_position,
                 .normal = cube_normal,
@@ -206,26 +227,36 @@ void World::render()
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glUseProgram(program);
-
-  glUniform3f(glGetUniformLocation(program, "lightColor"), 1.0f,  1.0f, 1.0f);
-  glUniform3f(glGetUniformLocation(program, "lightPos"),   0.0f, 0.0f, 50.0f);
-
-  glUniform3fv(glGetUniformLocation(program, "viewPos"), 1, glm::value_ptr(camera.position));
-
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
 
-  for(const auto& [cpos, chunk_mesh] : chunk_meshes)
+  // 1: Light
+  glUseProgram(light_program);
   {
-    glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Layer::WIDTH * cpos.x, Layer::WIDTH * cpos.y, 0.0f));
-    glm::mat4 normal = glm::transpose(glm::inverse(model));
+    glm::mat4 model  = glm::translate(glm::mat4(1.0f), light.pos);
     glm::mat4 MVP    = projection * view * model;
+    glUniformMatrix4fv(glGetUniformLocation(light_program, "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+    light_mesh.draw();
+  }
 
-    glUniformMatrix4fv(glGetUniformLocation(program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
-    glUniformMatrix4fv(glGetUniformLocation(program, "model"),  1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(glGetUniformLocation(program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
+  // 2: Chunks
+  glUseProgram(chunk_program);
+  {
+    glUniform3fv(glGetUniformLocation(chunk_program, "viewPos"),    1, glm::value_ptr(camera.position));
+    glUniform3fv(glGetUniformLocation(chunk_program, "lightPos"),   1, glm::value_ptr(light.pos));
+    glUniform3fv(glGetUniformLocation(chunk_program, "lightColor"), 1, glm::value_ptr(light.color));
 
-    chunk_mesh.draw();
+    for(const auto& [cpos, chunk_mesh] : chunk_meshes)
+    {
+      glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Layer::WIDTH * cpos.x, Layer::WIDTH * cpos.y, 0.0f));
+      glm::mat4 normal = glm::transpose(glm::inverse(model));
+      glm::mat4 MVP    = projection * view * model;
+
+      glUniformMatrix4fv(glGetUniformLocation(chunk_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
+      glUniformMatrix4fv(glGetUniformLocation(chunk_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
+      glUniformMatrix4fv(glGetUniformLocation(chunk_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
+
+      chunk_mesh.draw();
+    }
   }
 }

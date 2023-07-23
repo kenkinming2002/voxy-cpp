@@ -14,6 +14,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct Light
+{
+  glm::vec3 pos;
+  glm::vec3 color;
+};
+
 struct Block
 {
   bool      presence;
@@ -33,7 +39,11 @@ struct Chunk
 
 struct World
 {
-  gl::Program program;
+  gl::Program light_program;
+  gl::Program chunk_program;
+
+  Light light;
+  Mesh  light_mesh;
 
   std::unordered_map<glm::ivec2, Chunk> chunks;
   std::unordered_map<glm::ivec2, Mesh>  chunk_meshes;
