@@ -41,12 +41,12 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
         if(cz <= stone_heights[cy][cx])
           layer.blocks[cy][cx] = Block {
             .presence = true,
-            .color    = glm::vec3(0.2, 1.0, 0.2),
+            .color    = glm::vec3(0.7, 0.7, 0.7),
           };
         else if(cz <= stone_heights[cy][cx] + grass_heights[cy][cx])
           layer.blocks[cy][cx] = Block {
             .presence = true,
-            .color    = glm::vec3(0.7, 0.7, 0.7),
+            .color    = glm::vec3(0.2, 1.0, 0.2),
           };
         else
           layer.blocks[cy][cx] = Block {
