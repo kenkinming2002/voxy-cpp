@@ -220,6 +220,8 @@ void World::update(float dt)
 
   unload(camera.position, 300.0f);
   load  (camera.position, 300.0f);
+
+  light.pos.x += 5.0f * dt;
 }
 
 void World::render()
