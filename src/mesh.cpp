@@ -1,6 +1,6 @@
 #include <mesh.hpp>
 
-Mesh::Mesh(std::span<const uint32_t> indices, std::span<const Vertex> vertices)
+Mesh::Mesh(std::span<const uint32_t> indices, VertexLayout vertex_layout, std::span<const std::byte> vertices)
 {
   glBindVertexArray(vao);
 
@@ -9,15 +9,12 @@ Mesh::Mesh(std::span<const uint32_t> indices, std::span<const Vertex> vertices)
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size_bytes(), indices.data(), GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  for(size_t i=0; i<vertex_layout.attributes.size(); ++i)
+  {
+    glEnableVertexAttribArray(i);
+    glVertexAttribPointer(i, vertex_layout.attributes[i].count, GL_FLOAT, GL_FALSE, vertex_layout.stride, (void*)vertex_layout.attributes[i].offset);
+  }
   glBufferData(GL_ARRAY_BUFFER, vertices.size_bytes(), vertices.data(), GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
 }
 
 void Mesh::draw() const
@@ -25,3 +22,4 @@ void Mesh::draw() const
   glBindVertexArray(vao);
   glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)0);
 }
+

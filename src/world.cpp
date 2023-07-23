@@ -50,10 +50,17 @@ static constexpr std::pair<glm::vec3, glm::vec3> CUBE_VERTICES[] = {
   {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
 };
 
+struct Vertex
+{
+  glm::vec3 pos;
+  glm::vec3 normal;
+  glm::vec3 color;
+};
+
 World::World() :
   light_program(gl::compile_program("assets/light.vert", "assets/light.frag")),
   chunk_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
-  light_mesh({}, {})
+  light_mesh({}, {}, {})
 {
   light.pos      = glm::vec3(0.0f, 0.0f, 30.0f);
   light.ambient  = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -73,7 +80,14 @@ World::World() :
         .color  = glm::vec3(1.0, 1.0, 1.0),
     });
 
-  light_mesh = Mesh(indices, vertices);
+  light_mesh = Mesh(indices, VertexLayout{
+    .stride = sizeof(Vertex),
+    .attributes = {
+      { .offset = offsetof(Vertex, pos),    .count = 3, },
+      { .offset = offsetof(Vertex, normal), .count = 3, },
+      { .offset = offsetof(Vertex, color),  .count = 3, },
+    },
+  }, std::as_bytes(std::span(vertices)));
 
   chunk_material.ambient   = glm::vec3(1.0f, 0.5f, 0.31f);
   chunk_material.diffuse   = glm::vec3(1.0f, 0.5f, 0.31f);
@@ -171,7 +185,14 @@ void World::generate_chunk_mesh(glm::ivec2 cpos)
         }
       }
 
-  Mesh mesh(indices, vertices);
+  Mesh mesh(indices, VertexLayout{
+    .stride = sizeof(Vertex),
+    .attributes = {
+      { .offset = offsetof(Vertex, pos),    .count = 3, },
+      { .offset = offsetof(Vertex, normal), .count = 3, },
+      { .offset = offsetof(Vertex, color),  .count = 3, },
+    },
+  }, std::as_bytes(std::span(vertices)));
   chunk_meshes.insert({cpos, std::move(mesh)});
 }
 

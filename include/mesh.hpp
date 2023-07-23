@@ -4,13 +4,19 @@
 #include <glm/glm.hpp>
 #include <gl.hpp>
 
+#include <vector>
 #include <span>
 
-struct Vertex
+struct VertexAttribute
 {
-  glm::vec3 pos;
-  glm::vec3 normal;
-  glm::vec3 color;
+  size_t offset;
+  size_t count;
+};
+
+struct VertexLayout
+{
+  size_t stride;
+  std::vector<VertexAttribute> attributes;
 };
 
 struct Mesh
@@ -21,7 +27,8 @@ struct Mesh
 
   size_t count;
 
-  Mesh(std::span<const uint32_t> indices, std::span<const Vertex> vertices);
+  Mesh(std::span<const uint32_t> indices, VertexLayout vertex_layout, std::span<const std::byte> vertices);
+
   void draw() const;
 };
 
