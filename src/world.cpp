@@ -55,8 +55,10 @@ World::World() :
   chunk_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
   light_mesh({}, {})
 {
-  light.pos   = glm::vec3(0.0f, 0.0f, 30.0f);
-  light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+  light.pos      = glm::vec3(0.0f, 0.0f, 30.0f);
+  light.ambient  = glm::vec3(0.2f, 0.2f, 0.2f);
+  light.diffuse  = glm::vec3(0.5f, 0.5f, 0.5f);
+  light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
 
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
@@ -68,7 +70,7 @@ World::World() :
     vertices.push_back(Vertex{
         .pos    = cube_position,
         .normal = cube_normal,
-        .color  = light.color,
+        .color  = glm::vec3(1.0, 1.0, 1.0),
     });
 
   light_mesh = Mesh(indices, vertices);
@@ -249,9 +251,11 @@ void World::render()
   // 2: Chunks
   glUseProgram(chunk_program);
   {
-    glUniform3fv(glGetUniformLocation(chunk_program, "viewPos"),    1, glm::value_ptr(camera.position));
-    glUniform3fv(glGetUniformLocation(chunk_program, "lightPos"),   1, glm::value_ptr(light.pos));
-    glUniform3fv(glGetUniformLocation(chunk_program, "lightColor"), 1, glm::value_ptr(light.color));
+    glUniform3fv(glGetUniformLocation(chunk_program, "viewPos"),        1, glm::value_ptr(camera.position));
+    glUniform3fv(glGetUniformLocation(chunk_program, "light.pos"),      1, glm::value_ptr(light.pos));
+    glUniform3fv(glGetUniformLocation(chunk_program, "light.ambient"),  1, glm::value_ptr(light.ambient));
+    glUniform3fv(glGetUniformLocation(chunk_program, "light.diffuse"),  1, glm::value_ptr(light.ambient));
+    glUniform3fv(glGetUniformLocation(chunk_program, "light.specular"), 1, glm::value_ptr(light.specular));
 
     glUniform3fv(glGetUniformLocation(chunk_program, "material.ambient"),   1, glm::value_ptr(chunk_material.ambient));
     glUniform3fv(glGetUniformLocation(chunk_program, "material.diffuse"),   1, glm::value_ptr(chunk_material.diffuse));
