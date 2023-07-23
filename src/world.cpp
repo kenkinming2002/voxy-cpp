@@ -57,16 +57,8 @@ struct Vertex
   glm::vec3 color;
 };
 
-World::World() :
-  light_program(gl::compile_program("assets/light.vert", "assets/light.frag")),
-  chunk_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
-  light_mesh({}, {}, {})
+static Mesh generate_light_mesh(Light light)
 {
-  light.pos      = glm::vec3(0.0f, 0.0f, 30.0f);
-  light.ambient  = glm::vec3(0.2f, 0.2f, 0.2f);
-  light.diffuse  = glm::vec3(0.5f, 0.5f, 0.5f);
-  light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
 
@@ -80,7 +72,7 @@ World::World() :
         .color  = glm::vec3(1.0, 1.0, 1.0),
     });
 
-  light_mesh = Mesh(indices, VertexLayout{
+  return Mesh(indices, VertexLayout{
     .stride = sizeof(Vertex),
     .attributes = {
       { .offset = offsetof(Vertex, pos),    .count = 3, },
@@ -88,12 +80,32 @@ World::World() :
       { .offset = offsetof(Vertex, color),  .count = 3, },
     },
   }, std::as_bytes(std::span(vertices)));
-
-  chunk_material.ambient   = glm::vec3(1.0f, 0.5f, 0.31f);
-  chunk_material.diffuse   = glm::vec3(1.0f, 0.5f, 0.31f);
-  chunk_material.specular  = glm::vec3(0.5f, 0.5f, 0.5f);
-  chunk_material.shininess = 32.0f;
 }
+
+World::World() :
+  camera{
+    .position = glm::vec3(-5.0f, -5.0f,  50.0f),
+    .aspect = 1024.0f / 720.0f,
+    .yaw    = 45.0f,
+    .pitch  = -45.0f,
+    .fov    = 45.0f,
+  },
+  light_program(gl::compile_program("assets/light.vert", "assets/light.frag")),
+  chunk_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
+  light{
+    .pos      = glm::vec3(0.0f, 0.0f, 30.0f),
+    .ambient  = glm::vec3(0.2f, 0.2f, 0.2f),
+    .diffuse  = glm::vec3(0.5f, 0.5f, 0.5f),
+    .specular = glm::vec3(1.0f, 1.0f, 1.0f),
+  },
+  light_mesh(generate_light_mesh(light)),
+  chunk_material{
+    .ambient   = glm::vec3(1.0f, 0.5f, 0.31f),
+    .diffuse   = glm::vec3(1.0f, 0.5f, 0.31f),
+    .specular  = glm::vec3(0.5f, 0.5f, 0.5f),
+    .shininess = 32.0f,
+  }
+{}
 
 void World::generate_chunk(glm::ivec2 cpos)
 {

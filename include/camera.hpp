@@ -8,11 +8,11 @@ struct Camera
   static constexpr float MOVEMENT_SPEED = 50.0f;
   static constexpr float ROTATION_SPEED = 0.1f;
 
-  glm::vec3 position = glm::vec3(-5.0f, -5.0f,  50.0f);
-  float aspect       = 1024.0f / 720.0f;
-  float yaw          = 45.0f;
-  float pitch        = -45.0f;
-  float fov          = 45.0f;
+  glm::vec3 position;
+  float aspect;
+  float yaw;
+  float pitch;
+  float fov;
 
   glm::vec3 up() const;
   glm::vec3 forward() const;

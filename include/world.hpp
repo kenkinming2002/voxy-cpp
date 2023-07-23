@@ -49,6 +49,8 @@ struct Chunk
 
 struct World
 {
+  Camera camera;
+
   gl::Program light_program;
   gl::Program chunk_program;
 
@@ -59,7 +61,6 @@ struct World
   std::unordered_map<glm::ivec2, Chunk> chunks;
   std::unordered_map<glm::ivec2, Mesh>  chunk_meshes;
 
-  Camera camera;
 
   // Chunk generation
   World();
