@@ -10,15 +10,28 @@
 
 #include <unordered_map>
 
+#include <mutex>
+#include <condition_variable>
+
+#include <thread>
+
 struct Terrain
 {
-  gl::Program                           program;
+  gl::Program program;
+
+  std::mutex                            chunks_mutex;
   std::unordered_map<glm::ivec2, Chunk> chunks;
+
+  std::condition_variable_any load_cv;
+  std::mutex                  load_mutex;
+  glm::vec2                   center;
+  float                       radius;
+
+  std::jthread worker;
 
   Terrain();
 
   void load(glm::vec2 center, float radius);
-  void unload(glm::vec2 center, float radius);
 
   void update(float dt);
   void render(const Camera& camera, const Lights& lights);

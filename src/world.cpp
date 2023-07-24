@@ -23,10 +23,7 @@ World::World() :
     glm::vec3(0.5f, 0.5f, 0.5f)   // diffuse
   )),
   terrain()
-{
-  terrain.unload(camera.position, 300.0f);
-  terrain.load(camera.position, 300.0f);
-}
+{}
 
 
 void World::handle_event(SDL_Event event)
@@ -58,6 +55,8 @@ void World::update(float dt)
     translation *= dt;
     camera.translate(translation.x, translation.y, translation.z);
   }
+
+  terrain.load(camera.position, 500.0f);
 
   lights.update(dt);
   terrain.update(dt);
