@@ -20,8 +20,6 @@ namespace gl
     GLuint handle;                                                                    \
   }
 
-  GL_HPP_TYPE(VertexArray,);
-  GL_HPP_TYPE(Buffer,);
   GL_HPP_TYPE(Shader, GLenum type);
   GL_HPP_TYPE(Program,);
   GL_HPP_TYPE(Texture,);

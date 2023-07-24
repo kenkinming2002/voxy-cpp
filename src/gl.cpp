@@ -8,12 +8,6 @@
 
 namespace gl
 {
-  VertexArray::VertexArray()  { glGenVertexArrays(1, &handle); }
-  VertexArray::~VertexArray() { glDeleteVertexArrays(1, &handle);  }
-
-  Buffer::Buffer()  { glGenBuffers(1, &handle); }
-  Buffer::~Buffer() { glDeleteBuffers(1, &handle);  }
-
   Shader::Shader(GLenum type) { handle = glCreateShader(type); }
   Shader::~Shader()           { glDeleteShader(handle);  }
 

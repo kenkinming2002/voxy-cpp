@@ -2,7 +2,7 @@
 #define MESH_HPP
 
 #include <glm/glm.hpp>
-#include <gl.hpp>
+#include <glad/glad.h>
 
 #include <vector>
 #include <span>
@@ -21,13 +21,14 @@ struct VertexLayout
 
 struct Mesh
 {
-  gl::VertexArray vao;
-  gl::Buffer ebo;
-  gl::Buffer vbo;
+  GLuint vao = 0;
+  GLuint ebo = 0;
+  GLuint vbo = 0;
 
   size_t count;
 
   Mesh(std::span<const uint32_t> indices, VertexLayout vertex_layout, std::span<const std::byte> vertices);
+  ~Mesh();
 
   void draw() const;
 };
