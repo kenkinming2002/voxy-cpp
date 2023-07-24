@@ -18,58 +18,17 @@ World::World() :
     .fov    = 45.0f,
   },
   light_program(gl::compile_program("assets/light.vert", "assets/light.frag")),
-  chunk_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
   light(
     glm::vec3(0.0f, 0.0f, 30.0f), // position
     glm::vec3(0.2f, 0.2f, 0.2f),  // ambient
     glm::vec3(0.5f, 0.5f, 0.5f)   // diffuse
   ),
-  chunks()
-{}
-
-void World::unload(glm::vec2 center, float radius)
+  terrain()
 {
-  return;
-
-  glm::ivec2 ccenter = center / (float)Layer::WIDTH;
-  int        cradius = radius / Layer::WIDTH;
-
-  for(auto it = chunks.begin(); it != chunks.end();)
-  {
-    const auto& [cpos, chunk_mesh] = *it;
-    glm::ivec2 coff = cpos - ccenter;
-    if(coff.x * coff.x + coff.y * coff.y > cradius)
-      it = chunks.erase(it);
-    else
-      ++it;
-  }
+  terrain.unload(camera.position, 300.0f);
+  terrain.load(camera.position, 300.0f);
 }
 
-void World::load(glm::vec2 center, float radius)
-{
-  static bool once = false;
-  if(once)
-    return;
-  once = true;
-
-  glm::ivec2 ccenter = center / (float)Layer::WIDTH;
-  int        cradius = radius / Layer::WIDTH;
-
-  for(int yoff = -cradius; yoff <= cradius; ++yoff)
-    for(int xoff = -cradius; xoff <= cradius; ++xoff)
-    {
-      glm::ivec2 coff(xoff, yoff);
-      if(xoff * xoff + yoff * yoff < cradius)
-      {
-        glm::ivec2 cpos = ccenter + coff;
-        if(!chunks.contains(cpos))
-          chunks.emplace(std::piecewise_construct,
-            std::forward_as_tuple(cpos),
-            std::forward_as_tuple(cpos)
-          );
-      }
-    }
-}
 
 void World::handle_event(SDL_Event event)
 {
@@ -101,9 +60,6 @@ void World::update(float dt)
     camera.translate(translation.x, translation.y, translation.z);
   }
 
-  unload(camera.position, 300.0f);
-  load  (camera.position, 300.0f);
-
   light.pos.x += 5.0f * dt;
 }
 
@@ -124,25 +80,5 @@ void World::render()
     light.mesh.draw();
   }
 
-  // 2: Chunks
-  glUseProgram(chunk_program);
-  {
-    glUniform3fv(glGetUniformLocation(chunk_program, "viewPos"),        1, glm::value_ptr(camera.position));
-    glUniform3fv(glGetUniformLocation(chunk_program, "light.pos"),      1, glm::value_ptr(light.pos));
-    glUniform3fv(glGetUniformLocation(chunk_program, "light.ambient"),  1, glm::value_ptr(light.ambient));
-    glUniform3fv(glGetUniformLocation(chunk_program, "light.diffuse"),  1, glm::value_ptr(light.diffuse));
-
-    for(const auto& [cpos, chunk] : chunks)
-    {
-      glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Layer::WIDTH * cpos.x, Layer::WIDTH * cpos.y, 0.0f));
-      glm::mat4 normal = glm::transpose(glm::inverse(model));
-      glm::mat4 MVP    = projection * view * model;
-
-      glUniformMatrix4fv(glGetUniformLocation(chunk_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
-      glUniformMatrix4fv(glGetUniformLocation(chunk_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(chunk_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
-
-      chunk.layers_mesh.draw();
-    }
-  }
+  terrain.render(camera, light);
 }

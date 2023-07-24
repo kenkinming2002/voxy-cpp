@@ -4,7 +4,7 @@
 #include <mesh.hpp>
 #include <camera.hpp>
 #include <timer.hpp>
-#include <chunk.hpp>
+#include <terrain.hpp>
 #include <light.hpp>
 
 #include <glm/glm.hpp>
@@ -21,19 +21,15 @@ struct World
   Camera camera;
 
   gl::Program light_program;
-  gl::Program chunk_program;
+  Light       light;
 
-  Light                                 light;
-  std::unordered_map<glm::ivec2, Chunk> chunks;
+  Terrain terrain;
 
   World();
 
-  void unload(glm::vec2 center, float radius);
-  void load(glm::vec2 center, float radius);
-
   void handle_event(SDL_Event event);
-  void update(float dt);
 
+  void update(float dt);
   void render();
 };
 
