@@ -1,36 +1,78 @@
 #include <mesh.hpp>
 
-Mesh::Mesh(std::span<const uint32_t> indices, VertexLayout vertex_layout, std::span<const std::byte> vertices)
-{
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &ebo);
-  glGenBuffers(1, &vbo);
+#include <iostream>
 
-  glBindVertexArray(vao);
-
-  count = indices.size();
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size_bytes(), indices.data(), GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  for(size_t i=0; i<vertex_layout.attributes.size(); ++i)
-  {
-    glEnableVertexAttribArray(i);
-    glVertexAttribPointer(i, vertex_layout.attributes[i].count, GL_FLOAT, GL_FALSE, vertex_layout.stride, (void*)vertex_layout.attributes[i].offset);
-  }
-  glBufferData(GL_ARRAY_BUFFER, vertices.size_bytes(), vertices.data(), GL_STATIC_DRAW);
-}
+Mesh::Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices) :
+  m_layout(std::move(layout)),
+  m_indices(std::move(indices)),
+  m_vertices(std::move(vertices)),
+  m_generated(false),
+  m_vao(0),
+  m_ebo(0),
+  m_vbo(0)
+{}
 
 Mesh::~Mesh()
 {
-  glDeleteVertexArrays(1, &vao);
-  glDeleteBuffers(1, &ebo);
-  glDeleteBuffers(1, &vbo);
+  if(m_generated)
+  {
+    glDeleteVertexArrays(1, &m_vao);
+    glDeleteBuffers(1, &m_ebo);
+    glDeleteBuffers(1, &m_vbo);
+  }
 }
 
 void Mesh::draw() const
 {
-  glBindVertexArray(vao);
-  glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)0);
+  if(!m_generated)
+  {
+    std::clog << "DEBUG: Mesh: Lazily generating OpenGL objects\n";
+    std::clog << "DEBUG: Mesh: Index buffer size  = " << m_indices.size()  << '\n';
+    std::clog << "DEBUG: Mesh: Vertex buffer size = " << m_vertices.size() << '\n';
+
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_ebo);
+    glGenBuffers(1, &m_vbo);
+
+    glBindVertexArray(m_vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
+
+    switch(m_layout.index_type)
+    {
+    case IndexType::UNSIGNED_BYTE:  m_element_count = m_indices.size() / 1; break;
+    case IndexType::UNSIGNED_SHORT: m_element_count = m_indices.size() / 2; break;
+    case IndexType::UNSIGNED_INT:   m_element_count = m_indices.size() / 4; break;
+    }
+
+    for(size_t i=0; i<m_layout.attributes.size(); ++i)
+    {
+      glEnableVertexAttribArray(i);
+      switch(m_layout.attributes[i].type)
+      {
+      case AttributeType::FLOAT1: glVertexAttribPointer(i, 1, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      case AttributeType::FLOAT2: glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      case AttributeType::FLOAT3: glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      case AttributeType::FLOAT4: glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      }
+    }
+
+    m_indices.clear();
+    m_vertices.clear();
+
+    m_generated = true;
+  }
+
+  glBindVertexArray(m_vao);
+  switch(m_layout.index_type)
+  {
+  case IndexType::UNSIGNED_BYTE:  glDrawElements(GL_TRIANGLES, m_element_count, GL_UNSIGNED_BYTE,  (void*)0); break;
+  case IndexType::UNSIGNED_SHORT: glDrawElements(GL_TRIANGLES, m_element_count, GL_UNSIGNED_SHORT, (void*)0); break;
+  case IndexType::UNSIGNED_INT:   glDrawElements(GL_TRIANGLES, m_element_count, GL_UNSIGNED_INT,   (void*)0); break;
+  }
 }
 

@@ -63,14 +63,20 @@ static Mesh build_light_mesh()
         .color  = glm::vec3(1.0, 1.0, 1.0),
     });
 
-  return Mesh(indices, VertexLayout{
+  MeshLayout layout{
+    .index_type = IndexType::UNSIGNED_INT,
     .stride = sizeof(Vertex),
     .attributes = {
-      { .offset = offsetof(Vertex, pos),    .count = 3, },
-      { .offset = offsetof(Vertex, normal), .count = 3, },
-      { .offset = offsetof(Vertex, color),  .count = 3, },
+      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, pos),    },
+      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, normal), },
+      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, color),  },
     },
-  }, std::as_bytes(std::span(vertices)));
+  };
+
+  return Mesh(layout,
+    as_bytes(indices),
+    as_bytes(vertices)
+  );
 }
 
 

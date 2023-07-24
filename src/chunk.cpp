@@ -232,14 +232,20 @@ static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& laye
           }
       }
 
-  return Mesh(indices, VertexLayout{
+  MeshLayout layout{
+    .index_type = IndexType::UNSIGNED_INT,
     .stride = sizeof(Vertex),
     .attributes = {
-      { .offset = offsetof(Vertex, position), .count = 3, },
-      { .offset = offsetof(Vertex, normal),   .count = 3, },
-      { .offset = offsetof(Vertex, color),    .count = 3, },
+      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, position), },
+      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, normal),   },
+      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, color),    },
     },
-  }, std::as_bytes(std::span(vertices)));
+  };
+
+  return Mesh(layout,
+    as_bytes(indices),
+    as_bytes(vertices)
+  );
 }
 
 Chunk::Chunk(glm::ivec2 cpos) :
