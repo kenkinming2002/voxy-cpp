@@ -5,6 +5,7 @@
 #include <camera.hpp>
 #include <timer.hpp>
 #include <chunk.hpp>
+#include <light.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -15,13 +16,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct Light
-{
-  glm::vec3 pos;
-  glm::vec3 ambient;
-  glm::vec3 diffuse;
-};
-
 struct World
 {
   Camera camera;
@@ -29,12 +23,9 @@ struct World
   gl::Program light_program;
   gl::Program chunk_program;
 
-  Light light;
-  Mesh  light_mesh;
-
+  Light                                 light;
   std::unordered_map<glm::ivec2, Chunk> chunks;
 
-  // Chunk generation
   World();
 
   void unload(glm::vec2 center, float radius);
