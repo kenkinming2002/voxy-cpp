@@ -2,7 +2,7 @@
 #define TERRAIN_HPP
 
 #include <camera.hpp>
-#include <light.hpp>
+#include <lights.hpp>
 #include <chunk.hpp>
 
 #include <glm/glm.hpp>
@@ -21,7 +21,7 @@ struct Terrain
   void unload(glm::vec2 center, float radius);
 
   void update(float dt);
-  void render(const Camera& camera, const Light& light);
+  void render(const Camera& camera, const Lights& lights);
 };
 
 #endif // TERRAIN_HPP

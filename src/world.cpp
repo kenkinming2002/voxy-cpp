@@ -17,12 +17,11 @@ World::World() :
     .pitch  = -45.0f,
     .fov    = 45.0f,
   },
-  light_program(gl::compile_program("assets/light.vert", "assets/light.frag")),
-  light(
+  lights(Light(
     glm::vec3(0.0f, 0.0f, 30.0f), // position
     glm::vec3(0.2f, 0.2f, 0.2f),  // ambient
     glm::vec3(0.5f, 0.5f, 0.5f)   // diffuse
-  ),
+  )),
   terrain()
 {
   terrain.unload(camera.position, 300.0f);
@@ -60,7 +59,8 @@ void World::update(float dt)
     camera.translate(translation.x, translation.y, translation.z);
   }
 
-  light.pos.x += 5.0f * dt;
+  lights.update(dt);
+  terrain.update(dt);
 }
 
 void World::render()
@@ -68,17 +68,6 @@ void World::render()
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glm::mat4 view       = camera.view();
-  glm::mat4 projection = camera.projection();
-
-  // 1: Light
-  glUseProgram(light_program);
-  {
-    glm::mat4 model  = glm::translate(glm::mat4(1.0f), light.pos);
-    glm::mat4 MVP    = projection * view * model;
-    glUniformMatrix4fv(glGetUniformLocation(light_program, "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-    light.mesh.draw();
-  }
-
-  terrain.render(camera, light);
+  lights.render(camera);
+  terrain.render(camera, lights);
 }

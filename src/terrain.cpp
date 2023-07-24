@@ -49,7 +49,7 @@ void Terrain::update(float dt)
   // Nothing to do for now
 }
 
-void Terrain::render(const Camera& camera, const Light& light)
+void Terrain::render(const Camera& camera, const Lights& lights)
 {
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
@@ -57,9 +57,9 @@ void Terrain::render(const Camera& camera, const Light& light)
   glUseProgram(program);
   {
     glUniform3fv(glGetUniformLocation(program, "viewPos"),        1, glm::value_ptr(camera.position));
-    glUniform3fv(glGetUniformLocation(program, "light.pos"),      1, glm::value_ptr(light.pos));
-    glUniform3fv(glGetUniformLocation(program, "light.ambient"),  1, glm::value_ptr(light.ambient));
-    glUniform3fv(glGetUniformLocation(program, "light.diffuse"),  1, glm::value_ptr(light.diffuse));
+    glUniform3fv(glGetUniformLocation(program, "light.pos"),      1, glm::value_ptr(lights.light.pos));
+    glUniform3fv(glGetUniformLocation(program, "light.ambient"),  1, glm::value_ptr(lights.light.ambient));
+    glUniform3fv(glGetUniformLocation(program, "light.diffuse"),  1, glm::value_ptr(lights.light.diffuse));
 
     for(const auto& [cpos, chunk] : chunks)
     {

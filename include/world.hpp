@@ -2,10 +2,12 @@
 #define WORLD_HPP
 
 #include <mesh.hpp>
+
 #include <camera.hpp>
-#include <timer.hpp>
+#include <lights.hpp>
 #include <terrain.hpp>
-#include <light.hpp>
+
+#include <SDL.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -20,9 +22,7 @@ struct World
 {
   Camera camera;
 
-  gl::Program light_program;
-  Light       light;
-
+  Lights  lights;
   Terrain terrain;
 
   World();
