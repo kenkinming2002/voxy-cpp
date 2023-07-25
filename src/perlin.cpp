@@ -101,13 +101,26 @@ static float perlin(size_t seed, glm::vec3 pos)
   return (noise + 1.0f) * 0.5f;
 }
 
-float perlin(size_t seed, glm::vec2 pos, float frequency, float amplitude)
+float perlin(size_t seed, glm::vec2 pos, float frequency, float amplitude, float lacunarity, float persistence, unsigned count)
 {
-  return perlin(seed, pos * frequency) * amplitude;
+  float value = 0.0f;
+  for(unsigned i=0; i<count; ++i)
+  {
+    value += perlin(seed, pos * frequency) * amplitude;
+    frequency *= lacunarity;
+    amplitude *= persistence;
+  }
+  return value;
 }
 
-float perlin(size_t seed, glm::vec3 pos, float frequency, float amplitude)
+float perlin(size_t seed, glm::vec3 pos, float frequency, float amplitude, float lacunarity, float persistence, unsigned count)
 {
-  return perlin(seed, pos * frequency) * amplitude;
+  float value = 0.0f;
+  for(unsigned i=0; i<count; ++i)
+  {
+    value += perlin(seed, pos * frequency) * amplitude;
+    frequency *= lacunarity;
+    amplitude *= persistence;
+  }
+  return value;
 }
-
