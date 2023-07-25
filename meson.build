@@ -16,6 +16,7 @@ voxy_exe = executable('voxy', [
     'src/light.cpp',
     'src/terrain.cpp',
     'src/chunk.cpp',
+    'src/blocks.cpp',
   ],
   include_directories : 'include',
   dependencies : [sdl2_dep, glm_dep]
