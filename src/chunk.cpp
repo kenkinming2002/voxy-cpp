@@ -18,43 +18,43 @@ static constexpr glm::ivec3 DIRECTIONS[] = {
   {0, 0,  1},
 };
 
-static std::vector<Layer> generate_layers(glm::ivec2 cpos)
+static Blocks generate_blocks(glm::ivec2 cpos)
 {
-  int stone_heights[Layer::WIDTH][Layer::WIDTH];
-  for(int cy=0; cy<Layer::WIDTH; ++cy)
-    for(int cx=0; cx<Layer::WIDTH; ++cx)
+  int stone_heights[Blocks::WIDTH][Blocks::WIDTH];
+  for(int cy=0; cy<Blocks::WIDTH; ++cy)
+    for(int cx=0; cx<Blocks::WIDTH; ++cx)
     {
-      glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
+      glm::vec2 pos = glm::vec2(Blocks::WIDTH * cpos) + glm::vec2(cx, cy);
       stone_heights[cy][cx] = 0.0f;
-      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 1.0f   / Layer::WIDTH, 5.0f);
-      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.5f   / Layer::WIDTH, 10.0f);
-      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.25f  / Layer::WIDTH, 20.0f);
-      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.125f / Layer::WIDTH, 40.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 1.0f   / Blocks::WIDTH, 5.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.5f   / Blocks::WIDTH, 10.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.25f  / Blocks::WIDTH, 20.0f);
+      stone_heights[cy][cx] += perlin(STONE_SEED, pos, 0.125f / Blocks::WIDTH, 40.0f);
     }
 
-  int grass_heights[Layer::WIDTH][Layer::WIDTH];
-  for(int cy=0; cy<Layer::WIDTH; ++cy)
-    for(int cx=0; cx<Layer::WIDTH; ++cx)
+  int grass_heights[Blocks::WIDTH][Blocks::WIDTH];
+  for(int cy=0; cy<Blocks::WIDTH; ++cy)
+    for(int cx=0; cx<Blocks::WIDTH; ++cx)
     {
-      glm::vec2 pos = glm::vec2(Layer::WIDTH * cpos) + glm::vec2(cx, cy);
+      glm::vec2 pos = glm::vec2(Blocks::WIDTH * cpos) + glm::vec2(cx, cy);
       grass_heights[cy][cx] = 0.0f;
-      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 0.25f / Layer::WIDTH, 1.25f);
-      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 0.5f  / Layer::WIDTH, 2.5f);
-      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 1.0f  / Layer::WIDTH, 5.0f);
+      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 0.25f / Blocks::WIDTH, 1.25f);
+      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 0.5f  / Blocks::WIDTH, 2.5f);
+      grass_heights[cy][cx] += perlin(GRASS_SEED, pos, 1.0f  / Blocks::WIDTH, 5.0f);
     }
 
   int max_height = 0;
-  for(int cy=0; cy<Layer::WIDTH; ++cy)
-    for(int cx=0; cx<Layer::WIDTH; ++cx)
+  for(int cy=0; cy<Blocks::WIDTH; ++cy)
+    for(int cx=0; cx<Blocks::WIDTH; ++cx)
       if(max_height < stone_heights[cy][cx]+grass_heights[cy][cx])
         max_height = stone_heights[cy][cx]+grass_heights[cy][cx];
 
-  std::vector<Layer> layers;
+  Blocks blocks;
   for(int cz=0; cz<max_height; ++cz)
   {
-    Layer layer;
-    for(int cy=0; cy<Layer::WIDTH; ++cy)
-      for(int cx=0; cx<Layer::WIDTH; ++cx)
+    Blocks::Layer layer;
+    for(int cy=0; cy<Blocks::WIDTH; ++cy)
+      for(int cx=0; cx<Blocks::WIDTH; ++cx)
         if(cz <= stone_heights[cy][cx])
           layer.blocks[cy][cx] = Block {
             .presence = true,
@@ -70,32 +70,29 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
             .presence = false,
           };
 
-    layers.push_back(layer);
+    blocks.layers.push_back(layer);
   }
 
 
   // Hopefully carve some caves
-  for(int cz=0; cz<max_height; ++cz)
-    for(int cy=0; cy<Layer::WIDTH; ++cy)
-      for(int cx=0; cx<Layer::WIDTH; ++cx)
+  for(int lz=0; lz<blocks.height(); ++lz)
+    for(int ly=0; ly<blocks.width(); ++ly)
+      for(int lx=0; lx<blocks.width(); ++lx)
       {
-        Block& block = layers[cz].blocks[cy][cx];
-        glm::vec3 pos = glm::vec3(
-            cpos.x * Layer::WIDTH + cx,
-            cpos.y * Layer::WIDTH + cy,
-            cz
-        );
+        glm::ivec3 lpos  = { lx, ly, lz };
+        glm::ivec3 gpos  = glm::ivec3(cpos.x * Blocks::WIDTH, cpos.y * Blocks::WIDTH, 0.0f) + lpos;
+
         float noise = 0.0f;
-        noise += perlin(CAVE_SEED, pos, 16.0 / Layer::WIDTH, 0.03125f);
-        noise += perlin(CAVE_SEED, pos, 8.0  / Layer::WIDTH, 0.0625f);
-        noise += perlin(CAVE_SEED, pos, 4.0  / Layer::WIDTH, 0.125f);
-        noise += perlin(CAVE_SEED, pos, 2.0  / Layer::WIDTH, 0.25f);
-        noise += perlin(CAVE_SEED, pos, 1.0  / Layer::WIDTH, 0.5f);
+        noise += perlin(CAVE_SEED, glm::vec3(gpos), 16.0 / Blocks::WIDTH, 0.03125f);
+        noise += perlin(CAVE_SEED, glm::vec3(gpos), 8.0  / Blocks::WIDTH, 0.0625f);
+        noise += perlin(CAVE_SEED, glm::vec3(gpos), 4.0  / Blocks::WIDTH, 0.125f);
+        noise += perlin(CAVE_SEED, glm::vec3(gpos), 2.0  / Blocks::WIDTH, 0.25f);
+        noise += perlin(CAVE_SEED, glm::vec3(gpos), 1.0  / Blocks::WIDTH, 0.5f);
         if(noise<=0.45)
-          block.presence = false;
+          blocks.set(lpos, Block{ .presence = false });
       }
 
-  return layers;
+  return blocks;
 }
 
 struct Vertex
@@ -105,31 +102,23 @@ struct Vertex
   glm::vec3 color;
 };
 
-static Block layers_get_block(const std::vector<Layer>& layers, glm::ivec3 position)
-{
-  if(position.x < 0 || position.x >= Layer::WIDTH)  return Block{ .presence = false };
-  if(position.y < 0 || position.y >= Layer::WIDTH)  return Block{ .presence = false };
-  if(position.y < 0 || position.z >= layers.size()) return Block{ .presence = false };
-  return layers[position.z].blocks[position.y][position.x];
-}
-
-static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& layers)
+static Mesh generate_blocks_mesh(glm::ivec2 cpos, const Blocks& blocks)
 {
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
-  for(int lz=0; lz<layers.size(); ++lz)
-    for(int ly=0; ly<Layer::WIDTH; ++ly)
-      for(int lx=0; lx<Layer::WIDTH; ++lx)
+  for(int lz=0; lz<blocks.height(); ++lz)
+    for(int ly=0; ly<blocks.width(); ++ly)
+      for(int lx=0; lx<blocks.width(); ++lx)
       {
         glm::ivec3 lpos  = { lx, ly, lz };
-        Block      block = layers[lz].blocks[ly][lx];
+        Block      block = blocks.get(lpos);
         if(!block.presence)
           continue;
 
         for(glm::ivec3 dir : DIRECTIONS)
         {
           glm::ivec3 neighbour_lpos  = lpos + dir;
-          Block      neighbour_block = layers_get_block(layers, neighbour_lpos);
+          Block      neighbour_block = blocks.get(neighbour_lpos);
           if(neighbour_block.presence)
             continue;
 
@@ -171,7 +160,7 @@ static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& laye
 }
 
 Chunk::Chunk(glm::ivec2 cpos) :
-  layers(generate_layers(cpos)),
-  layers_mesh(generate_layers_mesh(cpos, layers)),
-  layers_need_remash(false)
+  blocks(generate_blocks(cpos)),
+  blocks_mesh(generate_blocks_mesh(cpos, blocks)),
+  blocks_need_remash(false)
 {}

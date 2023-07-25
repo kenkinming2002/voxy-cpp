@@ -20,8 +20,8 @@ void Terrain::load(glm::vec2 center, float radius)
 {
   std::unique_lock lk(m_mutex);
 
-  glm::ivec2 center_chunk = center / (float)Layer::WIDTH;
-  int        radius_chunk = radius / Layer::WIDTH;
+  glm::ivec2 center_chunk = center / (float)Blocks::WIDTH;
+  int        radius_chunk = radius / Blocks::WIDTH;
 
   bool any = false;
   for(int yoffset_chunk = -radius_chunk; yoffset_chunk <= radius_chunk; ++yoffset_chunk)
@@ -64,7 +64,7 @@ void Terrain::render(const Camera& camera, const Lights& lights)
       {
         const Chunk& chunk = std::get<Chunk>(state);
 
-        glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Layer::WIDTH * cpos.x, Layer::WIDTH * cpos.y, 0.0f));
+        glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( Blocks::WIDTH * cpos.x, Blocks::WIDTH * cpos.y, 0.0f));
         glm::mat4 normal = glm::transpose(glm::inverse(model));
         glm::mat4 MVP    = projection * view * model;
 
@@ -72,7 +72,7 @@ void Terrain::render(const Camera& camera, const Lights& lights)
         glUniformMatrix4fv(glGetUniformLocation(m_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(m_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
 
-        chunk.layers_mesh.draw();
+        chunk.blocks_mesh.draw();
       }
   }
 }
