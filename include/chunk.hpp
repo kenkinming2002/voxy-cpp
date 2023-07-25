@@ -16,7 +16,7 @@ public:
   bool   blocks_need_remash;
 
 public:
-  Chunk(glm::ivec2 cpos);
+  Chunk(size_t seed, glm::ivec2 cpos);
 };
 
 #endif // CHUNK_HPP

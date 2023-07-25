@@ -73,8 +73,8 @@ static Mesh generate_blocks_mesh(glm::ivec2 cpos, const Blocks& blocks)
   );
 }
 
-Chunk::Chunk(glm::ivec2 cpos) :
-  blocks(cpos),
+Chunk::Chunk(size_t seed, glm::ivec2 cpos) :
+  blocks(seed, cpos),
   blocks_mesh(generate_blocks_mesh(cpos, blocks)),
   blocks_need_remash(false)
 {}

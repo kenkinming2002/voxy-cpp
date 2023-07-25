@@ -4,7 +4,8 @@
 
 #include <algorithm>
 
-Terrain::Terrain() :
+Terrain::Terrain(size_t seed) :
+  m_seed(seed),
   m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
   m_mutex(),
   m_cv(),
@@ -104,7 +105,7 @@ void Terrain::loader(std::stop_token stoken)
       return;
 
     lk.unlock();
-    Chunk chunk(cpos);
+    Chunk chunk(m_seed, cpos);
     lk.lock();
 
     m_states.insert_or_assign(cpos, std::move(chunk));

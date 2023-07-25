@@ -25,7 +25,7 @@ struct World
   Lights  lights;
   Terrain terrain;
 
-  World();
+  World(size_t seed);
 
   void handle_event(SDL_Event event);
 

@@ -22,7 +22,7 @@
 class Terrain
 {
 public:
-  Terrain();
+  Terrain(size_t seed);
 
 public:
   void load(glm::vec2 center, float radius);
@@ -34,6 +34,8 @@ private:
   void loader(std::stop_token stoken);
 
 private:
+  size_t m_seed;
+
   gl::Program m_program;
 
   std::mutex                  m_mutex;

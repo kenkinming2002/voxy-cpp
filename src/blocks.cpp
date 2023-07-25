@@ -2,18 +2,21 @@
 
 #include <perlin.hpp>
 
-static constexpr size_t STONE_SEED = 0b1101101011011010101011100000011101001010101010000010111101000110;
-static constexpr size_t GRASS_SEED = 0b0101110111011101010110111101101010101010101010001010111100010100;
-static constexpr size_t CAVE_SEED  = 0b1101111110111100001110100000110110101010111010000101010101010011;
+#include <random>
 
-Blocks::Blocks(glm::ivec2 cpos)
+Blocks::Blocks(size_t seed, glm::ivec2 cpos)
 {
+  std::mt19937 prng(seed);
+  size_t stone_seed = prng();
+  size_t grass_seed = prng();
+  size_t cave_seed  = prng();
+
   int stone_heights[Blocks::WIDTH][Blocks::WIDTH];
   for(int cy=0; cy<Blocks::WIDTH; ++cy)
     for(int cx=0; cx<Blocks::WIDTH; ++cx)
     {
       glm::vec2 pos = glm::vec2(Blocks::WIDTH * cpos) + glm::vec2(cx, cy);
-      stone_heights[cy][cx] = perlin(STONE_SEED, pos, 0.03f, 40.0f, 2.0f, 0.5f, 4);
+      stone_heights[cy][cx] = perlin(stone_seed, pos, 0.03f, 40.0f, 2.0f, 0.5f, 4);
     }
 
   int grass_heights[Blocks::WIDTH][Blocks::WIDTH];
@@ -21,7 +24,7 @@ Blocks::Blocks(glm::ivec2 cpos)
     for(int cx=0; cx<Blocks::WIDTH; ++cx)
     {
       glm::vec2 pos = glm::vec2(Blocks::WIDTH * cpos) + glm::vec2(cx, cy);
-      grass_heights[cy][cx] = perlin(GRASS_SEED, pos, 0.01f, 5.0f, 2.0f, 0.5f, 2);
+      grass_heights[cy][cx] = perlin(grass_seed, pos, 0.01f, 5.0f, 2.0f, 0.5f, 2);
     }
 
   int max_height = 0;
@@ -61,7 +64,7 @@ Blocks::Blocks(glm::ivec2 cpos)
         glm::ivec3 lpos  = { lx, ly, lz };
         glm::ivec3 gpos  = glm::ivec3(cpos.x * Blocks::WIDTH, cpos.y * Blocks::WIDTH, 0.0f) + lpos;
 
-        float value = perlin(CAVE_SEED, glm::vec3(gpos), 0.05f, 0.5f, 2.0f, 0.5f, 4);
+        float value = perlin(cave_seed, glm::vec3(gpos), 0.05f, 0.5f, 2.0f, 0.5f, 4);
         if(value<=0.4f)
           set(lpos, Block{ .presence = false });
       }

@@ -9,7 +9,7 @@
 
 #include <math.h>
 
-World::World() :
+World::World(size_t seed) :
   camera{
     .position = glm::vec3(-5.0f, -5.0f,  50.0f),
     .aspect = 1024.0f / 720.0f,
@@ -22,7 +22,7 @@ World::World() :
     glm::vec3(0.2f, 0.2f, 0.2f),  // ambient
     glm::vec3(0.5f, 0.5f, 0.5f)   // diffuse
   )),
-  terrain()
+  terrain(seed)
 {}
 
 

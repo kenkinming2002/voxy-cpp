@@ -16,7 +16,7 @@ public:
   static constexpr int WIDTH = 16;
 
 public:
-  Blocks(glm::ivec2 cpos);
+  Blocks(size_t seed, glm::ivec2 cpos);
 
 public:
   int width()  const { return WIDTH; }

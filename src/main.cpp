@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <math.h>
 
+static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
+
 int main()
 {
   sdl2::Context sdl2_context;
@@ -34,7 +36,7 @@ int main()
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
-  World world;
+  World world(SEED);
   Timer timer;
 
   bool running = true;
