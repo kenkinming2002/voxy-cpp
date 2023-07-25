@@ -20,28 +20,16 @@ public:
 
 public:
   int width()  const { return WIDTH; }
-  int height() const { return m_layers.size(); }
+  int height() const { return m_slices.size(); }
 
 public:
-  Block get(glm::ivec3 lpos) const
-  {
-    if(lpos.x < 0 || lpos.x >= width())  return Block{ .presence = false };
-    if(lpos.y < 0 || lpos.y >= width())  return Block{ .presence = false };
-    if(lpos.z < 0 || lpos.z >= height()) return Block{ .presence = false };
-    return m_layers[lpos.z].blocks[lpos.y][lpos.x];
-  }
-
-  void set(glm::ivec3 lpos, Block block)
-  {
-    if(lpos.x < 0 || lpos.x >= width())  return;
-    if(lpos.y < 0 || lpos.y >= width())  return;
-    if(lpos.z < 0 || lpos.z >= height()) return;
-    m_layers[lpos.z].blocks[lpos.y][lpos.x] = block;
-  }
+  Block get(glm::ivec3 position) const;
+  void set(glm::ivec3 position, Block block);
+  void explode(glm::vec3 center, float radius);
 
 private:
-  struct Layer { Block blocks[WIDTH][WIDTH]; };
-  std::vector<Layer> m_layers;
+  struct Slice { Block blocks[WIDTH][WIDTH]; };
+  std::vector<Slice> m_slices;
 };
 
 #endif // BLOCKS_HPP
