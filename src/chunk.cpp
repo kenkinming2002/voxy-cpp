@@ -9,6 +9,15 @@ static constexpr size_t STONE_SEED = 0b11011010110110101010111000000111010010101
 static constexpr size_t GRASS_SEED = 0b0101110111011101010110111101101010101010101010001010111100010100;
 static constexpr size_t CAVE_SEED  = 0b1101111110111100001110100000110110101010111010000101010101010011;
 
+static constexpr glm::ivec3 DIRECTIONS[] = {
+  {-1, 0, 0},
+  { 1, 0, 0},
+  {0, -1, 0},
+  {0,  1, 0},
+  {0, 0, -1},
+  {0, 0,  1},
+};
+
 static std::vector<Layer> generate_layers(glm::ivec2 cpos)
 {
   int stone_heights[Layer::WIDTH][Layer::WIDTH];
@@ -89,99 +98,6 @@ static std::vector<Layer> generate_layers(glm::ivec2 cpos)
   return layers;
 }
 
-struct Face
-{
-  static constexpr size_t INDEX_COUNT  = 6;
-  static constexpr size_t VERTEX_COUNT = 4;
-
-  static constexpr uint32_t INDICES[INDEX_COUNT] = {0, 1, 2, 2, 1, 3};
-  static constexpr glm::vec2 UVS[VERTEX_COUNT] = {
-    {0.0, 0.0},
-    {1.0, 0.0},
-    {0.0, 1.0},
-    {1.0, 1.0},
-  };
-  glm::vec3 positions[VERTEX_COUNT];
-  glm::vec3 normal;
-
-  glm::ivec3 dir;
-};
-
-static constexpr Face FACE_NEGATIVE_X = {
-  .positions = {
-    {-0.5f,  0.5f, -0.5f},
-    {-0.5f, -0.5f, -0.5f},
-    {-0.5f,  0.5f,  0.5f},
-    {-0.5f, -0.5f,  0.5f},
-  },
-  .normal = {-1.0f, 0.0f, 0.0f},
-  .dir = {-1, 0, 0},
-};
-
-static constexpr Face FACE_POSITIVE_X = {
-  .positions = {
-    {0.5f, -0.5f, -0.5f},
-    {0.5f,  0.5f, -0.5f},
-    {0.5f, -0.5f,  0.5f},
-    {0.5f,  0.5f,  0.5f},
-  },
-  .normal = {1.0f, 0.0f, 0.0f},
-  .dir = {1, 0, 0},
-};
-
-static constexpr Face FACE_NEGATIVE_Y = {
-  .positions = {
-    {-0.5f, -0.5f, -0.5f},
-    { 0.5f, -0.5f, -0.5f},
-    {-0.5f, -0.5f,  0.5f},
-    { 0.5f, -0.5f,  0.5f},
-  },
-  .normal = {0.0f, -1.0f, 0.0f},
-  .dir = {0, -1, 0},
-};
-
-static constexpr Face FACE_POSITIVE_Y = {
-  .positions = {
-    { 0.5f, 0.5f, -0.5f},
-    {-0.5f, 0.5f, -0.5f},
-    { 0.5f, 0.5f,  0.5f},
-    {-0.5f, 0.5f,  0.5f},
-  },
-  .normal = {0.0f, 1.0f, 0.0f},
-  .dir = {0, 1, 0},
-};
-
-static constexpr Face FACE_NEGATIVE_Z = {
-  .positions = {
-    {-0.5f,  0.5f, -0.5f},
-    { 0.5f,  0.5f, -0.5f},
-    {-0.5f, -0.5f, -0.5f},
-    { 0.5f, -0.5f, -0.5f},
-  },
-  .normal = {0.0f, 0.0f, -1.0f},
-  .dir = {0, 0, -1},
-};
-
-static constexpr Face FACE_POSITIVE_Z = {
-  .positions = {
-    {-0.5f, -0.5f, 0.5f},
-    { 0.5f, -0.5f, 0.5f},
-    {-0.5f,  0.5f, 0.5f},
-    { 0.5f,  0.5f, 0.5f},
-  },
-  .normal = {0.0f, 0.0f, 1.0f},
-  .dir = {0, 0, 1},
-};
-
-static constexpr Face FACES[] = {
-  FACE_NEGATIVE_X,
-  FACE_POSITIVE_X,
-  FACE_NEGATIVE_Y,
-  FACE_POSITIVE_Y,
-  FACE_NEGATIVE_Z,
-  FACE_POSITIVE_Z,
-};
-
 struct Vertex
 {
   glm::vec3 position;
@@ -189,24 +105,10 @@ struct Vertex
   glm::vec3 color;
 };
 
-static void add_face(std::vector<uint32_t>& indices, std::vector<Vertex>& vertices, const Face& face, glm::vec3 position, glm::vec3 color)
+static Block layers_get_block(const std::vector<Layer>& layers, glm::ivec3 position)
 {
-  uint32_t index_base = vertices.size();
-  for(uint32_t index : Face::INDICES)
-    indices.push_back(index_base + index);
-
-  for(size_t i=0; i<Face::VERTEX_COUNT; ++i)
-    vertices.push_back(Vertex{
-      .position = position + face.positions[i],
-      .normal   = face.normal,
-      .color    = color,
-    });
-}
-
-static std::optional<Block> layers_get_block(const std::vector<Layer>& layers, glm::ivec3 position)
-{
-  if(position.x < 0 || position.x >= Layer::WIDTH)  return std::nullopt;
-  if(position.y < 0 || position.y >= Layer::WIDTH)  return std::nullopt;
+  if(position.x < 0 || position.x >= Layer::WIDTH)  return Block{ .presence = false };
+  if(position.y < 0 || position.y >= Layer::WIDTH)  return Block{ .presence = false };
   if(position.y < 0 || position.z >= layers.size()) return Block{ .presence = false };
   return layers[position.z].blocks[position.y][position.x];
 }
@@ -215,21 +117,41 @@ static Mesh generate_layers_mesh(glm::ivec2 cpos, const std::vector<Layer>& laye
 {
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
-  for(int z=0; z<layers.size(); ++z)
-    for(int y=0; y<Layer::WIDTH; ++y)
-      for(int x=0; x<Layer::WIDTH; ++x)
+  for(int lz=0; lz<layers.size(); ++lz)
+    for(int ly=0; ly<Layer::WIDTH; ++ly)
+      for(int lx=0; lx<Layer::WIDTH; ++lx)
       {
-        const Block& block = layers[z].blocks[y][x];
-        glm::ivec3 position = {x, y, z};
-        if(block.presence)
-          for(Face face : FACES)
-          {
-            auto adjacent_block = layers_get_block(layers, position + face.dir);
-            if(adjacent_block && adjacent_block->presence)
-              continue; // Culling
+        glm::ivec3 lpos  = { lx, ly, lz };
+        Block      block = layers[lz].blocks[ly][lx];
+        if(!block.presence)
+          continue;
 
-            add_face(indices, vertices, face, position, block.color);
-          }
+        for(glm::ivec3 dir : DIRECTIONS)
+        {
+          glm::ivec3 neighbour_lpos  = lpos + dir;
+          Block      neighbour_block = layers_get_block(layers, neighbour_lpos);
+          if(neighbour_block.presence)
+            continue;
+
+          uint32_t index_base = vertices.size();
+          indices.push_back(index_base + 0);
+          indices.push_back(index_base + 1);
+          indices.push_back(index_base + 2);
+          indices.push_back(index_base + 2);
+          indices.push_back(index_base + 1);
+          indices.push_back(index_base + 3);
+
+          glm::ivec3 out   = dir;
+          glm::ivec3 up    = dir.z == 0.0 ? glm::ivec3(0, 0, 1) : glm::ivec3(1, 0, 0);
+          glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
+
+          glm::vec3 center = glm::vec3(lpos) + 0.5f * glm::vec3(out);
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = dir, .color = block.color });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = dir, .color = block.color });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = dir, .color = block.color });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = dir, .color = block.color });
+          // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
+        }
       }
 
   MeshLayout layout{
