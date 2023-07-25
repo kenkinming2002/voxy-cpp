@@ -24,7 +24,7 @@ struct Blocks
   {
     if(lpos.x < 0 || lpos.x >= width())  return Block{ .presence = false };
     if(lpos.y < 0 || lpos.y >= width())  return Block{ .presence = false };
-    if(lpos.y < 0 || lpos.z >= height()) return Block{ .presence = false };
+    if(lpos.z < 0 || lpos.z >= height()) return Block{ .presence = false };
     return layers[lpos.z].blocks[lpos.y][lpos.x];
   }
 
@@ -32,7 +32,7 @@ struct Blocks
   {
     if(lpos.x < 0 || lpos.x >= width())  return;
     if(lpos.y < 0 || lpos.y >= width())  return;
-    if(lpos.y < 0 || lpos.z >= height()) return;
+    if(lpos.z < 0 || lpos.z >= height()) return;
     layers[lpos.z].blocks[lpos.y][lpos.x] = block;
   }
 
