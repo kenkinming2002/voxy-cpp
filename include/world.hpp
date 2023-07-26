@@ -1,36 +1,125 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
+#include <camera.hpp>
+#include <light.hpp>
 #include <mesh.hpp>
 
-#include <camera.hpp>
-#include <lights.hpp>
-#include <terrain.hpp>
+#include <gl.hpp>
 
 #include <SDL.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
+#include <mutex>
+#include <shared_mutex>
+#include <condition_variable>
+
+#include <thread>
+
+#include <unordered_set>
 #include <unordered_map>
+
+#include <variant>
 #include <utility>
 
 #include <stddef.h>
 #include <stdint.h>
 
+static constexpr int CHUNK_WIDTH = 16;
+
+/*************
+ * ChunkInfo *
+ *************/
+struct HeightMap
+{
+  float heights[CHUNK_WIDTH][CHUNK_WIDTH];
+};
+
+struct Worm
+{
+  struct Node
+  {
+    glm::vec3 center;
+    float     radius;
+  };
+  std::vector<Node> nodes;
+};
+
+struct ChunkInfo
+{
+  HeightMap         stone_height_map;
+  HeightMap         grass_height_map;
+  std::vector<Worm> worms;
+};
+
+/*************
+ * ChunkData *
+ *************/
+struct Block
+{
+  bool      presence;
+  glm::vec3 color;
+};
+
+struct ChunkData
+{
+  struct Slice { Block blocks[CHUNK_WIDTH][CHUNK_WIDTH]; };
+  std::vector<Slice> slices;
+};
+
+/*********
+ * World *
+ *********/
 struct World
 {
-  Camera camera;
+public:
+  World(std::size_t seed);
 
-  Lights  lights;
-  Terrain terrain;
-
-  World(size_t seed);
-
+public:
   void handle_event(SDL_Event event);
-
   void update(float dt);
   void render();
+
+private:
+  // Try to load info/data/mesh
+  //
+  // @precondition m_mutex is held
+  // @return       true if info/data/mesh has already been loaded, false otherwise
+  bool try_load_info(glm::ivec2 chunk_position);
+  bool try_load_data(glm::ivec2 chunk_position);
+  bool try_load_mesh(glm::ivec2 chunk_position);
+
+  void work(std::stop_token stoken);
+
+private:
+  Camera             m_camera;
+  std::vector<Light> m_lights;
+
+private:
+  std::size_t m_seed;
+
+  std::shared_mutex           m_mutex;
+  std::condition_variable_any m_cv;
+
+  std::unordered_set<glm::ivec2> m_pending_chunk_infos;
+  std::unordered_set<glm::ivec2> m_pending_chunk_datas;
+  std::unordered_set<glm::ivec2> m_pending_chunk_meshes;
+
+  std::unordered_set<glm::ivec2> m_loading_chunk_infos;
+  std::unordered_set<glm::ivec2> m_loading_chunk_datas;
+  std::unordered_set<glm::ivec2> m_loading_chunk_meshes;
+
+  std::unordered_map<glm::ivec2, ChunkInfo> m_chunk_infos;
+  std::unordered_map<glm::ivec2, ChunkData> m_chunk_datas;
+  std::unordered_map<glm::ivec2, Mesh>      m_chunk_meshes;
+
+private:
+  gl::Program m_program;
+
+private:
+  std::vector<std::jthread> m_workers;
 };
 
 #endif // WORLD_HPP

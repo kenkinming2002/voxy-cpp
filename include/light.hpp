@@ -7,13 +7,9 @@
 
 struct Light
 {
-  glm::vec3 pos;
+  glm::vec3 position;
   glm::vec3 ambient;
   glm::vec3 diffuse;
-
-  Mesh mesh;
-
-  Light(glm::vec3 pos, glm::vec3 ambient, glm::vec3 diffuse);
 };
 
 
