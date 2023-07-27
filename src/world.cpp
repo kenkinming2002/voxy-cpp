@@ -244,9 +244,9 @@ static ChunkData generate_chunk_data(glm::ivec2 chunk_position, const std::unord
       {
         int height1 = chunk_info.stone_height_map.heights[ly][lx];
         int height2 = chunk_info.stone_height_map.heights[ly][lx] + chunk_info.grass_height_map.heights[ly][lx];
-        slice.blocks[ly][lx] = lz < height1 ? Block { .presence = true, .color = glm::vec3(0.7, 0.7, 0.7), } :
-                               lz < height2 ? Block { .presence = true, .color = glm::vec3(0.2, 1.0, 0.2), } :
-                                              Block { .presence = false };
+        slice.blocks[ly][lx] = lz < height1 ? Block::STONE :
+                               lz < height2 ? Block::GRASS :
+                                              Block::NONE;
       }
     chunk_data.slices.push_back(slice);
   }
@@ -322,12 +322,20 @@ static Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chun
           glm::ivec3 out   = direction;
           glm::ivec3 up    = direction.z == 0.0 ? glm::ivec3(0, 0, 1) : glm::ivec3(1, 0, 0);
           glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
-
           glm::vec3 center = glm::vec3(position) + 0.5f * glm::vec3(out);
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = block.color });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = block.color });
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = block.color });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = block.color });
+
+          glm::vec3 color;
+          switch(block.id)
+          {
+          case Block::ID_STONE: color = glm::vec3(0.7, 0.7, 0.7); break;
+          case Block::ID_GRASS: color = glm::vec3(0.2, 1.0, 0.2); break;
+          default: color = glm::vec3(1.0, 1.0, 1.0); break;
+          }
+
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = color });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = color });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = color });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = color });
           // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
         }
       }

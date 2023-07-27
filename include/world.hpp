@@ -59,9 +59,21 @@ struct ChunkInfo
  *************/
 struct Block
 {
-  bool      presence;
-  glm::vec3 color;
+  static constexpr uint32_t ID_NONE  = 0;
+  static constexpr uint32_t ID_STONE = 1;
+  static constexpr uint32_t ID_GRASS = 2;
+
+  static const Block NONE;
+  static const Block STONE;
+  static const Block GRASS;
+
+  uint32_t id       : 31;
+  uint32_t presence : 1;
 };
+
+inline const Block Block::NONE  = { .id = Block::ID_NONE,  .presence = 0, };
+inline const Block Block::STONE = { .id = Block::ID_STONE, .presence = 1, };
+inline const Block Block::GRASS = { .id = Block::ID_GRASS, .presence = 1, };
 
 struct ChunkData
 {
