@@ -6,8 +6,9 @@
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <spdlog/spdlog.h>
+
 #include <random>
-#include <iostream>
 
 /*************
  * Constants *
@@ -509,7 +510,6 @@ void World::work(std::stop_token stoken)
     if(stoken.stop_requested())
       return;
 
-    std::clog << "Worker Notified\n";
     for(;;)
     {
       if(stoken.stop_requested())
@@ -519,13 +519,15 @@ void World::work(std::stop_token stoken)
         glm::ivec2 chunk_position = *m_pending_chunk_meshes.begin();
         m_pending_chunk_meshes.erase(m_pending_chunk_meshes.begin());
         m_loading_chunk_meshes.insert(chunk_position);
-        std::clog << "Generating chunk mesh at " << chunk_position << '\n';
+        spdlog::info("Generating chunk mesh at {}, {}", chunk_position.x, chunk_position.y);
 
         lk.unlock();
+
 
         std::shared_lock shared_lk(m_mutex);
         Mesh chunk_mesh = generate_chunk_mesh(chunk_position, m_chunk_datas.at(chunk_position));
         shared_lk.unlock();
+
 
         lk.lock();
 
@@ -537,7 +539,7 @@ void World::work(std::stop_token stoken)
         glm::ivec2 chunk_position = *m_pending_chunk_datas.begin();
         m_pending_chunk_datas.erase(m_pending_chunk_datas.begin());
         m_loading_chunk_datas.insert(chunk_position);
-        std::clog << "Generating chunk data at " << chunk_position << '\n';
+        spdlog::info("Generating chunk data at {}, {}", chunk_position.x, chunk_position.y);
 
         lk.unlock();
 
@@ -555,7 +557,7 @@ void World::work(std::stop_token stoken)
         glm::ivec2 chunk_position = *m_pending_chunk_infos.begin();
         m_pending_chunk_infos.erase(m_pending_chunk_infos.begin());
         m_loading_chunk_infos.insert(chunk_position);
-        std::clog << "Generating chunk info at " << chunk_position << '\n';
+        spdlog::info("Generating chunk info at {}, {}", chunk_position.x, chunk_position.y);
 
         lk.unlock();
         ChunkInfo chunk_info = generate_chunk_info(chunk_position, m_seed);

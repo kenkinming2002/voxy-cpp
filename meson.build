@@ -2,6 +2,7 @@ project('voxy', ['c', 'cpp'], default_options : ['cpp_std=c++20'])
 
 sdl2_dep = dependency('sdl2')
 glm_dep = dependency('glm')
+spdlog_dep = dependency('spdlog')
 voxy_exe = executable('voxy', [
     'src/gl.cpp',
     'src/sdl2.cpp',
@@ -14,5 +15,5 @@ voxy_exe = executable('voxy', [
     'src/camera.cpp',
   ],
   include_directories : 'include',
-  dependencies : [sdl2_dep, glm_dep]
+  dependencies : [sdl2_dep, glm_dep, spdlog_dep]
 )

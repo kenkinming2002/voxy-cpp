@@ -1,6 +1,6 @@
 #include <mesh.hpp>
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 Mesh::Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices) :
   m_layout(std::move(layout)),
@@ -26,9 +26,9 @@ void Mesh::draw() const
 {
   if(!m_generated)
   {
-    std::clog << "DEBUG: Mesh: Lazily generating OpenGL objects\n";
-    std::clog << "DEBUG: Mesh: Index buffer size  = " << m_indices.size()  << '\n';
-    std::clog << "DEBUG: Mesh: Vertex buffer size = " << m_vertices.size() << '\n';
+    spdlog::info("Lazily generating mesh with index buffer size = {}, vertex buffer size = {}",
+        m_indices.size(),
+        m_vertices.size());
 
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_ebo);
