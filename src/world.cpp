@@ -30,6 +30,8 @@ static constexpr float FRICTION = 0.5f;
 static constexpr float GRAVITY  = 5.0f;
 static constexpr int MAX_COLLISION_ITERATION = 5;
 
+static constexpr float ROTATION_SPEED = 0.1f;
+
 /*************
  * Utilities *
  *************/
@@ -395,7 +397,7 @@ static void entity_update_physics(Entity& entity, float dt)
 {
   entity_apply_force(entity, -FRICTION * entity.velocity,             dt);
   entity_apply_force(entity, -GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
-  entity.position += dt * entity.velocity;
+  entity.transform.position += dt * entity.velocity;
 }
 
 static glm::vec3 aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 position2, glm::vec3 dimension2)
@@ -412,8 +414,8 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
 {
   std::vector<glm::vec3> collisions;
 
-  glm::ivec3 corner1 = glm::floor(entity.position);
-  glm::ivec3 corner2 = -glm::floor(-(entity.position + entity.bounding_box))-1.0f;
+  glm::ivec3 corner1 = glm::floor(entity.transform.position);
+  glm::ivec3 corner2 = -glm::floor(-(entity.transform.position + entity.bounding_box))-1.0f;
   for(int z = corner1.z; z<=corner2.z; ++z)
     for(int y = corner1.y; y<=corner2.y; ++y)
       for(int x = corner1.x; x<=corner2.x; ++x)
@@ -437,7 +439,7 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
         Block block = get_block(chunk_data, block_local_position);
         if(block.presence)
         {
-          glm::vec3 collision = aabb_collide(entity.position, entity.bounding_box, block_global_position, glm::vec3(1.0f, 1.0f, 1.0f));
+          glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, block_global_position, glm::vec3(1.0f, 1.0f, 1.0f));
           spdlog::info("Entity collision {}, {}, {} with block {}, {}, {}",
             collision.x, collision.y, collision.z,
             block_global_position.x, block_global_position.y, block_global_position.z
@@ -452,7 +454,7 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
 
 void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ivec2, ChunkData>& chunk_datas)
 {
-  glm::vec3 original_position = entity.position;
+  glm::vec3 original_position = entity.transform.position;
   glm::vec3 original_velocity = entity.velocity;
 
   for(int i=0; i<MAX_COLLISION_ITERATION; ++i)
@@ -475,7 +477,7 @@ void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ive
     if(resolution)
     {
       spdlog::info("Resolving collision by {}, {}, {}", resolution->x, resolution->y, resolution->z);
-      entity.position += *resolution;
+      entity.transform.position += *resolution;
       if(resolution->x != 0.0f) entity.velocity.x = 0.0f;
       if(resolution->y != 0.0f) entity.velocity.y = 0.0f;
       if(resolution->z != 0.0f) entity.velocity.z = 0.0f;
@@ -483,7 +485,7 @@ void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ive
 
   }
   spdlog::warn("Failed to resolve collision");
-  entity.position = original_position;
+  entity.transform.position = original_position;
   entity.velocity = original_velocity;
 }
 
@@ -492,11 +494,8 @@ void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ive
  *********/
 World::World(std::size_t seed) :
   m_camera{
-    .position = glm::vec3(-5.0f, -5.0f,  50.0f),
     .aspect = 1024.0f / 720.0f,
-    .yaw    = 45.0f,
-    .pitch  = -45.0f,
-    .fov    = 45.0f,
+    .fovy   = 45.0f,
   },
   m_lights{{
     .position = { 0.0f, 0.0f, 30.0f}, // position
@@ -505,7 +504,10 @@ World::World(std::size_t seed) :
   }},
   m_seed(seed),
   m_player{
-    .position     = glm::vec3(0.0f, 0.0f, 50.0f),
+    .transform = {
+      .position = glm::vec3(0.0f, 0.0f, 50.0f),
+      .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+    },
     .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
     .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
   },
@@ -521,7 +523,10 @@ void World::handle_event(SDL_Event event)
   switch(event.type)
   {
     case SDL_MOUSEMOTION:
-      m_camera.rotate(-event.motion.xrel, -event.motion.yrel);
+      m_player.transform = m_player.transform.rotate(glm::vec3(0.0f,
+        -event.motion.yrel * ROTATION_SPEED,
+        -event.motion.xrel * ROTATION_SPEED
+      ));
       break;
     case SDL_MOUSEWHEEL:
       m_camera.zoom(-event.wheel.y);
@@ -543,14 +548,15 @@ void World::update(float dt)
   if(keys[SDL_SCANCODE_A])      translation.x -= 1.0f;
   if(glm::length(translation) != 0.0f)
   {
+    translation = m_player.transform.gocal_to_global(translation);
     translation = glm::normalize(translation);
     translation *= dt;
     m_player.velocity += translation * 10.0f;
   }
 
   glm::ivec2 center_chunk_position = {
-    std::floor(m_camera.position.x / CHUNK_WIDTH),
-    std::floor(m_camera.position.y / CHUNK_WIDTH),
+    std::floor(m_player.transform.position.x / CHUNK_WIDTH),
+    std::floor(m_player.transform.position.y / CHUNK_WIDTH),
   };
 
   // 2: Loading
@@ -571,7 +577,10 @@ void World::update(float dt)
     entity_update_physics(m_player, dt);
     entity_resolve_collisions(m_player, m_chunk_datas);
   }
-  m_camera.position = m_player.position + glm::vec3(0.5f, 0.5f, 1.5f);
+
+
+  m_camera.transform           = m_player.transform;
+  m_camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
 }
 
 void World::render()
@@ -584,7 +593,7 @@ void World::render()
 
   glUseProgram(m_program);
   {
-    glUniform3fv(glGetUniformLocation(m_program, "viewPos"),        1, glm::value_ptr(m_camera.position));
+    glUniform3fv(glGetUniformLocation(m_program, "viewPos"),        1, glm::value_ptr(m_camera.transform.position));
     glUniform3fv(glGetUniformLocation(m_program, "light.pos"),      1, glm::value_ptr(m_lights.at(0).position));
     glUniform3fv(glGetUniformLocation(m_program, "light.ambient"),  1, glm::value_ptr(m_lights.at(0).ambient));
     glUniform3fv(glGetUniformLocation(m_program, "light.diffuse"),  1, glm::value_ptr(m_lights.at(0).diffuse));

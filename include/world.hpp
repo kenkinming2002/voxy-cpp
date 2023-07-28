@@ -4,6 +4,7 @@
 #include <camera.hpp>
 #include <light.hpp>
 #include <mesh.hpp>
+#include <transform.hpp>
 
 #include <gl.hpp>
 
@@ -86,7 +87,8 @@ struct ChunkData
  **********/
 struct Entity
 {
-  glm::vec3 position;
+  Transform transform;
+
   glm::vec3 velocity;
   glm::vec3 bounding_box;
 };
