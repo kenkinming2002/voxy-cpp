@@ -81,6 +81,16 @@ struct ChunkData
   std::vector<Slice> slices;
 };
 
+/**********
+ * Entity *
+ **********/
+struct Entity
+{
+  glm::vec3 position;
+  glm::vec3 velocity;
+  glm::vec3 bounding_box;
+};
+
 /*********
  * World *
  *********/
@@ -126,6 +136,9 @@ private:
   std::unordered_map<glm::ivec2, ChunkInfo> m_chunk_infos;
   std::unordered_map<glm::ivec2, ChunkData> m_chunk_datas;
   std::unordered_map<glm::ivec2, Mesh>      m_chunk_meshes;
+
+private:
+  Entity m_player;
 
 private:
   gl::Program m_program;

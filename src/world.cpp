@@ -14,7 +14,7 @@
  * Constants *
  *************/
 static constexpr int CAVE_WORM_MAX = 2;
-static constexpr int CAVE_WORM_SEGMENT_MAX = 50;
+static constexpr int CAVE_WORM_SEGMENT_MAX = 10;
 
 static constexpr float CAVE_WORM_MIN_HEIGHT = 10.0;
 static constexpr float CAVE_WORM_MAX_HEIGHT = 30.0;
@@ -24,7 +24,10 @@ static constexpr float CAVE_WORM_MAX_RADIUS = 5.0;
 
 static constexpr float CAVE_WORM_STEP = 5.0f;
 
-static constexpr int CHUNK_LOAD_RADIUS = 4;
+static constexpr int CHUNK_LOAD_RADIUS = 2;
+
+static constexpr float     FRICTION = 0.5f;
+static constexpr glm::vec3 GRAVITY  = glm::vec3(0.0f, 0.0f, -5.0f);
 
 /*************
  * Utilities *
@@ -71,6 +74,7 @@ static glm::vec3 local_to_global(glm::vec3 position, glm::ivec2 chunk_position)
       position.z
   );
 }
+
 static glm::ivec2 global_to_local(glm::ivec2 position, glm::ivec2 chunk_position)
 {
   return glm::ivec2(
@@ -101,6 +105,28 @@ static glm::vec2 local_to_global(glm::vec2 position, glm::ivec2 chunk_position)
       position.x + chunk_position.x * CHUNK_WIDTH,
       position.y + chunk_position.y * CHUNK_WIDTH
   );
+}
+
+static glm::vec3 min_axis(glm::vec3 vec)
+{
+  float min = std::abs(vec.x);
+  min = std::min(min, std::abs(vec.y));
+  min = std::min(min, std::abs(vec.z));
+  if(min != std::abs(vec.x)) vec.x = 0.0f;
+  if(min != std::abs(vec.y)) vec.y = 0.0f;
+  if(min != std::abs(vec.z)) vec.z = 0.0f;
+  return vec;
+}
+
+static int modulo(int a, int b)
+{
+  int value = a % b;
+  if(value < 0)
+    value += b;
+
+  assert(0 <= value);
+  assert(value < b);
+  return value;
 }
 
 /*************
@@ -322,7 +348,7 @@ static Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chun
           glm::ivec3 out   = direction;
           glm::ivec3 up    = direction.z == 0.0 ? glm::ivec3(0, 0, 1) : glm::ivec3(1, 0, 0);
           glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
-          glm::vec3 center = glm::vec3(position) + 0.5f * glm::vec3(out);
+          glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
           glm::vec3 color;
           switch(block.id)
@@ -356,6 +382,139 @@ static Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chun
   );
 }
 
+/**********
+ * Entity *
+ **********/
+static void entity_apply_force(Entity& entity, glm::vec3 force, float dt)
+{
+  entity.velocity += dt * force;
+}
+
+static void entity_update_physics(Entity& entity, float dt)
+{
+  entity_apply_force(entity, -FRICTION * entity.velocity, dt);
+  entity_apply_force(entity, GRAVITY,                     dt);
+  entity.position += dt * entity.velocity;
+}
+
+static glm::vec3 aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 position2, glm::vec3 dimension2)
+{
+  glm::vec3 point1 = position2 - (position1 + dimension1);
+  glm::vec3 point2 = (position2 + dimension2) - position1;
+  float x = std::abs(point1.x) < std::abs(point2.x) ? point1.x : point2.x;
+  float y = std::abs(point1.y) < std::abs(point2.y) ? point1.y : point2.y;
+  float z = std::abs(point1.z) < std::abs(point2.z) ? point1.z : point2.z;
+  return glm::vec3(x, y, z);
+}
+
+static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::unordered_map<glm::ivec2, ChunkData>& chunk_datas)
+{
+  std::vector<glm::vec3> collisions;
+
+  glm::ivec3 corner1 = glm::floor(entity.position);
+  glm::ivec3 corner2 = -glm::floor(-(entity.position + entity.bounding_box))-1.0f;
+  for(int z = corner1.z; z<=corner2.z; ++z)
+    for(int y = corner1.y; y<=corner2.y; ++y)
+      for(int x = corner1.x; x<=corner2.x; ++x)
+      {
+        glm::ivec3 block_global_position = glm::ivec3(x, y, z);
+        glm::ivec3 block_local_position = {
+          modulo(block_global_position.x, CHUNK_WIDTH),
+          modulo(block_global_position.y, CHUNK_WIDTH),
+          block_global_position.z
+        };
+        glm::ivec2 chunk_position = {
+          (block_global_position.x - block_local_position.x) / CHUNK_WIDTH,
+          (block_global_position.y - block_local_position.y) / CHUNK_WIDTH,
+        };
+
+        auto it = chunk_datas.find(chunk_position);
+        if(it == chunk_datas.end())
+          continue;
+
+        const ChunkData& chunk_data = it->second;
+        Block block = get_block(chunk_data, block_local_position);
+        if(block.presence)
+        {
+          glm::vec3 collision = aabb_collide(entity.position, entity.bounding_box, block_global_position, glm::vec3(1.0f, 1.0f, 1.0f));
+          spdlog::info("Entity collision {}, {}, {} with block {}, {}, {}",
+            collision.x, collision.y, collision.z,
+            block_global_position.x, block_global_position.y, block_global_position.z
+          );
+          collisions.push_back(collision);
+        }
+      }
+
+  spdlog::info("Entity colliding = {}", !collisions.empty());
+  return collisions;
+}
+
+void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ivec2, ChunkData>& chunk_datas)
+{
+  for(int i=0; i<20; ++i)
+  {
+    spdlog::warn("Interation {}", i);
+    spdlog::info("Entity position = {}, {}, {}", entity.position.x, entity.position.y, entity.position.z);
+    spdlog::info("Entity velocity = {}, {}, {}", entity.velocity.x, entity.velocity.y, entity.velocity.z);
+
+    std::vector<glm::vec3> collisions = entity_collide(entity, chunk_datas);
+    if(collisions.empty())
+    {
+      spdlog::info("Entity final position = {}, {}, {}", entity.position.x, entity.position.y, entity.position.z);
+      spdlog::info("Entity final velocity = {}, {}, {}", entity.velocity.x, entity.velocity.y, entity.velocity.z);
+      spdlog::info("Collision successfully resolved");
+      return;
+    }
+
+    // Method: Minimal axis
+    std::optional<float> negative_x;
+    std::optional<float> negative_y;
+    std::optional<float> negative_z;
+    std::optional<float> positive_x;
+    std::optional<float> positive_y;
+    std::optional<float> positive_z;
+
+    for(glm::vec3 collision : collisions)
+    {
+      if(collision.x < 0.0f) { if(negative_x) negative_x = std::max(*negative_x, collision.x); else negative_x = collision.x; }
+      if(collision.y < 0.0f) { if(negative_y) negative_y = std::max(*negative_y, collision.y); else negative_y = collision.y; }
+      if(collision.z < 0.0f) { if(negative_z) negative_z = std::max(*negative_z, collision.z); else negative_z = collision.z; }
+
+      if(collision.x > 0.0f) { if(positive_x) positive_x = std::min(*positive_x, collision.x); else positive_x = collision.x; }
+      if(collision.y > 0.0f) { if(positive_y) positive_y = std::min(*positive_y, collision.y); else positive_y = collision.y; }
+      if(collision.z > 0.0f) { if(positive_z) positive_z = std::min(*positive_z, collision.z); else positive_z = collision.z; }
+    }
+
+    std::optional<glm::vec3> negative_x_resolution = negative_x ? std::make_optional(glm::vec3(*negative_x, 0.0f, 0.0f)) : std::nullopt;
+    std::optional<glm::vec3> negative_y_resolution = negative_y ? std::make_optional(glm::vec3(0.0f, *negative_y, 0.0f)) : std::nullopt;
+    std::optional<glm::vec3> negative_z_resolution = negative_z ? std::make_optional(glm::vec3(0.0f, 0.0f, *negative_z)) : std::nullopt;
+
+    std::optional<glm::vec3> positive_x_resolution = positive_x ? std::make_optional(glm::vec3(*positive_x, 0.0f, 0.0f)) : std::nullopt;
+    std::optional<glm::vec3> positive_y_resolution = positive_y ? std::make_optional(glm::vec3(0.0f, *positive_y, 0.0f)) : std::nullopt;
+    std::optional<glm::vec3> positive_z_resolution = positive_z ? std::make_optional(glm::vec3(0.0f, 0.0f, *positive_z)) : std::nullopt;
+
+    std::optional<glm::vec3> resolution;
+
+    if(negative_x_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*negative_x_resolution))) resolution = negative_x_resolution;
+    if(negative_y_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*negative_y_resolution))) resolution = negative_y_resolution;
+    if(negative_z_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*negative_z_resolution))) resolution = negative_z_resolution;
+
+    if(positive_x_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*positive_x_resolution))) resolution = positive_x_resolution;
+    if(positive_y_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*positive_y_resolution))) resolution = positive_y_resolution;
+    if(positive_z_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*positive_z_resolution))) resolution = positive_z_resolution;
+
+    if(resolution)
+    {
+      spdlog::info("Resolving collision by {}, {}, {}", resolution->x, resolution->y, resolution->z);
+      entity.position += *resolution;
+      if(resolution->x != 0.0f) entity.velocity.x = 0.0f;
+      if(resolution->y != 0.0f) entity.velocity.y = 0.0f;
+      if(resolution->z != 0.0f) entity.velocity.z = 0.0f;
+    }
+  }
+  assert(false && "Collision resolution failed"); // TODO: Consider restoring the original position to avoid faild collision resolution ot have sling-shot effect
+}
+
 /*********
  * World *
  *********/
@@ -373,6 +532,11 @@ World::World(std::size_t seed) :
     .diffuse  = { 0.5f, 0.5f, 0.5f },  // diffuse
   }},
   m_seed(seed),
+  m_player{
+    .position     = glm::vec3(0.0f, 0.0f, 50.0f),
+    .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
+    .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+  },
   m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag"))
 {
   unsigned count = std::thread::hardware_concurrency();
@@ -409,7 +573,7 @@ void World::update(float dt)
   {
     translation = glm::normalize(translation);
     translation *= dt;
-    m_camera.translate(translation.x, translation.y, translation.z);
+    m_player.velocity += translation * 10.0f;
   }
 
   glm::ivec2 center_chunk_position = {
@@ -418,15 +582,24 @@ void World::update(float dt)
   };
 
   // 2: Loading
-  std::unique_lock lk(m_mutex);
-  for(int cy = center_chunk_position.y - CHUNK_LOAD_RADIUS; cy <= center_chunk_position.y + CHUNK_LOAD_RADIUS; ++cy)
-    for(int cx = center_chunk_position.x - CHUNK_LOAD_RADIUS; cx <= center_chunk_position.x + CHUNK_LOAD_RADIUS; ++cx)
-    {
-      glm::ivec2 chunk_position(cx, cy);
-      try_load_mesh(chunk_position);
-    }
-  lk.unlock();
+  {
+    std::lock_guard lk(m_mutex);
+    for(int cy = center_chunk_position.y - CHUNK_LOAD_RADIUS; cy <= center_chunk_position.y + CHUNK_LOAD_RADIUS; ++cy)
+      for(int cx = center_chunk_position.x - CHUNK_LOAD_RADIUS; cx <= center_chunk_position.x + CHUNK_LOAD_RADIUS; ++cx)
+      {
+        glm::ivec2 chunk_position(cx, cy);
+        try_load_mesh(chunk_position);
+      }
+  }
   m_cv.notify_all();
+
+  // 3: Entity Update
+  {
+    std::lock_guard lk(m_mutex);
+    entity_update_physics(m_player, dt);
+    entity_resolve_collisions(m_player, m_chunk_datas);
+  }
+  m_camera.position = m_player.position + glm::vec3(0.5f, 0.5f, 1.5f);
 }
 
 void World::render()
@@ -531,11 +704,9 @@ void World::work(std::stop_token stoken)
 
         lk.unlock();
 
-
         std::shared_lock shared_lk(m_mutex);
         Mesh chunk_mesh = generate_chunk_mesh(chunk_position, m_chunk_datas.at(chunk_position));
         shared_lk.unlock();
-
 
         lk.lock();
 
