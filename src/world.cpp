@@ -26,8 +26,9 @@ static constexpr float CAVE_WORM_STEP = 5.0f;
 
 static constexpr int CHUNK_LOAD_RADIUS = 2;
 
-static constexpr float     FRICTION = 0.5f;
-static constexpr glm::vec3 GRAVITY  = glm::vec3(0.0f, 0.0f, -5.0f);
+static constexpr float FRICTION = 0.5f;
+static constexpr float GRAVITY  = 5.0f;
+static constexpr int MAX_COLLISION_ITERATION = 5;
 
 /*************
  * Utilities *
@@ -392,8 +393,8 @@ static void entity_apply_force(Entity& entity, glm::vec3 force, float dt)
 
 static void entity_update_physics(Entity& entity, float dt)
 {
-  entity_apply_force(entity, -FRICTION * entity.velocity, dt);
-  entity_apply_force(entity, GRAVITY,                     dt);
+  entity_apply_force(entity, -FRICTION * entity.velocity,             dt);
+  entity_apply_force(entity, -GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
   entity.position += dt * entity.velocity;
 }
 
@@ -451,20 +452,14 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
 
 void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ivec2, ChunkData>& chunk_datas)
 {
-  for(int i=0; i<20; ++i)
-  {
-    spdlog::warn("Interation {}", i);
-    spdlog::info("Entity position = {}, {}, {}", entity.position.x, entity.position.y, entity.position.z);
-    spdlog::info("Entity velocity = {}, {}, {}", entity.velocity.x, entity.velocity.y, entity.velocity.z);
+  glm::vec3 original_position = entity.position;
+  glm::vec3 original_velocity = entity.velocity;
 
+  for(int i=0; i<MAX_COLLISION_ITERATION; ++i)
+  {
     std::vector<glm::vec3> collisions = entity_collide(entity, chunk_datas);
     if(collisions.empty())
-    {
-      spdlog::info("Entity final position = {}, {}, {}", entity.position.x, entity.position.y, entity.position.z);
-      spdlog::info("Entity final velocity = {}, {}, {}", entity.velocity.x, entity.velocity.y, entity.velocity.z);
-      spdlog::info("Collision successfully resolved");
       return;
-    }
 
     float                    min = std::numeric_limits<float>::infinity();
     std::optional<glm::vec3> resolution;
@@ -487,7 +482,9 @@ void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ive
     }
 
   }
-  assert(false && "Collision resolution failed"); // TODO: Consider restoring the original position to avoid faild collision resolution ot have sling-shot effect
+  spdlog::warn("Failed to resolve collision");
+  entity.position = original_position;
+  entity.velocity = original_velocity;
 }
 
 /*********
