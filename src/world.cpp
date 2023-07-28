@@ -466,42 +466,16 @@ void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ive
       return;
     }
 
-    // Method: Minimal axis
-    std::optional<float> negative_x;
-    std::optional<float> negative_y;
-    std::optional<float> negative_z;
-    std::optional<float> positive_x;
-    std::optional<float> positive_y;
-    std::optional<float> positive_z;
-
-    for(glm::vec3 collision : collisions)
-    {
-      if(collision.x < 0.0f) { if(negative_x) negative_x = std::max(*negative_x, collision.x); else negative_x = collision.x; }
-      if(collision.y < 0.0f) { if(negative_y) negative_y = std::max(*negative_y, collision.y); else negative_y = collision.y; }
-      if(collision.z < 0.0f) { if(negative_z) negative_z = std::max(*negative_z, collision.z); else negative_z = collision.z; }
-
-      if(collision.x > 0.0f) { if(positive_x) positive_x = std::min(*positive_x, collision.x); else positive_x = collision.x; }
-      if(collision.y > 0.0f) { if(positive_y) positive_y = std::min(*positive_y, collision.y); else positive_y = collision.y; }
-      if(collision.z > 0.0f) { if(positive_z) positive_z = std::min(*positive_z, collision.z); else positive_z = collision.z; }
-    }
-
-    std::optional<glm::vec3> negative_x_resolution = negative_x ? std::make_optional(glm::vec3(*negative_x, 0.0f, 0.0f)) : std::nullopt;
-    std::optional<glm::vec3> negative_y_resolution = negative_y ? std::make_optional(glm::vec3(0.0f, *negative_y, 0.0f)) : std::nullopt;
-    std::optional<glm::vec3> negative_z_resolution = negative_z ? std::make_optional(glm::vec3(0.0f, 0.0f, *negative_z)) : std::nullopt;
-
-    std::optional<glm::vec3> positive_x_resolution = positive_x ? std::make_optional(glm::vec3(*positive_x, 0.0f, 0.0f)) : std::nullopt;
-    std::optional<glm::vec3> positive_y_resolution = positive_y ? std::make_optional(glm::vec3(0.0f, *positive_y, 0.0f)) : std::nullopt;
-    std::optional<glm::vec3> positive_z_resolution = positive_z ? std::make_optional(glm::vec3(0.0f, 0.0f, *positive_z)) : std::nullopt;
-
+    float                    min = std::numeric_limits<float>::infinity();
     std::optional<glm::vec3> resolution;
 
-    if(negative_x_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*negative_x_resolution))) resolution = negative_x_resolution;
-    if(negative_y_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*negative_y_resolution))) resolution = negative_y_resolution;
-    if(negative_z_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*negative_z_resolution))) resolution = negative_z_resolution;
-
-    if(positive_x_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*positive_x_resolution))) resolution = positive_x_resolution;
-    if(positive_y_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*positive_y_resolution))) resolution = positive_y_resolution;
-    if(positive_z_resolution && (!resolution || glm::length2(*resolution) > glm::length2(*positive_z_resolution))) resolution = positive_z_resolution;
+    for(glm::vec3 collision : collisions)
+      for(glm::vec3 direction : DIRECTIONS)
+        if(float length = glm::dot(collision, direction); 0.0f < length && length < min)
+        {
+          min        = length;
+          resolution = length * direction;
+        }
 
     if(resolution)
     {
@@ -511,6 +485,7 @@ void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ive
       if(resolution->y != 0.0f) entity.velocity.y = 0.0f;
       if(resolution->z != 0.0f) entity.velocity.z = 0.0f;
     }
+
   }
   assert(false && "Collision resolution failed"); // TODO: Consider restoring the original position to avoid faild collision resolution ot have sling-shot effect
 }
