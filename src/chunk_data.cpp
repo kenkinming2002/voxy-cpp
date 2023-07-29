@@ -2,6 +2,8 @@
 #include <chunk_info.hpp>
 #include <chunk_coords.hpp>
 
+#include <chunk_manager.hpp>
+
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/hash.hpp>
 
@@ -36,11 +38,12 @@ void ChunkData::explode(glm::vec3 center, float radius)
       }
 }
 
-ChunkData ChunkData::generate(glm::ivec2 chunk_position, const std::unordered_map<glm::ivec2, ChunkInfo>& chunk_infos)
+ChunkData ChunkData::generate(glm::ivec2 chunk_position, const ChunkManager& chunk_manager)
 {
-  const ChunkInfo& chunk_info = chunk_infos.at(chunk_position);
-
   ChunkData chunk_data;
+
+  std::shared_lock guard(chunk_manager.mutex());
+  const ChunkInfo& chunk_info = chunk_manager.chunk_infos().at(chunk_position);
 
   // 1: Create terrain based on height maps
   int max_height = 0;
@@ -77,8 +80,8 @@ ChunkData ChunkData::generate(glm::ivec2 chunk_position, const std::unordered_ma
     {
       glm::ivec2 neighbour_chunk_position = glm::ivec2(cx, cy);
 
-      auto it = chunk_infos.find(neighbour_chunk_position);
-      assert(it != chunk_infos.end());
+      auto it = chunk_manager.chunk_infos().find(neighbour_chunk_position);
+      assert(it != chunk_manager.chunk_infos().end());
 
       const ChunkInfo& chunk_info = it->second;
       for(const Worm& worm : chunk_info.worms)

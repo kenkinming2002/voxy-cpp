@@ -140,11 +140,7 @@ void ChunkManager::work(std::stop_token stoken)
         spdlog::info("Generating chunk mesh at {}, {}", chunk_position.x, chunk_position.y);
 
         lk.unlock();
-
-        std::shared_lock shared_lk(m_mutex);
-        Mesh chunk_mesh = generate_chunk_mesh(chunk_position, m_chunk_datas.at(chunk_position), m_block_datas);
-        shared_lk.unlock();
-
+        Mesh chunk_mesh = generate_chunk_mesh(chunk_position, *this);
         lk.lock();
 
         m_loading_chunk_datas.erase(chunk_position);
@@ -158,11 +154,7 @@ void ChunkManager::work(std::stop_token stoken)
         spdlog::info("Generating chunk data at {}, {}", chunk_position.x, chunk_position.y);
 
         lk.unlock();
-
-        std::shared_lock shared_lk(m_mutex);
-        ChunkData chunk_data = ChunkData::generate(chunk_position, m_chunk_infos);
-        shared_lk.unlock();
-
+        ChunkData chunk_data = ChunkData::generate(chunk_position, *this);
         lk.lock();
 
         m_loading_chunk_datas.erase(chunk_position);

@@ -24,7 +24,7 @@
 
 #include <thread>
 
-struct ChunkManager
+class ChunkManager
 {
 public:
   ChunkManager(std::size_t seed);
@@ -34,8 +34,13 @@ public:
   void render(const Camera& camera, const Light& light) const;
 
 public:
-  auto& mutex()             { return m_mutex; }
-  auto& chunk_datas() const { return m_chunk_datas; }
+  auto& mutex()        const { return m_mutex; }
+  auto& chunk_infos()  const { return m_chunk_infos; }
+  auto& chunk_datas()  const { return m_chunk_datas; }
+  auto& chunk_meshes() const { return m_chunk_meshes; }
+
+public:
+  auto& block_datas() const { return m_block_datas; }
 
 private:
   // Try to load info/data/mesh
