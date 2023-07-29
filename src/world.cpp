@@ -155,7 +155,6 @@ World::World(std::size_t seed) :
     .ambient  = { 0.2f, 0.2f, 0.2f },  // ambient
     .diffuse  = { 0.5f, 0.5f, 0.5f },  // diffuse
   }},
-  m_seed(seed),
   m_player{
     .transform = {
       .position = glm::vec3(0.0f, 0.0f, 50.0f),
@@ -164,12 +163,8 @@ World::World(std::size_t seed) :
     .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
     .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
   },
-  m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag"))
-{
-  unsigned count = std::thread::hardware_concurrency();
-  for(unsigned i=0; i<count; ++i)
-    m_workers.emplace_back(std::bind(&World::work, this, std::placeholders::_1));
-}
+  m_chunk_manager(seed)
+{}
 
 void World::handle_event(SDL_Event event)
 {
@@ -207,30 +202,18 @@ void World::update(float dt)
     m_player.velocity += translation * 10.0f;
   }
 
-  glm::ivec2 center_chunk_position = {
+  glm::ivec2 center = {
     std::floor(m_player.transform.position.x / CHUNK_WIDTH),
     std::floor(m_player.transform.position.y / CHUNK_WIDTH),
   };
-
-  // 2: Loading
-  {
-    std::lock_guard lk(m_mutex);
-    for(int cy = center_chunk_position.y - CHUNK_LOAD_RADIUS; cy <= center_chunk_position.y + CHUNK_LOAD_RADIUS; ++cy)
-      for(int cx = center_chunk_position.x - CHUNK_LOAD_RADIUS; cx <= center_chunk_position.x + CHUNK_LOAD_RADIUS; ++cx)
-      {
-        glm::ivec2 chunk_position(cx, cy);
-        try_load_mesh(chunk_position);
-      }
-  }
-  m_cv.notify_all();
+  m_chunk_manager.load(center, CHUNK_LOAD_RADIUS);
 
   // 3: Entity Update
   {
-    std::lock_guard lk(m_mutex);
+    std::lock_guard lk(m_chunk_manager.mutex());
     entity_update_physics(m_player, dt);
-    entity_resolve_collisions(m_player, m_chunk_datas);
+    entity_resolve_collisions(m_player, m_chunk_manager.chunk_datas());
   }
-
 
   m_camera.transform           = m_player.transform;
   m_camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
@@ -240,148 +223,7 @@ void World::render()
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glm::mat4 view       = m_camera.view();
-  glm::mat4 projection = m_camera.projection();
-
-  glUseProgram(m_program);
-  {
-    glUniform3fv(glGetUniformLocation(m_program, "viewPos"),        1, glm::value_ptr(m_camera.transform.position));
-    glUniform3fv(glGetUniformLocation(m_program, "light.pos"),      1, glm::value_ptr(m_lights.at(0).position));
-    glUniform3fv(glGetUniformLocation(m_program, "light.ambient"),  1, glm::value_ptr(m_lights.at(0).ambient));
-    glUniform3fv(glGetUniformLocation(m_program, "light.diffuse"),  1, glm::value_ptr(m_lights.at(0).diffuse));
-
-    std::shared_lock shared_lk(m_mutex);
-    for(const auto& [chunk_position, chunk_mesh] : m_chunk_meshes)
-    {
-      glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( CHUNK_WIDTH * chunk_position.x, CHUNK_WIDTH * chunk_position.y, 0.0f));
-      glm::mat4 normal = glm::transpose(glm::inverse(model));
-      glm::mat4 MVP    = projection * view * model;
-
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
-
-      chunk_mesh.draw();
-    }
-  }
+  m_chunk_manager.render(m_camera, m_lights.at(0));
 }
 
-bool World::try_load_info(glm::ivec2 chunk_position)
-{
-  if(m_chunk_infos.contains(chunk_position))         return true;
-  if(m_pending_chunk_infos.contains(chunk_position)) return false;
-  if(m_loading_chunk_infos.contains(chunk_position)) return false;
-
-  m_pending_chunk_infos.insert(chunk_position);
-  return false;
-}
-
-bool World::try_load_data(glm::ivec2 chunk_position)
-{
-  if(m_chunk_datas.contains(chunk_position))         return true;
-  if(m_pending_chunk_datas.contains(chunk_position)) return false;
-  if(m_loading_chunk_datas.contains(chunk_position)) return false;
-
-  bool success = true;
-
-  int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
-  glm::ivec2 corner1 = chunk_position - glm::ivec2(radius, radius);
-  glm::ivec2 corner2 = chunk_position + glm::ivec2(radius, radius);
-  for(int cy = corner1.y; cy <= corner2.y; ++cy)
-    for(int cx = corner1.x; cx <= corner2.x; ++cx)
-    {
-      glm::ivec2 neighbour_chunk_position = glm::ivec2(cx, cy);
-      if(!try_load_info(neighbour_chunk_position))
-        success = false;
-    }
-
-  if(success) m_pending_chunk_datas.insert(chunk_position);
-  return false;
-}
-
-bool World::try_load_mesh(glm::ivec2 chunk_position)
-{
-  if(m_chunk_meshes.contains(chunk_position))         return true;
-  if(m_pending_chunk_meshes.contains(chunk_position)) return false;
-  if(m_loading_chunk_meshes.contains(chunk_position)) return false;
-
-  bool success = try_load_data(chunk_position);
-
-  if(success) m_pending_chunk_meshes.insert(chunk_position);
-  return false;
-}
-
-void World::work(std::stop_token stoken)
-{
-  std::unique_lock lk(m_mutex);
-  for(;;)
-  {
-    m_cv.wait(lk, stoken, [this]() {
-      return !m_pending_chunk_infos.empty()
-          || !m_pending_chunk_datas.empty()
-          || !m_pending_chunk_meshes.empty();
-    });
-    if(stoken.stop_requested())
-      return;
-
-    for(;;)
-    {
-      if(stoken.stop_requested())
-        return;
-      else if(!m_pending_chunk_meshes.empty())
-      {
-        glm::ivec2 chunk_position = *m_pending_chunk_meshes.begin();
-        m_pending_chunk_meshes.erase(m_pending_chunk_meshes.begin());
-        m_loading_chunk_meshes.insert(chunk_position);
-        spdlog::info("Generating chunk mesh at {}, {}", chunk_position.x, chunk_position.y);
-
-        lk.unlock();
-
-        std::shared_lock shared_lk(m_mutex);
-        Mesh chunk_mesh = generate_chunk_mesh(chunk_position, m_chunk_datas.at(chunk_position));
-        shared_lk.unlock();
-
-        lk.lock();
-
-        m_loading_chunk_datas.erase(chunk_position);
-        m_chunk_meshes.emplace(chunk_position, std::move(chunk_mesh));
-      }
-      else if(!m_pending_chunk_datas.empty())
-      {
-        glm::ivec2 chunk_position = *m_pending_chunk_datas.begin();
-        m_pending_chunk_datas.erase(m_pending_chunk_datas.begin());
-        m_loading_chunk_datas.insert(chunk_position);
-        spdlog::info("Generating chunk data at {}, {}", chunk_position.x, chunk_position.y);
-
-        lk.unlock();
-
-        std::shared_lock shared_lk(m_mutex);
-        ChunkData chunk_data = ChunkData::generate(chunk_position, m_chunk_infos);
-        shared_lk.unlock();
-
-        lk.lock();
-
-        m_loading_chunk_datas.erase(chunk_position);
-        m_chunk_datas.emplace(chunk_position, std::move(chunk_data));
-      }
-      else if(!m_pending_chunk_infos.empty())
-      {
-        glm::ivec2 chunk_position = *m_pending_chunk_infos.begin();
-        m_pending_chunk_infos.erase(m_pending_chunk_infos.begin());
-        m_loading_chunk_infos.insert(chunk_position);
-        spdlog::info("Generating chunk info at {}, {}", chunk_position.x, chunk_position.y);
-
-        lk.unlock();
-        ChunkInfo chunk_info = ChunkInfo::generate(chunk_position, m_seed);
-        lk.lock();
-
-        m_loading_chunk_infos.erase(chunk_position);
-        m_chunk_infos.emplace(chunk_position, std::move(chunk_info));
-      }
-      else
-        break;
-    }
-  }
-}
 
