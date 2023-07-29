@@ -30,38 +30,6 @@ ChunkManager::ChunkManager(std::size_t seed) :
   })
 {}
 
-void ChunkManager::load(glm::ivec2 chunk_position)
-{
-  if(m_chunks.contains(chunk_position))
-    return;
-
-  int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
-  glm::ivec2 corner1 = chunk_position - glm::ivec2(radius, radius);
-  glm::ivec2 corner2 = chunk_position + glm::ivec2(radius, radius);
-  for(int cy = corner1.y; cy <= corner2.y; ++cy)
-    for(int cx = corner1.x; cx <= corner2.x; ++cx)
-    {
-      glm::ivec2 neighbour_chunk_position = glm::ivec2(cx, cy);
-      if(!m_generator.try_get_chunk_info(neighbour_chunk_position))
-        return;
-    }
-
-  Chunk chunk;
-  chunk.generate(chunk_position, m_generator);
-  chunk.remash(m_block_datas);
-  m_chunks.emplace(chunk_position, std::move(chunk));
-}
-
-void ChunkManager::load(glm::ivec2 center, int radius)
-{
-  for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
-    for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
-    {
-      glm::ivec2 chunk_position(cx, cy);
-      load(chunk_position);
-    }
-}
-
 void ChunkManager::render(const Camera& camera, const Light& light) const
 {
   glm::mat4 view       = camera.view();
@@ -93,6 +61,38 @@ void ChunkManager::render(const Camera& camera, const Light& light) const
       chunk_mesh->draw();
     }
   }
+}
+
+void ChunkManager::load(glm::ivec2 chunk_position)
+{
+  if(m_chunks.contains(chunk_position))
+    return;
+
+  int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
+  glm::ivec2 corner1 = chunk_position - glm::ivec2(radius, radius);
+  glm::ivec2 corner2 = chunk_position + glm::ivec2(radius, radius);
+  for(int cy = corner1.y; cy <= corner2.y; ++cy)
+    for(int cx = corner1.x; cx <= corner2.x; ++cx)
+    {
+      glm::ivec2 neighbour_chunk_position = glm::ivec2(cx, cy);
+      if(!m_generator.try_get_chunk_info(neighbour_chunk_position))
+        return;
+    }
+
+  Chunk chunk;
+  chunk.generate(chunk_position, m_generator);
+  chunk.remash(m_block_datas);
+  m_chunks.emplace(chunk_position, std::move(chunk));
+}
+
+void ChunkManager::load(glm::ivec2 center, int radius)
+{
+  for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
+    for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
+    {
+      glm::ivec2 chunk_position(cx, cy);
+      load(chunk_position);
+    }
 }
 
 std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
@@ -134,5 +134,4 @@ bool ChunkManager::set_block(glm::ivec3 position, Block block)
 
   return it->second.set_block(local_position, block);
 }
-
 

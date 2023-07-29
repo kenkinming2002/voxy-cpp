@@ -30,10 +30,11 @@ public:
   ChunkManager(std::size_t seed);
 
 public:
+  void render(const Camera& camera, const Light& light) const;
+
+public:
   void load(glm::ivec2 chunk_position);
   void load(glm::ivec2 center, int radius);
-
-  void render(const Camera& camera, const Light& light) const;
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
