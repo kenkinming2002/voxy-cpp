@@ -21,6 +21,9 @@ struct ChunkData
 struct Chunk
 {
 public:
+  void update(const std::vector<BlockData>& block_datas);
+
+public:
   int width()  const { assert(data); return CHUNK_WIDTH; }
   int height() const { assert(data); return data->layers.size(); }
 
@@ -33,15 +36,13 @@ public:
   void generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator);
   void remash(const std::vector<BlockData>& block_datas);
 
-public:
-  void minor_invalidate_mesh(const std::vector<BlockData>& block_datas);
-  void major_invalidate_mesh(const std::vector<BlockData>& block_datas);
+  void invalidate_mesh();
 
 public:
   std::unique_ptr<ChunkData> data;
   std::unique_ptr<Mesh>      mesh;
 
-  int invalidation_count = 0;
+  bool mesh_invalidated = false;
 };
 
 #endif // CHUNK_HPP

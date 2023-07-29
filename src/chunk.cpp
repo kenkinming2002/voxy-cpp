@@ -1,7 +1,14 @@
 #include <chunk.hpp>
 #include <chunk_coords.hpp>
 
-static constexpr int REMASH_MINOR_INVALIDATION_THRESHOLD = 50000;
+void Chunk::update(const std::vector<BlockData>& block_datas)
+{
+  if(mesh_invalidated)
+  {
+    mesh_invalidated = false;
+    remash(block_datas);
+  }
+}
 
 std::optional<Block> Chunk::get_block(glm::ivec3 position) const
 {
@@ -172,16 +179,8 @@ void Chunk::remash(const std::vector<BlockData>& block_datas)
   );
 }
 
-void Chunk::minor_invalidate_mesh(const std::vector<BlockData>& block_datas)
+void Chunk::invalidate_mesh()
 {
-  ++invalidation_count;
-  if(invalidation_count == REMASH_MINOR_INVALIDATION_THRESHOLD)
-    major_invalidate_mesh(block_datas);
-}
-
-void Chunk::major_invalidate_mesh(const std::vector<BlockData>& block_datas)
-{
-  invalidation_count = 0;
-  remash(block_datas);
+  mesh_invalidated = true;
 }
 

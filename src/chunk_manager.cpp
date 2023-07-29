@@ -5,7 +5,7 @@
 
 #include <spdlog/spdlog.h>
 
-static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 10000;
+static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 20000;
 
 static int modulo(int a, int b)
 {
@@ -36,6 +36,8 @@ ChunkManager::ChunkManager(std::size_t seed) :
 void ChunkManager::update()
 {
   lighting_update();
+  for(auto& [chunk_position, chunk] : m_chunks)
+    chunk.update(m_block_datas);
 }
 
 void ChunkManager::render(const Camera& camera, const Light& light) const
@@ -217,7 +219,7 @@ void ChunkManager::lighting_update()
     {
       block->light_level = new_light_level;
       set_block(position, *block);
-      chunk.minor_invalidate_mesh(m_block_datas);
+      chunk.invalidate_mesh();
 
       for(glm::ivec3 direction : DIRECTIONS)
       {
