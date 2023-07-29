@@ -21,8 +21,8 @@ struct ChunkData
 struct Chunk
 {
 public:
-  int width()  { assert(data); return CHUNK_WIDTH; }
-  int height() { assert(data); return data->layers.size(); }
+  int width()  const { assert(data); return CHUNK_WIDTH; }
+  int height() const { assert(data); return data->layers.size(); }
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;

@@ -30,6 +30,7 @@ public:
   ChunkManager(std::size_t seed);
 
 public:
+  void update();
   void render(const Camera& camera, const Light& light) const;
 
 public:
@@ -41,6 +42,10 @@ public:
   bool set_block(glm::ivec3 position, Block block);
 
 private:
+  void lighting_invalidate(glm::ivec3 position);
+  void lighting_update();
+
+private:
   ChunkGenerator                        m_generator;
   std::unordered_map<glm::ivec2, Chunk> m_chunks;
 
@@ -50,6 +55,9 @@ private:
 private:
   gl::Program  m_program;
   TextureArray m_blocks_texture_array;
+
+private:
+  std::unordered_set<glm::ivec3> m_pending_lighting_updates;
 };
 
 #endif // CHUNK_MANAGER_HPP

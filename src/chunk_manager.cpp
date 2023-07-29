@@ -1,8 +1,11 @@
 #include <chunk_manager.hpp>
+#include <chunk_coords.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 
 #include <spdlog/spdlog.h>
+
+static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 10000;
 
 static int modulo(int a, int b)
 {
@@ -29,6 +32,11 @@ ChunkManager::ChunkManager(std::size_t seed) :
     "assets/grass_top.png",
   })
 {}
+
+void ChunkManager::update()
+{
+  lighting_update();
+}
 
 void ChunkManager::render(const Camera& camera, const Light& light) const
 {
@@ -82,7 +90,17 @@ void ChunkManager::load(glm::ivec2 chunk_position)
   Chunk chunk;
   chunk.generate(chunk_position, m_generator);
   chunk.remash(m_block_datas);
-  m_chunks.emplace(chunk_position, std::move(chunk));
+  auto [it, success] = m_chunks.emplace(chunk_position, std::move(chunk));
+  assert(success);
+
+  // Lighting update on chunk load
+  for(int lz=0; lz<it->second.height(); ++lz)
+    for(int ly=0; ly<it->second.width(); ++ly)
+      for(int lx=0; lx<it->second.width(); ++lx)
+      {
+        glm::ivec3 position = { lx, ly, lz };
+        lighting_invalidate(local_to_global(position, chunk_position));
+      }
 }
 
 void ChunkManager::load(glm::ivec2 center, int radius)
@@ -97,6 +115,7 @@ void ChunkManager::load(glm::ivec2 center, int radius)
 
 std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
 {
+  // FIXME: Refactor me`
   glm::ivec3 local_position = {
     modulo(position.x, CHUNK_WIDTH),
     modulo(position.y, CHUNK_WIDTH),
@@ -117,6 +136,7 @@ std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
 
 bool ChunkManager::set_block(glm::ivec3 position, Block block)
 {
+  // FIXME: Refactor me`
   glm::ivec3 local_position = {
     modulo(position.x, CHUNK_WIDTH),
     modulo(position.y, CHUNK_WIDTH),
@@ -133,5 +153,80 @@ bool ChunkManager::set_block(glm::ivec3 position, Block block)
     return false;
 
   return it->second.set_block(local_position, block);
+}
+
+void ChunkManager::lighting_invalidate(glm::ivec3 position)
+{
+  m_pending_lighting_updates.insert(position);
+}
+
+void ChunkManager::lighting_update()
+{
+  for(unsigned i=0; i<LIGHTING_UPDATE_PER_FRAME; ++i)
+  {
+    if(m_pending_lighting_updates.empty())
+      break;
+
+    glm::ivec3 position = *m_pending_lighting_updates.begin();
+    m_pending_lighting_updates.erase(m_pending_lighting_updates.begin());
+    if(position.z >= 256)
+      continue; // FIXME: Hack
+
+    std::optional<Block> block = get_block(position);
+    if(!block)
+      continue;
+
+    // FIXME: Refactor me`
+    glm::ivec3 local_position = {
+      modulo(position.x, CHUNK_WIDTH),
+      modulo(position.y, CHUNK_WIDTH),
+      position.z
+    };
+
+    glm::ivec2 chunk_position = {
+      (position.x - local_position.x) / CHUNK_WIDTH,
+      (position.y - local_position.y) / CHUNK_WIDTH,
+    };
+    const Chunk& chunk = m_chunks.at(chunk_position);
+
+    // 1: Skylight
+    int sky_light_level = 15;
+    for(int z=position.z+1; z<chunk.height(); ++z)
+    {
+      glm::ivec3 neighbour_position = { position.x, position.y, z };
+      Block      neighbour_block    = chunk.get_block(global_to_local(neighbour_position, chunk_position)).value();
+      if(neighbour_block.presence) // TODO: Opaqueness
+      {
+        sky_light_level = 0;
+        break;
+      }
+    }
+
+    // 2: TODO: Emitters
+
+    // 3: Neighbours
+    int neighbour_light_level = 0;
+    for(glm::ivec3 direction : DIRECTIONS)
+    {
+      glm::ivec3 neighbour_position = position + direction;
+      Block      neighbour_block    = get_block(neighbour_position).value_or(Block{.light_level = 0});
+      neighbour_light_level = std::max<int>(neighbour_light_level, neighbour_block.light_level);
+    }
+    neighbour_light_level = std::max(neighbour_light_level-1, 0);
+
+    int new_light_level = std::max(sky_light_level, neighbour_light_level);
+    if(block->light_level != new_light_level)
+    {
+      block->light_level = new_light_level;
+      set_block(position, *block);
+
+      for(glm::ivec3 direction : DIRECTIONS)
+      {
+        glm::ivec3 neighbour_position = position + direction;
+        m_pending_lighting_updates.insert(neighbour_position);
+      }
+    }
+  }
+  spdlog::info("Unresolved lighting updates count = {}", m_pending_lighting_updates.size());
 }
 

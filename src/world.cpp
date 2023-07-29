@@ -175,11 +175,14 @@ void World::update(float dt)
   };
   m_chunk_manager.load(center, CHUNK_LOAD_RADIUS);
 
-  // 3: Entity Update
+  // 3: Update
+  m_chunk_manager.update();
+
+  // 4: Entity Update
   entity_update_physics(m_player, dt);
   entity_resolve_collisions(m_player, m_chunk_manager);
 
-  // 4: Camera update
+  // 5: Camera update
   m_camera.transform           = m_player.transform;
   m_camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
 }

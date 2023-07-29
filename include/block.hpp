@@ -14,8 +14,9 @@ struct Block
   static const Block STONE;
   static const Block GRASS;
 
-  uint32_t presence : 1;
-  uint32_t id       : 31;
+  uint32_t presence    : 1;
+  uint32_t id          : 27;
+  uint32_t light_level : 4;
 };
 
 inline const Block Block::NONE  = { .presence = 0, };
