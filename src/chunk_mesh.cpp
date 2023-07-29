@@ -6,7 +6,8 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data,
   {
     glm::vec3 position;
     glm::vec3 normal;
-    glm::vec3 color;
+    glm::vec2 uv;
+    uint32_t  texture_index;
   };
 
   std::vector<uint32_t> indices;
@@ -20,8 +21,9 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data,
         if(!block.presence)
           continue;
 
-        for(glm::ivec3 direction : DIRECTIONS)
+        for(int i=0; i<std::size(DIRECTIONS); ++i)
         {
+          glm::ivec3 direction          = DIRECTIONS[i];
           glm::ivec3 neighbour_position = position + direction;
           Block      neighbour_block    = chunk_data.get_block(neighbour_position);
           if(neighbour_block.presence)
@@ -41,10 +43,10 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data,
           glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
           const BlockData& block_data = block_datas.at(block.id);
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .uv = {0.0f, 0.0f}, .texture_index = block_data.texture_indices[i] });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .uv = {1.0f, 0.0f}, .texture_index = block_data.texture_indices[i] });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .uv = {0.0f, 1.0f}, .texture_index = block_data.texture_indices[i] });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .uv = {1.0f, 1.0f}, .texture_index = block_data.texture_indices[i] });
           // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
         }
       }
@@ -53,9 +55,10 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data,
     .index_type = IndexType::UNSIGNED_INT,
     .stride = sizeof(Vertex),
     .attributes = {
-      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, position), },
-      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, normal),   },
-      { .type = AttributeType::FLOAT3, .offset = offsetof(Vertex, color),    },
+      { .type = AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),      },
+      { .type = AttributeType::FLOAT3,        .offset = offsetof(Vertex, normal),        },
+      { .type = AttributeType::FLOAT2,        .offset = offsetof(Vertex, uv),            },
+      { .type = AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index), },
     },
   };
 

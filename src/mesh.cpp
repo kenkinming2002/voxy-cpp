@@ -58,6 +58,11 @@ void Mesh::draw() const
       case AttributeType::FLOAT2: glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
       case AttributeType::FLOAT3: glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
       case AttributeType::FLOAT4: glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+
+      case AttributeType::UNSIGNED_INT1: glVertexAttribIPointer(i, 1, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      case AttributeType::UNSIGNED_INT2: glVertexAttribIPointer(i, 2, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      case AttributeType::UNSIGNED_INT3: glVertexAttribIPointer(i, 3, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
+      case AttributeType::UNSIGNED_INT4: glVertexAttribIPointer(i, 4, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
       }
     }
 

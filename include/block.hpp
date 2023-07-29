@@ -1,8 +1,9 @@
 #ifndef BLOCK_HPP
 #define BLOCK_HPP
 
-#include <stdint.h>
 #include <glm/glm.hpp>
+
+#include <stdint.h>
 
 struct Block
 {
@@ -23,7 +24,7 @@ inline const Block Block::GRASS = { .presence = 1, .id = Block::ID_GRASS, };
 
 struct BlockData
 {
-  glm::vec3 color;
+  uint32_t texture_indices[6];
 };
 
 #endif // BLOCK_HPP

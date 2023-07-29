@@ -19,6 +19,11 @@ enum class AttributeType {
   FLOAT2,
   FLOAT3,
   FLOAT4,
+
+  UNSIGNED_INT1,
+  UNSIGNED_INT2,
+  UNSIGNED_INT3,
+  UNSIGNED_INT4,
 };
 
 struct Attribute

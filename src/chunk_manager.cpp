@@ -8,10 +8,10 @@ ChunkManager::ChunkManager(std::size_t seed) :
   m_seed(seed),
   m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
   m_blocks_texture_array({
+    "assets/stone.png",
     "assets/grass_bottom.png",
     "assets/grass_side.png",
     "assets/grass_top.png",
-    "assets/stone.png",
   })
 {
   unsigned count = std::thread::hardware_concurrency();
@@ -19,8 +19,8 @@ ChunkManager::ChunkManager(std::size_t seed) :
     m_workers.emplace_back(std::bind(&ChunkManager::work, this, std::placeholders::_1));
 
   m_block_datas = {
-    { .color  = {0.7, 0.7, 0.7} },
-    { .color  = {0.2, 1.0, 0.2} },
+    { .texture_indices = {0, 0, 0, 0, 0, 0} },
+    { .texture_indices = {2, 2, 2, 2, 1, 3} },
   };
 }
 
@@ -45,6 +45,10 @@ void ChunkManager::render(const Camera& camera, const Light& light) const
 
   glUseProgram(m_program);
   {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
+    glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
+
     glUniform3fv(glGetUniformLocation(m_program, "viewPos"),        1, glm::value_ptr(camera.transform.position));
     glUniform3fv(glGetUniformLocation(m_program, "light.pos"),      1, glm::value_ptr(light.position));
     glUniform3fv(glGetUniformLocation(m_program, "light.ambient"),  1, glm::value_ptr(light.ambient));

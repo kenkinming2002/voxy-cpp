@@ -12,6 +12,9 @@ public:
   TextureArray(const std::vector<std::string>& filenames);
   ~TextureArray();
 
+public:
+  GLuint id() const { return m_id; }
+
 private:
   GLuint m_id;
 };

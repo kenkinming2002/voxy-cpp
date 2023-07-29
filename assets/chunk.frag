@@ -1,9 +1,10 @@
 #version 430 core
 out vec4 outColor;
 
-in vec3 fragPos;
-in vec3 fragNormal;
-in vec3 fragColor;
+in vec3      fragPos;
+in vec3      fragNormal;
+in vec2      fragUV;
+flat in uint fragTextureIndex;
 
 uniform vec3 viewPos;
 
@@ -12,6 +13,8 @@ uniform struct Light {
   vec3 ambient;
   vec3 diffuse;
 } light;
+
+uniform sampler2DArray blocksTextureArray;
 
 void main()
 {
@@ -25,7 +28,10 @@ void main()
   vec3 lightDir = normalize(fragPos - light.pos);
   float diffuse = max(-dot(normal, lightDir), 0.0);
 
-  vec3 result = ambient * light.ambient  * fragColor
-              + diffuse * light.diffuse  * fragColor;
+  vec3 color = texture(blocksTextureArray, vec3(fragUV, float(fragTextureIndex))).rgb;
+
+  vec3 result = ambient * light.ambient  * color
+              + diffuse * light.diffuse  * color;
+
   outColor = vec4(result, 1.0);
 }

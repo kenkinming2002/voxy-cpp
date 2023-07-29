@@ -5,13 +5,20 @@
 
 TextureArray::TextureArray(const std::vector<std::string>& filenames)
 {
-  glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_id);
+  glGenTextures(1, &m_id);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_id);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   std::vector<stbi_uc> bytes;
   int width  = 0;
   int height = 0;
   int depth  = filenames.size();
 
+  stbi_set_flip_vertically_on_load(true);
   for(const std::string& filename : filenames)
   {
     int _width, _height, channels_in_file;
@@ -24,6 +31,8 @@ TextureArray::TextureArray(const std::vector<std::string>& filenames)
   }
   assert(width  != 0);
   assert(height != 0);
+
+  assert(bytes.size() == width * height * depth * 4);
 
   glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes.data());
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
