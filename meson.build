@@ -14,6 +14,7 @@ voxy_exe = executable('voxy', [
     'src/chunk_info.cpp',
     'src/chunk_data.cpp',
     'src/chunk_mesh.cpp',
+    'src/chunk_generator.cpp',
     'src/chunk_manager.cpp',
     'src/world.cpp',
     'src/timer.cpp',

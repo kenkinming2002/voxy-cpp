@@ -2,11 +2,8 @@
 
 #include <chunk_manager.hpp>
 
-Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkManager& chunk_manager)
+Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data, const std::vector<BlockData>& block_datas)
 {
-  std::shared_lock guard(chunk_manager.mutex());
-  const ChunkData& chunk_data = chunk_manager.chunk_datas().at(chunk_position);
-
   struct Vertex
   {
     glm::vec3 position;
@@ -47,7 +44,7 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkManager& chunk_ma
           glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
           glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-          const BlockData& block_data = chunk_manager.block_datas().at(block.id);
+          const BlockData& block_data = block_datas.at(block.id);
           vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .uv = {0.0f, 0.0f}, .texture_index = block_data.texture_indices[i] });
           vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .uv = {1.0f, 0.0f}, .texture_index = block_data.texture_indices[i] });
           vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .uv = {0.0f, 1.0f}, .texture_index = block_data.texture_indices[i] });

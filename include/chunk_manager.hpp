@@ -5,6 +5,7 @@
 #include <chunk_info.hpp>
 #include <chunk_data.hpp>
 #include <chunk_mesh.hpp>
+#include <chunk_generator.hpp>
 
 #include <camera.hpp>
 #include <light.hpp>
@@ -30,52 +31,18 @@ public:
   ChunkManager(std::size_t seed);
 
 public:
+  void load(glm::ivec2 chunk_position);
   void load(glm::ivec2 center, int radius);
+
   void render(const Camera& camera, const Light& light) const;
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
   bool set_block(glm::ivec3 position, Block block);
 
-public:
-  auto& mutex()        const { return m_mutex; }
-  auto& chunk_infos()  const { return m_chunk_infos; }
-  auto& chunk_datas()  const { return m_chunk_datas; }
-  auto& chunk_meshes() const { return m_chunk_meshes; }
-
-public:
-  auto& block_datas() const { return m_block_datas; }
-
 private:
-  // Try to load info/data/mesh
-  //
-  // @precondition m_mutex is held
-  // @return       true if info/data/mesh has already been loaded, false otherwise
-  bool try_load_info(glm::ivec2 chunk_position);
-  bool try_load_data(glm::ivec2 chunk_position);
-  bool try_load_mesh(glm::ivec2 chunk_position);
-
-  void work(std::stop_token stoken);
-
-private:
-  std::size_t m_seed;
-
-private:
-  std::shared_mutex           mutable m_mutex;
-  std::condition_variable_any         m_cv;
-
-private:
-  std::unordered_set<glm::ivec2> m_pending_chunk_infos;
-  std::unordered_set<glm::ivec2> m_pending_chunk_datas;
-  std::unordered_set<glm::ivec2> m_pending_chunk_meshes;
-
-  std::unordered_set<glm::ivec2> m_loading_chunk_infos;
-  std::unordered_set<glm::ivec2> m_loading_chunk_datas;
-  std::unordered_set<glm::ivec2> m_loading_chunk_meshes;
-
-  std::unordered_map<glm::ivec2, ChunkInfo> m_chunk_infos;
-  std::unordered_map<glm::ivec2, ChunkData> m_chunk_datas;
-  std::unordered_map<glm::ivec2, Mesh>      m_chunk_meshes;
+  ChunkGenerator m_generator;
+  std::unordered_map<glm::ivec2, std::pair<ChunkData, Mesh>> m_chunks;
 
 private:
   std::vector<BlockData> m_block_datas;
@@ -83,9 +50,6 @@ private:
 private:
   gl::Program  m_program;
   TextureArray m_blocks_texture_array;
-
-private:
-  std::vector<std::jthread> m_workers;
 };
 
 #endif // CHUNK_MANAGER_HPP

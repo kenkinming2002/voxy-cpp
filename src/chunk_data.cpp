@@ -7,20 +7,20 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/hash.hpp>
 
-ChunkData ChunkData::generate(glm::ivec2 chunk_position, const ChunkManager& chunk_manager)
+ChunkData ChunkData::generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator)
 {
   ChunkData chunk_data;
 
-  std::shared_lock guard(chunk_manager.mutex());
-  const ChunkInfo& chunk_info = chunk_manager.chunk_infos().at(chunk_position);
+  const ChunkInfo* chunk_info = chunk_generator.try_get_chunk_info(chunk_position);
+  assert(chunk_info);
 
   // 1: Create terrain based on height maps
   int max_height = 0;
   for(int ly=0; ly<CHUNK_WIDTH; ++ly)
     for(int lx=0; lx<CHUNK_WIDTH; ++lx)
     {
-      int total_height = chunk_info.stone_height_map.heights[ly][lx]
-                       + chunk_info.grass_height_map.heights[ly][lx];
+      int total_height = chunk_info->stone_height_map.heights[ly][lx]
+                       + chunk_info->grass_height_map.heights[ly][lx];
       max_height = std::max(max_height, total_height);
     }
 
@@ -31,8 +31,8 @@ ChunkData ChunkData::generate(glm::ivec2 chunk_position, const ChunkManager& chu
     for(int ly=0; ly<CHUNK_WIDTH; ++ly)
       for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
-        int height1 = chunk_info.stone_height_map.heights[ly][lx];
-        int height2 = chunk_info.stone_height_map.heights[ly][lx] + chunk_info.grass_height_map.heights[ly][lx];
+        int height1 = chunk_info->stone_height_map.heights[ly][lx];
+        int height2 = chunk_info->stone_height_map.heights[ly][lx] + chunk_info->grass_height_map.heights[ly][lx];
         slice.blocks[ly][lx] = lz < height1 ? Block::STONE :
                                lz < height2 ? Block::GRASS :
                                               Block::NONE;
@@ -47,13 +47,11 @@ ChunkData ChunkData::generate(glm::ivec2 chunk_position, const ChunkManager& chu
   for(int cy = corner1.y; cy <= corner2.y; ++cy)
     for(int cx = corner1.x; cx <= corner2.x; ++cx)
     {
-      glm::ivec2 neighbour_chunk_position = glm::ivec2(cx, cy);
+      glm::ivec2       neighbour_chunk_position = glm::ivec2(cx, cy);
+      const ChunkInfo *neighbour_chunk_info     = chunk_generator.try_get_chunk_info(neighbour_chunk_position);
+      assert(neighbour_chunk_info);
 
-      auto it = chunk_manager.chunk_infos().find(neighbour_chunk_position);
-      assert(it != chunk_manager.chunk_infos().end());
-
-      const ChunkInfo& chunk_info = it->second;
-      for(const Worm& worm : chunk_info.worms)
+      for(const Worm& worm : neighbour_chunk_info->worms)
         for(const Worm::Node& node : worm.nodes)
           chunk_data.explode(global_to_local(node.center, chunk_position), node.radius);
     }

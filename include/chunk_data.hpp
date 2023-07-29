@@ -2,6 +2,7 @@
 #define CHUNK_DATA_HPP
 
 #include <chunk_defs.hpp>
+#include <chunk_generator.hpp>
 #include <block.hpp>
 
 #include <glm/glm.hpp>
@@ -17,7 +18,7 @@ public:
   std::vector<Slice> slices;
 
 public:
-  static ChunkData generate(glm::ivec2 chunk_position, const ChunkManager& chunk_manager);
+  static ChunkData generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator);
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
