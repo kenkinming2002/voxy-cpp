@@ -49,9 +49,11 @@ private:
 private:
   std::size_t m_seed;
 
+private:
   std::shared_mutex           mutable m_mutex;
   std::condition_variable_any         m_cv;
 
+private:
   std::unordered_set<glm::ivec2> m_pending_chunk_infos;
   std::unordered_set<glm::ivec2> m_pending_chunk_datas;
   std::unordered_set<glm::ivec2> m_pending_chunk_meshes;
@@ -63,6 +65,9 @@ private:
   std::unordered_map<glm::ivec2, ChunkInfo> m_chunk_infos;
   std::unordered_map<glm::ivec2, ChunkData> m_chunk_datas;
   std::unordered_map<glm::ivec2, Mesh>      m_chunk_meshes;
+
+private:
+  std::vector<BlockData> m_block_datas;
 
 private:
   gl::Program m_program;

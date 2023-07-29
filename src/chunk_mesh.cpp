@@ -1,6 +1,6 @@
 #include <chunk_mesh.hpp>
 
-Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data)
+Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data, const std::vector<BlockData>& block_datas)
 {
   struct Vertex
   {
@@ -40,18 +40,11 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data)
           glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
           glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-          glm::vec3 color;
-          switch(block.id)
-          {
-          case Block::ID_STONE: color = glm::vec3(0.7, 0.7, 0.7); break;
-          case Block::ID_GRASS: color = glm::vec3(0.2, 1.0, 0.2); break;
-          default: color = glm::vec3(1.0, 1.0, 1.0); break;
-          }
-
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = color });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = color });
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = color });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = color });
+          const BlockData& block_data = block_datas.at(block.id);
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .color = block_data.color });
           // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
         }
       }

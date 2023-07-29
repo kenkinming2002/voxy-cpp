@@ -11,6 +11,11 @@ ChunkManager::ChunkManager(std::size_t seed) :
   unsigned count = std::thread::hardware_concurrency();
   for(unsigned i=0; i<count; ++i)
     m_workers.emplace_back(std::bind(&ChunkManager::work, this, std::placeholders::_1));
+
+  m_block_datas = {
+    { .color  = {0.7, 0.7, 0.7} },
+    { .color  = {0.2, 1.0, 0.2} },
+  };
 }
 
 void ChunkManager::load(glm::ivec2 center, int radius)
@@ -127,7 +132,7 @@ void ChunkManager::work(std::stop_token stoken)
         lk.unlock();
 
         std::shared_lock shared_lk(m_mutex);
-        Mesh chunk_mesh = generate_chunk_mesh(chunk_position, m_chunk_datas.at(chunk_position));
+        Mesh chunk_mesh = generate_chunk_mesh(chunk_position, m_chunk_datas.at(chunk_position), m_block_datas);
         shared_lk.unlock();
 
         lk.lock();
