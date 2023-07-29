@@ -1,10 +1,11 @@
 #version 430 core
 out vec4 outColor;
 
-in vec3      fragPos;
-in vec3      fragNormal;
-in vec2      fragUV;
-flat in uint fragTextureIndex;
+in vec3       fragPos;
+in vec3       fragNormal;
+in vec2       fragUV;
+flat in uint  fragTextureIndex;
+flat in float fragLightLevel;
 
 uniform vec3 viewPos;
 
@@ -28,7 +29,7 @@ void main()
   vec3 lightDir = normalize(fragPos - light.pos);
   float diffuse = max(-dot(normal, lightDir), 0.0);
 
-  vec3 color = texture(blocksTextureArray, vec3(fragUV, float(fragTextureIndex))).rgb;
+  vec3 color = texture(blocksTextureArray, vec3(fragUV, float(fragTextureIndex))).rgb * fragLightLevel;
 
   vec3 result = ambient * light.ambient  * color
               + diffuse * light.diffuse  * color;
