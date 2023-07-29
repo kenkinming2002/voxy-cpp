@@ -6,7 +6,13 @@
 
 ChunkManager::ChunkManager(std::size_t seed) :
   m_seed(seed),
-  m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag"))
+  m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
+  m_blocks_texture_array({
+    "assets/grass_bottom.png",
+    "assets/grass_side.png",
+    "assets/grass_top.png",
+    "assets/stone.png",
+  })
 {
   unsigned count = std::thread::hardware_concurrency();
   for(unsigned i=0; i<count; ++i)

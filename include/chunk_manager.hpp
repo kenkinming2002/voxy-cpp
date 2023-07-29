@@ -9,6 +9,8 @@
 #include <camera.hpp>
 #include <light.hpp>
 
+#include <texture_array.hpp>
+
 #include <gl.hpp>
 
 #include <glm/glm.hpp>
@@ -70,7 +72,8 @@ private:
   std::vector<BlockData> m_block_datas;
 
 private:
-  gl::Program m_program;
+  gl::Program  m_program;
+  TextureArray m_blocks_texture_array;
 
 private:
   std::vector<std::jthread> m_workers;
