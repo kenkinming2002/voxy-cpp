@@ -89,7 +89,7 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
           continue;
 
         const ChunkData& chunk_data = it->second;
-        Block block = get_block(chunk_data, block_local_position);
+        Block block = chunk_data.get_block(block_local_position);
         if(block.presence)
         {
           glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, block_global_position, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -357,7 +357,7 @@ void World::work(std::stop_token stoken)
         lk.unlock();
 
         std::shared_lock shared_lk(m_mutex);
-        ChunkData chunk_data = generate_chunk_data(chunk_position, m_chunk_infos);
+        ChunkData chunk_data = ChunkData::generate(chunk_position, m_chunk_infos);
         shared_lk.unlock();
 
         lk.lock();
@@ -373,7 +373,7 @@ void World::work(std::stop_token stoken)
         spdlog::info("Generating chunk info at {}, {}", chunk_position.x, chunk_position.y);
 
         lk.unlock();
-        ChunkInfo chunk_info = generate_chunk_info(chunk_position, m_seed);
+        ChunkInfo chunk_info = ChunkInfo::generate(chunk_position, m_seed);
         lk.lock();
 
         m_loading_chunk_infos.erase(chunk_position);

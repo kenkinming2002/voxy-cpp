@@ -5,23 +5,23 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/hash.hpp>
 
-Block get_block(const ChunkData& chunk_data, glm::ivec3 position)
+Block ChunkData::get_block(glm::ivec3 position) const
 {
-  if(position.x < 0 || position.x >= CHUNK_WIDTH)              return Block{ .presence = false };
-  if(position.y < 0 || position.y >= CHUNK_WIDTH)              return Block{ .presence = false };
-  if(position.z < 0 || position.z >= chunk_data.slices.size()) return Block{ .presence = false };
-  return chunk_data.slices[position.z].blocks[position.y][position.x];
+  if(position.x < 0 || position.x >= CHUNK_WIDTH)   return Block{ .presence = false };
+  if(position.y < 0 || position.y >= CHUNK_WIDTH)   return Block{ .presence = false };
+  if(position.z < 0 || position.z >= slices.size()) return Block{ .presence = false };
+  return slices[position.z].blocks[position.y][position.x];
 }
 
-void set_block(ChunkData& chunk_data, glm::ivec3 position, Block block)
+void ChunkData::set_block(glm::ivec3 position, Block block)
 {
-  if(position.x < 0 || position.x >= CHUNK_WIDTH)              return;
-  if(position.y < 0 || position.y >= CHUNK_WIDTH)              return;
-  if(position.z < 0 || position.z >= chunk_data.slices.size()) return;
-  chunk_data.slices[position.z].blocks[position.y][position.x] = block;
+  if(position.x < 0 || position.x >= CHUNK_WIDTH)   return;
+  if(position.y < 0 || position.y >= CHUNK_WIDTH)   return;
+  if(position.z < 0 || position.z >= slices.size()) return;
+  slices[position.z].blocks[position.y][position.x] = block;
 }
 
-void explode(ChunkData& chunk_data, glm::vec3 center, float radius)
+void ChunkData::explode(glm::vec3 center, float radius)
 {
   // TODO: Culling
   glm::ivec3 corner1 = glm::floor(center - glm::vec3(radius, radius, radius));
@@ -32,11 +32,11 @@ void explode(ChunkData& chunk_data, glm::vec3 center, float radius)
       {
         glm::ivec3 pos = { x, y, z };
         if(glm::length2(glm::vec3(pos) - center) < radius * radius)
-          set_block(chunk_data, pos, Block{ .presence = false });
+          set_block(pos, Block{ .presence = false });
       }
 }
 
-ChunkData generate_chunk_data(glm::ivec2 chunk_position, const std::unordered_map<glm::ivec2, ChunkInfo>& chunk_infos)
+ChunkData ChunkData::generate(glm::ivec2 chunk_position, const std::unordered_map<glm::ivec2, ChunkInfo>& chunk_infos)
 {
   const ChunkInfo& chunk_info = chunk_infos.at(chunk_position);
 
@@ -83,7 +83,7 @@ ChunkData generate_chunk_data(glm::ivec2 chunk_position, const std::unordered_ma
       const ChunkInfo& chunk_info = it->second;
       for(const Worm& worm : chunk_info.worms)
         for(const Worm::Node& node : worm.nodes)
-          explode(chunk_data, global_to_local(node.center, chunk_position), node.radius);
+          chunk_data.explode(global_to_local(node.center, chunk_position), node.radius);
     }
 
   return chunk_data;

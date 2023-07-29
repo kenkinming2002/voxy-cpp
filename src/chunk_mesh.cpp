@@ -16,14 +16,14 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkData& chunk_data)
       for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         glm::ivec3 position  = { lx, ly, lz };
-        Block      block     = get_block(chunk_data, position);
+        Block      block     = chunk_data.get_block(position);
         if(!block.presence)
           continue;
 
         for(glm::ivec3 direction : DIRECTIONS)
         {
           glm::ivec3 neighbour_position = position + direction;
-          Block      neighbour_block    = get_block(chunk_data, neighbour_position);
+          Block      neighbour_block    = chunk_data.get_block(neighbour_position);
           if(neighbour_block.presence)
             continue;
 

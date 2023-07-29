@@ -27,8 +27,8 @@ struct ChunkInfo
   HeightMap         stone_height_map;
   HeightMap         grass_height_map;
   std::vector<Worm> worms;
-};
 
-ChunkInfo generate_chunk_info(glm::ivec2 chunk_position, size_t seed);
+  static ChunkInfo generate(glm::ivec2 chunk_position, size_t seed);
+};
 
 #endif // CHUNK_INFO_HPP

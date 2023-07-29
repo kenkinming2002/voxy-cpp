@@ -78,7 +78,7 @@ static std::vector<Worm> generate_worms(glm::ivec2 chunk_position, std::mt19937&
   return worms;
 }
 
-ChunkInfo generate_chunk_info(glm::ivec2 chunk_position, size_t seed)
+ChunkInfo ChunkInfo::generate(glm::ivec2 chunk_position, size_t seed)
 {
   std::mt19937 prng_global(seed);
   std::mt19937 prng_local(hash_combine(seed, chunk_position));

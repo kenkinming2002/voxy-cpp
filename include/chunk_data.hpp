@@ -33,12 +33,12 @@ struct ChunkData
 {
   struct Slice { Block blocks[CHUNK_WIDTH][CHUNK_WIDTH]; };
   std::vector<Slice> slices;
+
+  Block get_block(glm::ivec3 position) const;
+  void set_block(glm::ivec3 position, Block block);
+  void explode(glm::vec3 center, float radius);
+
+  static ChunkData generate(glm::ivec2 chunk_position, const std::unordered_map<glm::ivec2, ChunkInfo>& chunk_infos);
 };
-
-Block get_block(const ChunkData& chunk_data, glm::ivec3 position);
-void set_block(ChunkData& chunk_data, glm::ivec3 position, Block block);
-void explode(ChunkData& chunk_data, glm::vec3 center, float radius);
-
-ChunkData generate_chunk_data(glm::ivec2 chunk_position, const std::unordered_map<glm::ivec2, ChunkInfo>& chunk_infos);
 
 #endif // CHUNK_DATA_HPP
