@@ -209,7 +209,7 @@ void ChunkManager::lighting_update()
     for(glm::ivec3 direction : DIRECTIONS)
     {
       glm::ivec3 neighbour_position = position + direction;
-      Block      neighbour_block    = get_block(neighbour_position).value_or(Block{.light_level = 0});
+      Block      neighbour_block    = get_block(neighbour_position).value_or(Block{.light_level = 15});
       neighbour_light_level = std::max<int>(neighbour_light_level, neighbour_block.light_level);
     }
     neighbour_light_level = std::max(neighbour_light_level-1, 0);
