@@ -34,8 +34,14 @@ public:
   void remash(const std::vector<BlockData>& block_datas);
 
 public:
+  void minor_invalidate_mesh(const std::vector<BlockData>& block_datas);
+  void major_invalidate_mesh(const std::vector<BlockData>& block_datas);
+
+public:
   std::unique_ptr<ChunkData> data;
   std::unique_ptr<Mesh>      mesh;
+
+  int invalidation_count = 0;
 };
 
 #endif // CHUNK_HPP

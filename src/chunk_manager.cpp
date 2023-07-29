@@ -56,8 +56,6 @@ void ChunkManager::render(const Camera& camera, const Light& light) const
 
     for(const auto& [chunk_position, chunk] : m_chunks)
     {
-      const auto& [chunk_data, chunk_mesh] = chunk;
-
       glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( CHUNK_WIDTH * chunk_position.x, CHUNK_WIDTH * chunk_position.y, 0.0f));
       glm::mat4 normal = glm::transpose(glm::inverse(model));
       glm::mat4 MVP    = projection * view * model;
@@ -66,7 +64,7 @@ void ChunkManager::render(const Camera& camera, const Light& light) const
       glUniformMatrix4fv(glGetUniformLocation(m_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
       glUniformMatrix4fv(glGetUniformLocation(m_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
 
-      chunk_mesh->draw();
+      chunk.mesh->draw();
     }
   }
 }
@@ -187,7 +185,7 @@ void ChunkManager::lighting_update()
       (position.x - local_position.x) / CHUNK_WIDTH,
       (position.y - local_position.y) / CHUNK_WIDTH,
     };
-    const Chunk& chunk = m_chunks.at(chunk_position);
+    Chunk& chunk = m_chunks.at(chunk_position);
 
     // 1: Skylight
     int sky_light_level = 15;
@@ -219,6 +217,7 @@ void ChunkManager::lighting_update()
     {
       block->light_level = new_light_level;
       set_block(position, *block);
+      chunk.minor_invalidate_mesh(m_block_datas);
 
       for(glm::ivec3 direction : DIRECTIONS)
       {
