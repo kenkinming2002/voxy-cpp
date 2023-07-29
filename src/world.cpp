@@ -1,11 +1,6 @@
 #include <world.hpp>
 
 #include <chunk_coords.hpp>
-#include <chunk_info.hpp>
-#include <chunk_data.hpp>
-#include <chunk_mesh.hpp>
-
-#include <perlin.hpp>
 
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/io.hpp>

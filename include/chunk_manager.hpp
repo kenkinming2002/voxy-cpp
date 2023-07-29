@@ -3,8 +3,7 @@
 
 #include <chunk_defs.hpp>
 #include <chunk_info.hpp>
-#include <chunk_data.hpp>
-#include <chunk_mesh.hpp>
+#include <chunk.hpp>
 #include <chunk_generator.hpp>
 
 #include <camera.hpp>
@@ -41,8 +40,8 @@ public:
   bool set_block(glm::ivec3 position, Block block);
 
 private:
-  ChunkGenerator m_generator;
-  std::unordered_map<glm::ivec2, std::pair<ChunkData, Mesh>> m_chunks;
+  ChunkGenerator                        m_generator;
+  std::unordered_map<glm::ivec2, Chunk> m_chunks;
 
 private:
   std::vector<BlockData> m_block_datas;

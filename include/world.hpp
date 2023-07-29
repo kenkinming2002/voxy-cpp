@@ -3,7 +3,6 @@
 
 #include <chunk_defs.hpp>
 #include <chunk_info.hpp>
-#include <chunk_data.hpp>
 #include <chunk_manager.hpp>
 
 #include <camera.hpp>

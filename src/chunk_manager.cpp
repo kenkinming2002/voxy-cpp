@@ -46,9 +46,10 @@ void ChunkManager::load(glm::ivec2 chunk_position)
         return;
     }
 
-  ChunkData chunk_data = ChunkData::generate(chunk_position, m_generator);
-  Mesh      chunk_mesh = generate_chunk_mesh(chunk_position, chunk_data, m_block_datas);
-  m_chunks.emplace(std::piecewise_construct, std::forward_as_tuple(chunk_position), std::forward_as_tuple(std::move(chunk_data), std::move(chunk_mesh)));
+  Chunk chunk;
+  chunk.generate(chunk_position, m_generator);
+  chunk.remash(m_block_datas);
+  m_chunks.emplace(chunk_position, std::move(chunk));
 }
 
 void ChunkManager::load(glm::ivec2 center, int radius)
@@ -89,7 +90,7 @@ void ChunkManager::render(const Camera& camera, const Light& light) const
       glUniformMatrix4fv(glGetUniformLocation(m_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
       glUniformMatrix4fv(glGetUniformLocation(m_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
 
-      chunk_mesh.draw();
+      chunk_mesh->draw();
     }
   }
 }
@@ -111,7 +112,7 @@ std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
   if(it == m_chunks.end())
     return std::nullopt;
 
-  return it->second.first.get_block(local_position);
+  return it->second.get_block(local_position);
 }
 
 bool ChunkManager::set_block(glm::ivec3 position, Block block)
@@ -131,7 +132,7 @@ bool ChunkManager::set_block(glm::ivec3 position, Block block)
   if(it == m_chunks.end())
     return false;
 
-  return it->second.first.set_block(local_position, block);
+  return it->second.set_block(local_position, block);
 }
 
 
