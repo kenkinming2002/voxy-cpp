@@ -4,6 +4,17 @@
 
 #include <spdlog/spdlog.h>
 
+static int modulo(int a, int b)
+{
+  int value = a % b;
+  if(value < 0)
+    value += b;
+
+  assert(0 <= value);
+  assert(value < b);
+  return value;
+}
+
 ChunkManager::ChunkManager(std::size_t seed) :
   m_seed(seed),
   m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
@@ -68,6 +79,50 @@ void ChunkManager::render(const Camera& camera, const Light& light) const
       chunk_mesh.draw();
     }
   }
+}
+
+std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
+{
+  std::lock_guard guard(m_mutex);
+
+  glm::ivec3 local_position = {
+    modulo(position.x, CHUNK_WIDTH),
+    modulo(position.y, CHUNK_WIDTH),
+    position.z
+  };
+
+  glm::ivec2 chunk_position = {
+    (position.x - local_position.x) / CHUNK_WIDTH,
+    (position.y - local_position.y) / CHUNK_WIDTH,
+  };
+
+  auto it = m_chunk_datas.find(chunk_position);
+  if(it == m_chunk_datas.end())
+    return std::nullopt;
+
+  return it->second.get_block(local_position);
+}
+
+bool ChunkManager::set_block(glm::ivec3 position, Block block)
+{
+  std::lock_guard guard(m_mutex);
+
+  glm::ivec3 local_position = {
+    modulo(position.x, CHUNK_WIDTH),
+    modulo(position.y, CHUNK_WIDTH),
+    position.z
+  };
+
+  glm::ivec2 chunk_position = {
+    (position.x - local_position.x) / CHUNK_WIDTH,
+    (position.y - local_position.y) / CHUNK_WIDTH,
+  };
+
+  auto it = m_chunk_datas.find(chunk_position);
+  if(it == m_chunk_datas.end())
+    return false;
+
+  return it->second.set_block(local_position, block);
 }
 
 bool ChunkManager::try_load_info(glm::ivec2 chunk_position)

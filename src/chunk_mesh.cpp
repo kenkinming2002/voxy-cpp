@@ -22,7 +22,7 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkManager& chunk_ma
       for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         glm::ivec3 position  = { lx, ly, lz };
-        Block      block     = chunk_data.get_block(position);
+        Block      block     = chunk_data.get_block(position).value();
         if(!block.presence)
           continue;
 
@@ -30,7 +30,7 @@ Mesh generate_chunk_mesh(glm::ivec2 chunk_position, const ChunkManager& chunk_ma
         {
           glm::ivec3 direction          = DIRECTIONS[i];
           glm::ivec3 neighbour_position = position + direction;
-          Block      neighbour_block    = chunk_data.get_block(neighbour_position);
+          Block      neighbour_block    = chunk_data.get_block(neighbour_position).value_or(Block{.presence = 0}); // TODO: Actually lookup block in adjacent chunks
           if(neighbour_block.presence)
             continue;
 

@@ -24,20 +24,6 @@ static constexpr int MAX_COLLISION_ITERATION = 5;
 
 static constexpr float ROTATION_SPEED = 0.1f;
 
-/*************
- * Utilities *
- *************/
-static int modulo(int a, int b)
-{
-  int value = a % b;
-  if(value < 0)
-    value += b;
-
-  assert(0 <= value);
-  assert(value < b);
-  return value;
-}
-
 /**********
  * Entity *
  **********/
@@ -63,7 +49,7 @@ static glm::vec3 aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::ve
   return glm::vec3(x, y, z);
 }
 
-static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::unordered_map<glm::ivec2, ChunkData>& chunk_datas)
+static std::vector<glm::vec3> entity_collide(const Entity& entity, const ChunkManager& chunk_manager)
 {
   std::vector<glm::vec3> collisions;
 
@@ -73,29 +59,14 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
     for(int y = corner1.y; y<=corner2.y; ++y)
       for(int x = corner1.x; x<=corner2.x; ++x)
       {
-        glm::ivec3 block_global_position = glm::ivec3(x, y, z);
-        glm::ivec3 block_local_position = {
-          modulo(block_global_position.x, CHUNK_WIDTH),
-          modulo(block_global_position.y, CHUNK_WIDTH),
-          block_global_position.z
-        };
-        glm::ivec2 chunk_position = {
-          (block_global_position.x - block_local_position.x) / CHUNK_WIDTH,
-          (block_global_position.y - block_local_position.y) / CHUNK_WIDTH,
-        };
-
-        auto it = chunk_datas.find(chunk_position);
-        if(it == chunk_datas.end())
-          continue;
-
-        const ChunkData& chunk_data = it->second;
-        Block block = chunk_data.get_block(block_local_position);
+        glm::ivec3 position = glm::ivec3(x, y, z);
+        Block block = chunk_manager.get_block(position).value_or(Block{.presence = false});
         if(block.presence)
         {
-          glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, block_global_position, glm::vec3(1.0f, 1.0f, 1.0f));
+          glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, position, glm::vec3(1.0f, 1.0f, 1.0f));
           spdlog::info("Entity collision {}, {}, {} with block {}, {}, {}",
             collision.x, collision.y, collision.z,
-            block_global_position.x, block_global_position.y, block_global_position.z
+            position.x, position.y, position.z
           );
           collisions.push_back(collision);
         }
@@ -105,14 +76,14 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const std::un
   return collisions;
 }
 
-void entity_resolve_collisions(Entity& entity, const std::unordered_map<glm::ivec2, ChunkData>& chunk_datas)
+void entity_resolve_collisions(Entity& entity, const ChunkManager& chunk_manager)
 {
   glm::vec3 original_position = entity.transform.position;
   glm::vec3 original_velocity = entity.velocity;
 
   for(int i=0; i<MAX_COLLISION_ITERATION; ++i)
   {
-    std::vector<glm::vec3> collisions = entity_collide(entity, chunk_datas);
+    std::vector<glm::vec3> collisions = entity_collide(entity, chunk_manager);
     if(collisions.empty())
       return;
 
@@ -202,6 +173,7 @@ void World::update(float dt)
     m_player.velocity += translation * 10.0f;
   }
 
+  // 2: Lazy chunk loading
   glm::ivec2 center = {
     std::floor(m_player.transform.position.x / CHUNK_WIDTH),
     std::floor(m_player.transform.position.y / CHUNK_WIDTH),
@@ -209,12 +181,10 @@ void World::update(float dt)
   m_chunk_manager.load(center, CHUNK_LOAD_RADIUS);
 
   // 3: Entity Update
-  {
-    std::lock_guard lk(m_chunk_manager.mutex());
-    entity_update_physics(m_player, dt);
-    entity_resolve_collisions(m_player, m_chunk_manager.chunk_datas());
-  }
+  entity_update_physics(m_player, dt);
+  entity_resolve_collisions(m_player, m_chunk_manager);
 
+  // 4: Camera update
   m_camera.transform           = m_player.transform;
   m_camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
 }

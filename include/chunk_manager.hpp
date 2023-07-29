@@ -34,6 +34,10 @@ public:
   void render(const Camera& camera, const Light& light) const;
 
 public:
+  std::optional<Block> get_block(glm::ivec3 position) const;
+  bool set_block(glm::ivec3 position, Block block);
+
+public:
   auto& mutex()        const { return m_mutex; }
   auto& chunk_infos()  const { return m_chunk_infos; }
   auto& chunk_datas()  const { return m_chunk_datas; }
