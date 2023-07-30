@@ -129,9 +129,9 @@ void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager,
 
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
-  for(int lz=0; lz<height(); ++lz)
-    for(int ly=0; ly<width(); ++ly)
-      for(int lx=0; lx<width(); ++lx)
+  for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
+    for(int ly=0; ly<CHUNK_WIDTH; ++ly)
+      for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_position);
         Block      block    = chunk_manager.get_block(position).value();

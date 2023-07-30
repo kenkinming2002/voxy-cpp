@@ -86,9 +86,9 @@ void ChunkManager::load(glm::ivec2 chunk_position)
   chunk.remash(chunk_position, *this, m_block_datas);
 
   // Lighting update on chunk load
-  for(int lz=0; lz<it->second.height(); ++lz)
-    for(int ly=0; ly<it->second.width(); ++ly)
-      for(int lx=0; lx<it->second.width(); ++lx)
+  for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
+    for(int ly=0; ly<CHUNK_WIDTH; ++ly)
+      for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         glm::ivec3 position = { lx, ly, lz };
         lighting_invalidate(local_to_global(position, chunk_position));
@@ -161,8 +161,6 @@ void ChunkManager::lighting_update()
 
     glm::ivec3 position = *m_pending_lighting_updates.begin();
     m_pending_lighting_updates.erase(m_pending_lighting_updates.begin());
-    if(position.z >= 256)
-      continue; // FIXME: Hack
 
     std::optional<Block> block = get_block(position);
     if(!block)
@@ -183,7 +181,7 @@ void ChunkManager::lighting_update()
 
     // 1: Skylight
     int sky_light_level = 15;
-    for(int z=position.z+1; z<chunk.height(); ++z)
+    for(int z=position.z+1; z<CHUNK_HEIGHT; ++z)
     {
       glm::ivec3 neighbour_position = { position.x, position.y, z };
       Block      neighbour_block    = chunk.get_block(global_to_local(neighbour_position, chunk_position)).value();
