@@ -211,7 +211,7 @@ void ChunkManager::lighting_update()
     {
       block->light_level = new_light_level;
       set_block(position, *block);
-      chunk.invalidate_mesh();
+      chunk.minor_invalidate_mesh();
 
       for(glm::ivec3 direction : DIRECTIONS)
       {

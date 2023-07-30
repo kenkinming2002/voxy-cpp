@@ -40,13 +40,15 @@ public:
   void generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator);
   void remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas);
 
-  void invalidate_mesh();
+  void major_invalidate_mesh();
+  void minor_invalidate_mesh();
 
 public:
   std::unique_ptr<ChunkData> data;
   std::unique_ptr<Mesh>      mesh;
 
-  bool     mesh_invalidated = false;
+  bool     mesh_invalidated_major = false;
+  bool     mesh_invalidated_minor = false;
   uint32_t last_remash_tick;
 };
 

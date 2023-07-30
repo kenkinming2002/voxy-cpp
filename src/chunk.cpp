@@ -12,21 +12,19 @@
 static constexpr float REMASH_THROTTLE = 5.0f;
 
 Chunk::Chunk() :
-  mesh_invalidated(false),
+  mesh_invalidated_major(false),
   last_remash_tick(SDL_GetTicks())
 {}
 
 void Chunk::update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas)
 {
-  if(mesh_invalidated)
+  uint32_t tick = SDL_GetTicks();
+  if(mesh_invalidated_major || (mesh_invalidated_minor && (tick - last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
   {
-    uint32_t tick = SDL_GetTicks();
-    if((tick - last_remash_tick) / 1000.0f >= REMASH_THROTTLE)
-    {
-      mesh_invalidated = false;
-      last_remash_tick = tick;
-      remash(chunk_position, chunk_manager, block_datas);
-    }
+    mesh_invalidated_major = false;
+    mesh_invalidated_minor = false;
+    last_remash_tick = tick;
+    remash(chunk_position, chunk_manager, block_datas);
   }
 }
 
@@ -188,8 +186,5 @@ void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager,
   );
 }
 
-void Chunk::invalidate_mesh()
-{
-  mesh_invalidated = true;
-}
-
+void Chunk::major_invalidate_mesh() { mesh_invalidated_major = true; }
+void Chunk::minor_invalidate_mesh() { mesh_invalidated_minor = true; }
