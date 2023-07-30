@@ -3,6 +3,7 @@ project('voxy', ['c', 'cpp'], default_options : ['cpp_std=c++20'])
 sdl2_dep = dependency('sdl2')
 freetype2_dep = dependency('freetype2')
 glm_dep = dependency('glm')
+fmt_dep = dependency('fmt')
 spdlog_dep = dependency('spdlog')
 voxy_exe = executable('voxy', [
     'src/gl.cpp',
@@ -22,5 +23,5 @@ voxy_exe = executable('voxy', [
     'src/camera.cpp',
   ],
   include_directories : 'include',
-  dependencies : [sdl2_dep, freetype2_dep, glm_dep, spdlog_dep]
+  dependencies : [sdl2_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep]
 )

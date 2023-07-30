@@ -2,7 +2,6 @@
 #include <sdl2.hpp>
 #include <timer.hpp>
 #include <world.hpp>
-#include <text_renderer.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -34,8 +33,6 @@ int main()
   World world(SEED);
   Timer timer;
 
-  TextRenderer text_renderer("assets/arial.ttf", 30);
-
   bool running = true;
   while(running) {
     SDL_Event event;
@@ -57,14 +54,7 @@ int main()
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     world.render();
-
-    glm::vec2 position(0.0, 0.0);
-    text_renderer.render(position, "Hello World!");
-    text_renderer.render(position, "Goodbye World!");
-    text_renderer.render(position, "Fancy World");
-
     SDL_GL_SwapWindow(window);
   }
 }

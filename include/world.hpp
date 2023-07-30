@@ -3,6 +3,7 @@
 
 #include <camera.hpp>
 #include <chunk_manager.hpp>
+#include <text_renderer.hpp>
 
 #include <SDL.h>
 
@@ -34,6 +35,9 @@ private:
   Camera       m_camera;
   Entity       m_player;
   ChunkManager m_chunk_manager;
+
+private:
+  TextRenderer m_text_renderer;
 };
 
 #endif // WORLD_HPP

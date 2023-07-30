@@ -2,6 +2,7 @@
 
 #include <glm/gtx/norm.hpp>
 
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 /*************
@@ -12,6 +13,10 @@ static constexpr float GRAVITY  = 5.0f;
 static constexpr int MAX_COLLISION_ITERATION = 5;
 
 static constexpr float ROTATION_SPEED = 0.1f;
+
+static constexpr glm::vec2   DEBUG_MARGIN       = glm::vec2(3.0f, 3.0f);
+static constexpr const char *DEBUG_FONT        = "assets/arial.ttf";
+static constexpr float       DEBUG_FONT_HEIGHT = 20.0f;
 
 /**********
  * Entity *
@@ -118,7 +123,8 @@ World::World(std::size_t seed) :
     .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
     .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
   },
-  m_chunk_manager(seed)
+  m_chunk_manager(seed),
+  m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT)
 {}
 
 void World::handle_event(SDL_Event event)
@@ -179,6 +185,19 @@ void World::update(float dt)
 void World::render()
 {
   m_chunk_manager.render(m_camera);
+
+  std::string line;
+  glm::vec2   cursor = DEBUG_MARGIN;
+
+  line = fmt::format("position: x = {}, y = {}, z = {}", m_player.transform.position.x, m_player.transform.position.y, m_player.transform.position.z);
+  m_text_renderer.render(cursor, line.c_str());
+  cursor.x = DEBUG_MARGIN.x;
+  cursor.y += DEBUG_FONT_HEIGHT;
+
+  line = fmt::format("velocity: x = {}, y = {}, z = {}", m_player.velocity.x, m_player.velocity.y, m_player.velocity.z);
+  m_text_renderer.render(cursor, line.c_str());
+  cursor.x = DEBUG_MARGIN.x;
+  cursor.y += DEBUG_FONT_HEIGHT;
 }
 
 
