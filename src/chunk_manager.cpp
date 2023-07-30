@@ -39,7 +39,7 @@ void ChunkManager::update()
 {
   lighting_update();
   for(auto& [chunk_position, chunk] : m_chunks)
-    chunk.update(m_block_datas);
+    chunk.update(chunk_position, *this, m_block_datas);
 }
 
 void ChunkManager::render(const Camera& camera) const
@@ -53,7 +53,7 @@ void ChunkManager::render(const Camera& camera) const
     glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
     for(const auto& [chunk_position, chunk] : m_chunks)
     {
-      glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3( CHUNK_WIDTH * chunk_position.x, CHUNK_WIDTH * chunk_position.y, 0.0f));
+      glm::mat4 model = glm::mat4(1.0f);
       glm::mat4 MVP   = projection * view * model;
       glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
       chunk.mesh->draw();
@@ -77,11 +77,13 @@ void ChunkManager::load(glm::ivec2 chunk_position)
         return;
     }
 
-  Chunk chunk;
-  chunk.generate(chunk_position, m_generator);
-  chunk.remash(m_block_datas);
-  auto [it, success] = m_chunks.emplace(chunk_position, std::move(chunk));
+  auto [it, success] = m_chunks.emplace(chunk_position, Chunk());
+
   assert(success);
+  Chunk& chunk = it->second;
+
+  chunk.generate(chunk_position, m_generator);
+  chunk.remash(chunk_position, *this, m_block_datas);
 
   // Lighting update on chunk load
   for(int lz=0; lz<it->second.height(); ++lz)

@@ -14,7 +14,7 @@
 #include <stddef.h>
 
 struct ChunkInfo;
-struct ChunkGenerator
+class ChunkGenerator
 {
 public:
   ChunkGenerator(std::size_t seed);

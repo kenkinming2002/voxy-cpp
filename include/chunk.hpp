@@ -2,7 +2,7 @@
 #define CHUNK_HPP
 
 #include <chunk_defs.hpp>
-#include <chunk_generator.hpp>
+
 #include <block.hpp>
 #include <mesh.hpp>
 
@@ -17,10 +17,12 @@ struct ChunkData
   Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 };
 
+class ChunkGenerator;
+class ChunkManager;
 struct Chunk
 {
 public:
-  void update(const std::vector<BlockData>& block_datas);
+  void update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas);
 
 public:
   int width()  const { assert(data); return CHUNK_WIDTH; }
@@ -33,7 +35,7 @@ public:
 
 public:
   void generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator);
-  void remash(const std::vector<BlockData>& block_datas);
+  void remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas);
 
   void invalidate_mesh();
 

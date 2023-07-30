@@ -1,15 +1,17 @@
 #include <chunk.hpp>
 #include <chunk_coords.hpp>
 #include <chunk_info.hpp>
+#include <chunk_manager.hpp>
+#include <chunk_generator.hpp>
 
 #include <glm/gtx/norm.hpp>
 
-void Chunk::update(const std::vector<BlockData>& block_datas)
+void Chunk::update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas)
 {
   if(mesh_invalidated)
   {
     mesh_invalidated = false;
-    remash(block_datas);
+    remash(chunk_position, chunk_manager, block_datas);
   }
 }
 
@@ -99,7 +101,7 @@ void Chunk::generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_gene
     }
 }
 
-void Chunk::remash(const std::vector<BlockData>& block_datas)
+void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas)
 {
   if(mesh)
     mesh.reset();
@@ -118,8 +120,8 @@ void Chunk::remash(const std::vector<BlockData>& block_datas)
     for(int ly=0; ly<width(); ++ly)
       for(int lx=0; lx<width(); ++lx)
       {
-        glm::ivec3 position  = { lx, ly, lz };
-        Block      block     = get_block(position).value();
+        glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_position);
+        Block      block    = chunk_manager.get_block(position).value();
         if(!block.presence)
           continue;
 
@@ -127,7 +129,7 @@ void Chunk::remash(const std::vector<BlockData>& block_datas)
         {
           glm::ivec3 direction          = DIRECTIONS[i];
           glm::ivec3 neighbour_position = position + direction;
-          Block      neighbour_block    = get_block(neighbour_position).value_or(Block{.presence = 0}); // TODO: Actually lookup block in adjacent chunks
+          Block      neighbour_block    = chunk_manager.get_block(neighbour_position).value_or(Block{.presence = 0}); // TODO: Actually lookup block in adjacent chunks
           if(neighbour_block.presence)
             continue;
 
