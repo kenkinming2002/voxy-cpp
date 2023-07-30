@@ -14,7 +14,7 @@
 class TextRenderer
 {
 public:
-  TextRenderer();
+  TextRenderer(const char *font, unsigned height);
   ~TextRenderer();
 
 public:

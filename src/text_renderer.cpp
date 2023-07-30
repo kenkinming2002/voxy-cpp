@@ -11,7 +11,7 @@ struct Vertex
   glm::vec2 tex_coords;
 };
 
-TextRenderer::TextRenderer() :
+TextRenderer::TextRenderer(const char *font, unsigned height) :
   m_program(gl::compile_program("./assets/ui.vert", "./assets/ui.frag"))
 {
   FT_Library library;
@@ -20,10 +20,10 @@ TextRenderer::TextRenderer() :
   if(FT_Init_FreeType(&library) != 0)
     throw std::runtime_error("Failed to initialize freetype");
 
-  if(FT_New_Face(library, "assets/arial.ttf", 0, &face) != 0)
+  if(FT_New_Face(library, font, 0, &face) != 0)
     throw std::runtime_error("Failed to load font");
 
-  if(FT_Set_Pixel_Sizes(face, 0, 30) != 0)
+  if(FT_Set_Pixel_Sizes(face, 0, height) != 0)
     throw std::runtime_error("Failed to set pixel sizes");
 
   for(int c = 0; c<128; ++c)

@@ -34,7 +34,7 @@ int main()
   World world(SEED);
   Timer timer;
 
-  TextRenderer text_renderer;
+  TextRenderer text_renderer("assets/arial.ttf", 30);
 
   bool running = true;
   while(running) {
