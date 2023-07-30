@@ -116,11 +116,6 @@ World::World(std::size_t seed) :
     .aspect = 1024.0f / 720.0f,
     .fovy   = 45.0f,
   },
-  m_lights{{
-    .position = { 0.0f, 0.0f, 30.0f}, // position
-    .ambient  = { 0.2f, 0.2f, 0.2f },  // ambient
-    .diffuse  = { 0.5f, 0.5f, 0.5f },  // diffuse
-  }},
   m_player{
     .transform = {
       .position = glm::vec3(0.0f, 0.0f, 50.0f),
@@ -191,7 +186,7 @@ void World::render()
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  m_chunk_manager.render(m_camera, m_lights.at(0));
+  m_chunk_manager.render(m_camera);
 }
 
 

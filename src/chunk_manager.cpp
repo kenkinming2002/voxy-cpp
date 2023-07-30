@@ -40,32 +40,20 @@ void ChunkManager::update()
     chunk.update(m_block_datas);
 }
 
-void ChunkManager::render(const Camera& camera, const Light& light) const
+void ChunkManager::render(const Camera& camera) const
 {
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
-
   glUseProgram(m_program);
   {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
     glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
-
-    glUniform3fv(glGetUniformLocation(m_program, "viewPos"),        1, glm::value_ptr(camera.transform.position));
-    glUniform3fv(glGetUniformLocation(m_program, "light.pos"),      1, glm::value_ptr(light.position));
-    glUniform3fv(glGetUniformLocation(m_program, "light.ambient"),  1, glm::value_ptr(light.ambient));
-    glUniform3fv(glGetUniformLocation(m_program, "light.diffuse"),  1, glm::value_ptr(light.diffuse));
-
     for(const auto& [chunk_position, chunk] : m_chunks)
     {
-      glm::mat4 model  = glm::translate(glm::mat4(1.0f), glm::vec3( CHUNK_WIDTH * chunk_position.x, CHUNK_WIDTH * chunk_position.y, 0.0f));
-      glm::mat4 normal = glm::transpose(glm::inverse(model));
-      glm::mat4 MVP    = projection * view * model;
-
+      glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3( CHUNK_WIDTH * chunk_position.x, CHUNK_WIDTH * chunk_position.y, 0.0f));
+      glm::mat4 MVP   = projection * view * model;
       glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "model"),  1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "normal"), 1, GL_FALSE, glm::value_ptr(normal));
-
       chunk.mesh->draw();
     }
   }

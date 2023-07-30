@@ -6,7 +6,6 @@
 #include <chunk_manager.hpp>
 
 #include <camera.hpp>
-#include <light.hpp>
 #include <mesh.hpp>
 #include <transform.hpp>
 
@@ -42,7 +41,6 @@ public:
 
 private:
   Camera             m_camera;
-  std::vector<Light> m_lights;
   Entity             m_player;
   ChunkManager       m_chunk_manager;
 };

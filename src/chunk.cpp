@@ -113,8 +113,7 @@ void Chunk::remash(const std::vector<BlockData>& block_datas)
   struct Vertex
   {
     glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 uv;
+    glm::vec2 texture_coords;
     uint32_t  texture_index;
     float     light_level;
   };
@@ -152,10 +151,10 @@ void Chunk::remash(const std::vector<BlockData>& block_datas)
           glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
           const BlockData& block_data = block_datas.at(block.id);
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .uv = {0.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .normal = direction, .uv = {1.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
-          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .uv = {0.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
-          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .normal = direction, .uv = {1.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
+          vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
+          vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
           // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
         }
       }
@@ -164,11 +163,10 @@ void Chunk::remash(const std::vector<BlockData>& block_datas)
     .index_type = IndexType::UNSIGNED_INT,
     .stride = sizeof(Vertex),
     .attributes = {
-      { .type = AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),      },
-      { .type = AttributeType::FLOAT3,        .offset = offsetof(Vertex, normal),        },
-      { .type = AttributeType::FLOAT2,        .offset = offsetof(Vertex, uv),            },
-      { .type = AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index), },
-      { .type = AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_level), },
+      { .type = AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
+      { .type = AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
+      { .type = AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index),  },
+      { .type = AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_level),    },
     },
   };
 

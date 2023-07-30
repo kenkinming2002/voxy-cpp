@@ -7,7 +7,6 @@
 #include <chunk_generator.hpp>
 
 #include <camera.hpp>
-#include <light.hpp>
 
 #include <texture_array.hpp>
 
@@ -31,7 +30,7 @@ public:
 
 public:
   void update();
-  void render(const Camera& camera, const Light& light) const;
+  void render(const Camera& camera) const;
 
 public:
   void load(glm::ivec2 chunk_position);
