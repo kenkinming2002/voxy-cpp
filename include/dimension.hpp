@@ -3,6 +3,7 @@
 
 #include <chunk.hpp>
 #include <chunk/generator.hpp>
+#include <chunk/mesher.hpp>
 
 #include <texture_array.hpp>
 
@@ -26,6 +27,7 @@ public:
 
 public:
   Chunk& get_chunk(glm::ivec2 chunk_position) { return m_chunks[chunk_position]; }
+  const std::vector<BlockData>& block_datas() const { return m_block_datas; }
 
 public:
   void load(glm::ivec2 chunk_position);
@@ -44,6 +46,7 @@ private:
 
 private:
   std::unique_ptr<ChunkGenerator> m_chunk_generator;
+  std::unique_ptr<ChunkMesher>    m_chunk_mesher;
 
 private:
   std::vector<BlockData> m_block_datas;

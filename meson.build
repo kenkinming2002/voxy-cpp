@@ -16,6 +16,7 @@ voxy_exe = executable('voxy', [
     'src/perlin.cpp',
     'src/chunk.cpp',
     'src/chunk/generator.cpp',
+    'src/chunk/mesher.cpp',
     'src/dimension.cpp',
     'src/world.cpp',
     'src/timer.cpp',

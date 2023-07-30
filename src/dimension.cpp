@@ -23,6 +23,7 @@ static int modulo(int a, int b)
 
 Dimension::Dimension(std::size_t seed) :
   m_chunk_generator(ChunkGenerator::create(seed)),
+  m_chunk_mesher(ChunkMesher::create()),
   m_block_datas{
     { .texture_indices = {0, 0, 0, 0, 0, 0} },
     { .texture_indices = {2, 2, 2, 2, 1, 3} },
@@ -40,7 +41,8 @@ void Dimension::update()
 {
   lighting_update();
   for(auto& [chunk_position, chunk] : m_chunks)
-    chunk.update(chunk_position, *this, m_block_datas);
+    if(chunk.data)
+      m_chunk_mesher->update_chunk(*this, chunk_position);
 }
 
 void Dimension::render(const Camera& camera) const
@@ -70,7 +72,6 @@ void Dimension::load(glm::ivec2 chunk_position)
     if(!m_chunk_generator->try_generate_chunk(*this, chunk_position))
       return;
 
-    m_chunks.at(chunk_position).remash(chunk_position, *this, m_block_datas);
     for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
       for(int ly=0; ly<CHUNK_WIDTH; ++ly)
         for(int lx=0; lx<CHUNK_WIDTH; ++lx)
@@ -79,6 +80,9 @@ void Dimension::load(glm::ivec2 chunk_position)
           lighting_invalidate(local_to_global(position, chunk_position));
         }
   }
+
+  if(!m_chunks[chunk_position].mesh)
+    m_chunk_mesher->remesh_chunk(*this, chunk_position);
 }
 
 void Dimension::load(glm::ivec2 center, int radius)

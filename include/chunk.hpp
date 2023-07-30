@@ -22,19 +22,11 @@ class Dimension;
 struct Chunk
 {
 public:
-  Chunk();
-
-public:
-  void update(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas);
-
-public:
   std::optional<Block> get_block(glm::ivec3 position) const;
   bool set_block(glm::ivec3 position, Block block);
   void explode(glm::vec3 center, float radius);
 
 public:
-  void remash(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas);
-
   void major_invalidate_mesh();
   void minor_invalidate_mesh();
 
@@ -42,8 +34,8 @@ public:
   std::unique_ptr<ChunkData> data;
   std::unique_ptr<Mesh>      mesh;
 
-  bool     mesh_invalidated_major = false;
-  bool     mesh_invalidated_minor = false;
+  bool     mesh_invalidated_major;
+  bool     mesh_invalidated_minor;
   uint32_t last_remash_tick;
 };
 
