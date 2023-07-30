@@ -3,7 +3,9 @@
 
 #include <glm/glm.hpp>
 
-static constexpr int CHUNK_WIDTH = 16;
+static constexpr int CHUNK_WIDTH  = 16;
+static constexpr int CHUNK_HEIGHT = 256;
+
 static constexpr int CHUNK_LOAD_RADIUS = 2;
 
 static constexpr int CAVE_WORM_MAX = 2;

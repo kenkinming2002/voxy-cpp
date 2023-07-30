@@ -17,28 +17,22 @@ std::optional<Block> Chunk::get_block(glm::ivec3 position) const
 {
   assert(data);
 
-  if(position.x < 0 || position.x >= CHUNK_WIDTH) return std::nullopt;
-  if(position.y < 0 || position.y >= CHUNK_WIDTH) return std::nullopt;
-  if(position.z < 0)                              return std::nullopt;
+  if(position.x < 0 || position.x >= CHUNK_WIDTH)  return std::nullopt;
+  if(position.y < 0 || position.y >= CHUNK_WIDTH)  return std::nullopt;
+  if(position.z < 0 || position.z >= CHUNK_HEIGHT) return std::nullopt;
 
-  if(position.z >= data->layers.size())
-    return Block{ .presence = false };
-  else
-    return data->layers[position.z].blocks[position.y][position.x];
+  return data->blocks[position.z][position.y][position.x];
 }
 
 bool Chunk::set_block(glm::ivec3 position, Block block)
 {
   assert(data);
 
-  if(position.x < 0 || position.x >= CHUNK_WIDTH) return false;
-  if(position.y < 0 || position.y >= CHUNK_WIDTH) return false;
-  if(position.z < 0)                              return false;
+  if(position.x < 0 || position.x >= CHUNK_WIDTH)  return false;
+  if(position.y < 0 || position.y >= CHUNK_WIDTH)  return false;
+  if(position.z < 0 || position.z >= CHUNK_HEIGHT) return false;
 
-  if(position.z >= data->layers.size())
-    data->layers.resize(position.z+1); // NOTE: This works since value-initialization would set Block::presence to 0
-
-  data->layers[position.z].blocks[position.y][position.x] = block;
+  data->blocks[position.z][position.y][position.x] = block;
   return true;
 }
 
@@ -75,20 +69,17 @@ void Chunk::generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_gene
       max_height = std::max(max_height, total_height);
     }
 
-  data->layers.reserve(max_height);
   for(int lz=0; lz<max_height; ++lz)
   {
-    ChunkData::Layer layer;
     for(int ly=0; ly<CHUNK_WIDTH; ++ly)
       for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         int height1 = chunk_info->stone_height_map.heights[ly][lx];
         int height2 = chunk_info->stone_height_map.heights[ly][lx] + chunk_info->grass_height_map.heights[ly][lx];
-        layer.blocks[ly][lx] = lz < height1 ? Block::STONE :
-                               lz < height2 ? Block::GRASS :
-                                              Block::NONE;
+        set_block(glm::ivec3(lx, ly, lz), lz < height1 ? Block::STONE :
+                                          lz < height2 ? Block::GRASS :
+                                                         Block::NONE);
       }
-    data->layers.push_back(layer);
   }
 
   // 2: Carve out caves based off worms

@@ -14,8 +14,7 @@
 
 struct ChunkData
 {
-  struct Layer { Block blocks[CHUNK_WIDTH][CHUNK_WIDTH]; };
-  std::vector<Layer> layers;
+  Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 };
 
 struct Chunk
@@ -25,7 +24,7 @@ public:
 
 public:
   int width()  const { assert(data); return CHUNK_WIDTH; }
-  int height() const { assert(data); return data->layers.size(); }
+  int height() const { assert(data); return CHUNK_HEIGHT; }
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
