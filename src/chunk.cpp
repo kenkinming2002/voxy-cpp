@@ -1,8 +1,10 @@
 #include <chunk.hpp>
 #include <chunk_coords.hpp>
+
 #include <chunk_info.hpp>
+#include <chunk_info_generator.hpp>
+
 #include <dimension.hpp>
-#include <chunk_generator.hpp>
 
 #include <SDL.h>
 
@@ -66,7 +68,7 @@ void Chunk::explode(glm::vec3 center, float radius)
       }
 }
 
-void Chunk::generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator)
+void Chunk::generate(glm::ivec2 chunk_position, const ChunkInfoGenerator& chunk_generator)
 {
   assert(!data);
   data = std::make_unique<ChunkData>();

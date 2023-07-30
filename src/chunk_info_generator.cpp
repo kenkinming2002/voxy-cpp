@@ -1,18 +1,18 @@
-#include <chunk_generator.hpp>
+#include <chunk_info_generator.hpp>
 #include <chunk_info.hpp>
 
 #include <spdlog/spdlog.h>
 
-ChunkGenerator::ChunkGenerator(std::size_t seed)
+ChunkInfoGenerator::ChunkInfoGenerator(std::size_t seed)
   : m_seed(seed)
 {
   unsigned count = std::thread::hardware_concurrency();
   for(unsigned i=0; i<count; ++i)
-    m_workers.emplace_back(std::bind(&ChunkGenerator::work, this, std::placeholders::_1));
+    m_workers.emplace_back(std::bind(&ChunkInfoGenerator::work, this, std::placeholders::_1));
 }
-ChunkGenerator::~ChunkGenerator() {}
+ChunkInfoGenerator::~ChunkInfoGenerator() {}
 
-const ChunkInfo *ChunkGenerator::try_get_chunk_info(glm::ivec2 chunk_position) const
+const ChunkInfo *ChunkInfoGenerator::try_get_chunk_info(glm::ivec2 chunk_position) const
 {
   {
     std::lock_guard guard(m_mutex);
@@ -27,7 +27,7 @@ const ChunkInfo *ChunkGenerator::try_get_chunk_info(glm::ivec2 chunk_position) c
   return nullptr;
 }
 
-ChunkInfo *ChunkGenerator::try_get_chunk_info(glm::ivec2 chunk_position)
+ChunkInfo *ChunkInfoGenerator::try_get_chunk_info(glm::ivec2 chunk_position)
 {
   {
     std::lock_guard guard(m_mutex);
@@ -42,7 +42,7 @@ ChunkInfo *ChunkGenerator::try_get_chunk_info(glm::ivec2 chunk_position)
   return nullptr;
 }
 
-void ChunkGenerator::work(std::stop_token stoken)
+void ChunkInfoGenerator::work(std::stop_token stoken)
 {
   std::unique_lock lk(m_mutex);
   for(;;)

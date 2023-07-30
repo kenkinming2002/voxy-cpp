@@ -2,7 +2,7 @@
 #define DIMENSION_HPP
 
 #include <chunk.hpp>
-#include <chunk_generator.hpp>
+#include <chunk_info_generator.hpp>
 
 #include <texture_array.hpp>
 
@@ -36,7 +36,7 @@ private:
   void lighting_update();
 
 private:
-  ChunkGenerator                        m_generator;
+  ChunkInfoGenerator                        m_generator;
   std::unordered_map<glm::ivec2, Chunk> m_chunks;
 
 private:

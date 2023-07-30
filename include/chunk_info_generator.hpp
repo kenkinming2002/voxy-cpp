@@ -1,5 +1,5 @@
-#ifndef CHUNK_GENERATOR_HPP
-#define CHUNK_GENERATOR_HPP
+#ifndef CHUNK_INFO_GENERATOR_HPP
+#define CHUNK_INFO_GENERATOR_HPP
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -14,11 +14,11 @@
 #include <stddef.h>
 
 struct ChunkInfo;
-class ChunkGenerator
+class ChunkInfoGenerator
 {
 public:
-  ChunkGenerator(std::size_t seed);
-  ~ChunkGenerator();
+  ChunkInfoGenerator(std::size_t seed);
+  ~ChunkInfoGenerator();
 
 public:
   const ChunkInfo *try_get_chunk_info(glm::ivec2 chunk_position) const;
@@ -42,4 +42,4 @@ private:
   std::vector<std::jthread> m_workers;
 };
 
-#endif // CHUNK_GENERATOR_HPP
+#endif // CHUNK_INFO_GENERATOR_HPP

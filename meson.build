@@ -14,7 +14,7 @@ voxy_exe = executable('voxy', [
     'src/texture_array.cpp',
     'src/text_renderer.cpp',
     'src/perlin.cpp',
-    'src/chunk_generator.cpp',
+    'src/chunk_info_generator.cpp',
     'src/chunk_info.cpp',
     'src/chunk.cpp',
     'src/dimension.cpp',

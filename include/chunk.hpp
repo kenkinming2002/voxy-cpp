@@ -17,7 +17,7 @@ struct ChunkData
   Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 };
 
-class ChunkGenerator;
+class ChunkInfoGenerator;
 class Dimension;
 struct Chunk
 {
@@ -33,7 +33,7 @@ public:
   void explode(glm::vec3 center, float radius);
 
 public:
-  void generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator);
+  void generate(glm::ivec2 chunk_position, const ChunkInfoGenerator& chunk_generator);
   void remash(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas);
 
   void major_invalidate_mesh();
