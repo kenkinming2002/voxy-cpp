@@ -142,7 +142,7 @@ void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager,
         {
           glm::ivec3 direction          = DIRECTIONS[i];
           glm::ivec3 neighbour_position = position + direction;
-          Block      neighbour_block    = chunk_manager.get_block(neighbour_position).value_or(Block{.presence = 0}); // TODO: Actually lookup block in adjacent chunks
+          Block      neighbour_block    = chunk_manager.get_block(neighbour_position).value_or(Block{.presence = 0, .light_level = 15});
           if(neighbour_block.presence)
             continue;
 
