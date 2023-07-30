@@ -2,7 +2,7 @@
 #define WORLD_HPP
 
 #include <camera.hpp>
-#include <chunk_manager.hpp>
+#include <dimension.hpp>
 #include <text_renderer.hpp>
 
 #include <SDL.h>
@@ -32,9 +32,9 @@ public:
   void render();
 
 private:
-  Camera       m_camera;
-  Entity       m_player;
-  ChunkManager m_chunk_manager;
+  Camera    m_camera;
+  Entity    m_player;
+  Dimension m_dimension;
 
 private:
   TextRenderer m_text_renderer;

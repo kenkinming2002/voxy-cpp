@@ -43,7 +43,7 @@ static glm::vec3 aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::ve
   return glm::vec3(x, y, z);
 }
 
-static std::vector<glm::vec3> entity_collide(const Entity& entity, const ChunkManager& chunk_manager)
+static std::vector<glm::vec3> entity_collide(const Entity& entity, const Dimension& dimension)
 {
   std::vector<glm::vec3> collisions;
 
@@ -54,7 +54,7 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const ChunkMa
       for(int x = corner1.x; x<=corner2.x; ++x)
       {
         glm::ivec3 position = glm::ivec3(x, y, z);
-        Block block = chunk_manager.get_block(position).value_or(Block{.presence = false});
+        Block block = dimension.get_block(position).value_or(Block{.presence = false});
         if(block.presence)
         {
           glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, position, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -70,14 +70,14 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const ChunkMa
   return collisions;
 }
 
-void entity_resolve_collisions(Entity& entity, const ChunkManager& chunk_manager)
+void entity_resolve_collisions(Entity& entity, const Dimension& dimension)
 {
   glm::vec3 original_position = entity.transform.position;
   glm::vec3 original_velocity = entity.velocity;
 
   for(int i=0; i<MAX_COLLISION_ITERATION; ++i)
   {
-    std::vector<glm::vec3> collisions = entity_collide(entity, chunk_manager);
+    std::vector<glm::vec3> collisions = entity_collide(entity, dimension);
     if(collisions.empty())
       return;
 
@@ -123,7 +123,7 @@ World::World(std::size_t seed) :
     .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
     .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
   },
-  m_chunk_manager(seed),
+  m_dimension(seed),
   m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT)
 {}
 
@@ -168,14 +168,14 @@ void World::update(float dt)
     std::floor(m_player.transform.position.x / CHUNK_WIDTH),
     std::floor(m_player.transform.position.y / CHUNK_WIDTH),
   };
-  m_chunk_manager.load(center, CHUNK_LOAD_RADIUS);
+  m_dimension.load(center, CHUNK_LOAD_RADIUS);
 
   // 3: Update
-  m_chunk_manager.update();
+  m_dimension.update();
 
   // 4: Entity Update
   entity_update_physics(m_player, dt);
-  entity_resolve_collisions(m_player, m_chunk_manager);
+  entity_resolve_collisions(m_player, m_dimension);
 
   // 5: Camera update
   m_camera.transform           = m_player.transform;
@@ -184,7 +184,7 @@ void World::update(float dt)
 
 void World::render()
 {
-  m_chunk_manager.render(m_camera);
+  m_dimension.render(m_camera);
 
   std::string line;
   glm::vec2   cursor = DEBUG_MARGIN;

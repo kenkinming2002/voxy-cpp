@@ -18,14 +18,14 @@ struct ChunkData
 };
 
 class ChunkGenerator;
-class ChunkManager;
+class Dimension;
 struct Chunk
 {
 public:
   Chunk();
 
 public:
-  void update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas);
+  void update(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas);
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
@@ -34,7 +34,7 @@ public:
 
 public:
   void generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_generator);
-  void remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas);
+  void remash(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas);
 
   void major_invalidate_mesh();
   void minor_invalidate_mesh();

@@ -1,7 +1,7 @@
 #include <chunk.hpp>
 #include <chunk_coords.hpp>
 #include <chunk_info.hpp>
-#include <chunk_manager.hpp>
+#include <dimension.hpp>
 #include <chunk_generator.hpp>
 
 #include <SDL.h>
@@ -16,7 +16,7 @@ Chunk::Chunk() :
   last_remash_tick(SDL_GetTicks())
 {}
 
-void Chunk::update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas)
+void Chunk::update(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas)
 {
   uint32_t tick = SDL_GetTicks();
   if(mesh_invalidated_major || (mesh_invalidated_minor && (tick - last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
@@ -24,7 +24,7 @@ void Chunk::update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager,
     mesh_invalidated_major = false;
     mesh_invalidated_minor = false;
     last_remash_tick = tick;
-    remash(chunk_position, chunk_manager, block_datas);
+    remash(chunk_position, dimension, block_datas);
   }
 }
 
@@ -114,7 +114,7 @@ void Chunk::generate(glm::ivec2 chunk_position, const ChunkGenerator& chunk_gene
     }
 }
 
-void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas)
+void Chunk::remash(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas)
 {
   if(mesh)
     mesh.reset();
@@ -134,7 +134,7 @@ void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager,
       for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_position);
-        Block      block    = chunk_manager.get_block(position).value();
+        Block      block    = dimension.get_block(position).value();
         if(!block.presence)
           continue;
 
@@ -142,7 +142,7 @@ void Chunk::remash(glm::ivec2 chunk_position, const ChunkManager& chunk_manager,
         {
           glm::ivec3 direction          = DIRECTIONS[i];
           glm::ivec3 neighbour_position = position + direction;
-          Block      neighbour_block    = chunk_manager.get_block(neighbour_position).value_or(Block{.presence = 0, .light_level = 15});
+          Block      neighbour_block    = dimension.get_block(neighbour_position).value_or(Block{.presence = 0, .light_level = 15});
           if(neighbour_block.presence)
             continue;
 

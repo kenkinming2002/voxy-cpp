@@ -1,5 +1,5 @@
-#ifndef CHUNK_MANAGER_HPP
-#define CHUNK_MANAGER_HPP
+#ifndef DIMENSION_HPP
+#define DIMENSION_HPP
 
 #include <chunk.hpp>
 #include <chunk_generator.hpp>
@@ -14,10 +14,10 @@
 #include <unordered_map>
 
 struct Camera;
-class ChunkManager
+class Dimension
 {
 public:
-  ChunkManager(std::size_t seed);
+  Dimension(std::size_t seed);
 
 public:
   void update();
@@ -50,4 +50,4 @@ private:
   std::unordered_set<glm::ivec3> m_pending_lighting_updates;
 };
 
-#endif // CHUNK_MANAGER_HPP
+#endif // DIMENSION_HPP

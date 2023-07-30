@@ -1,4 +1,5 @@
-#include <chunk_manager.hpp>
+#include <dimension.hpp>
+
 #include <chunk_coords.hpp>
 
 #include <camera.hpp>
@@ -20,7 +21,7 @@ static int modulo(int a, int b)
   return value;
 }
 
-ChunkManager::ChunkManager(std::size_t seed) :
+Dimension::Dimension(std::size_t seed) :
   m_generator(seed),
   m_block_datas{
     { .texture_indices = {0, 0, 0, 0, 0, 0} },
@@ -35,14 +36,14 @@ ChunkManager::ChunkManager(std::size_t seed) :
   })
 {}
 
-void ChunkManager::update()
+void Dimension::update()
 {
   lighting_update();
   for(auto& [chunk_position, chunk] : m_chunks)
     chunk.update(chunk_position, *this, m_block_datas);
 }
 
-void ChunkManager::render(const Camera& camera) const
+void Dimension::render(const Camera& camera) const
 {
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
@@ -61,7 +62,7 @@ void ChunkManager::render(const Camera& camera) const
   }
 }
 
-void ChunkManager::load(glm::ivec2 chunk_position)
+void Dimension::load(glm::ivec2 chunk_position)
 {
   if(m_chunks.contains(chunk_position))
     return;
@@ -95,7 +96,7 @@ void ChunkManager::load(glm::ivec2 chunk_position)
       }
 }
 
-void ChunkManager::load(glm::ivec2 center, int radius)
+void Dimension::load(glm::ivec2 center, int radius)
 {
   for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
     for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
@@ -105,7 +106,7 @@ void ChunkManager::load(glm::ivec2 center, int radius)
     }
 }
 
-std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
+std::optional<Block> Dimension::get_block(glm::ivec3 position) const
 {
   // FIXME: Refactor me`
   glm::ivec3 local_position = {
@@ -126,7 +127,7 @@ std::optional<Block> ChunkManager::get_block(glm::ivec3 position) const
   return it->second.get_block(local_position);
 }
 
-bool ChunkManager::set_block(glm::ivec3 position, Block block)
+bool Dimension::set_block(glm::ivec3 position, Block block)
 {
   // FIXME: Refactor me`
   glm::ivec3 local_position = {
@@ -147,12 +148,12 @@ bool ChunkManager::set_block(glm::ivec3 position, Block block)
   return it->second.set_block(local_position, block);
 }
 
-void ChunkManager::lighting_invalidate(glm::ivec3 position)
+void Dimension::lighting_invalidate(glm::ivec3 position)
 {
   m_pending_lighting_updates.insert(position);
 }
 
-void ChunkManager::lighting_update()
+void Dimension::lighting_update()
 {
   for(unsigned i=0; i<LIGHTING_UPDATE_PER_FRAME; ++i)
   {
