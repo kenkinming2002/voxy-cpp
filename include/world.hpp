@@ -31,9 +31,9 @@ public:
   void render();
 
 private:
-  Camera             m_camera;
-  Entity             m_player;
-  ChunkManager       m_chunk_manager;
+  Camera       m_camera;
+  Entity       m_player;
+  ChunkManager m_chunk_manager;
 };
 
 #endif // WORLD_HPP
