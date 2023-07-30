@@ -22,6 +22,9 @@ class ChunkManager;
 struct Chunk
 {
 public:
+  Chunk();
+
+public:
   void update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas);
 
 public:
@@ -43,7 +46,8 @@ public:
   std::unique_ptr<ChunkData> data;
   std::unique_ptr<Mesh>      mesh;
 
-  bool mesh_invalidated = false;
+  bool     mesh_invalidated = false;
+  uint32_t last_remash_tick;
 };
 
 #endif // CHUNK_HPP

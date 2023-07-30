@@ -4,14 +4,29 @@
 #include <chunk_manager.hpp>
 #include <chunk_generator.hpp>
 
+#include <SDL.h>
+
 #include <glm/gtx/norm.hpp>
+
+// At most 1 remash every 5 seconds
+static constexpr float REMASH_THROTTLE = 5.0f;
+
+Chunk::Chunk() :
+  mesh_invalidated(false),
+  last_remash_tick(SDL_GetTicks())
+{}
 
 void Chunk::update(glm::ivec2 chunk_position, const ChunkManager& chunk_manager, const std::vector<BlockData>& block_datas)
 {
   if(mesh_invalidated)
   {
-    mesh_invalidated = false;
-    remash(chunk_position, chunk_manager, block_datas);
+    uint32_t tick = SDL_GetTicks();
+    if((tick - last_remash_tick) / 1000.0f >= REMASH_THROTTLE)
+    {
+      mesh_invalidated = false;
+      last_remash_tick = tick;
+      remash(chunk_position, chunk_manager, block_datas);
+    }
   }
 }
 
