@@ -2,7 +2,7 @@
 #define DIMENSION_HPP
 
 #include <chunk.hpp>
-#include <chunk_info_generator.hpp>
+#include <chunk/generator.hpp>
 
 #include <texture_array.hpp>
 
@@ -12,6 +12,7 @@
 #include <glm/gtx/hash.hpp>
 
 #include <unordered_map>
+#include <unordered_set>
 
 struct Camera;
 class Dimension
@@ -22,6 +23,9 @@ public:
 public:
   void update();
   void render(const Camera& camera) const;
+
+public:
+  Chunk& get_chunk(glm::ivec2 chunk_position) { return m_chunks[chunk_position]; }
 
 public:
   void load(glm::ivec2 chunk_position);
@@ -36,8 +40,10 @@ private:
   void lighting_update();
 
 private:
-  ChunkInfoGenerator                        m_generator;
   std::unordered_map<glm::ivec2, Chunk> m_chunks;
+
+private:
+  std::unique_ptr<ChunkGenerator> m_chunk_generator;
 
 private:
   std::vector<BlockData> m_block_datas;

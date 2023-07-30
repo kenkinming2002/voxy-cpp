@@ -22,7 +22,7 @@ static int modulo(int a, int b)
 }
 
 Dimension::Dimension(std::size_t seed) :
-  m_generator(seed),
+  m_chunk_generator(ChunkGenerator::create(seed)),
   m_block_datas{
     { .texture_indices = {0, 0, 0, 0, 0, 0} },
     { .texture_indices = {2, 2, 2, 2, 1, 3} },
@@ -57,43 +57,28 @@ void Dimension::render(const Camera& camera) const
       glm::mat4 model = glm::mat4(1.0f);
       glm::mat4 MVP   = projection * view * model;
       glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
-      chunk.mesh->draw();
+      if(chunk.mesh)
+        chunk.mesh->draw();
     }
   }
 }
 
 void Dimension::load(glm::ivec2 chunk_position)
 {
-  if(m_chunks.contains(chunk_position))
-    return;
+  if(!m_chunks[chunk_position].data)
+  {
+    if(!m_chunk_generator->try_generate_chunk(*this, chunk_position))
+      return;
 
-  int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
-  glm::ivec2 corner1 = chunk_position - glm::ivec2(radius, radius);
-  glm::ivec2 corner2 = chunk_position + glm::ivec2(radius, radius);
-  for(int cy = corner1.y; cy <= corner2.y; ++cy)
-    for(int cx = corner1.x; cx <= corner2.x; ++cx)
-    {
-      glm::ivec2 neighbour_chunk_position = glm::ivec2(cx, cy);
-      if(!m_generator.try_get_chunk_info(neighbour_chunk_position))
-        return;
-    }
-
-  auto [it, success] = m_chunks.emplace(chunk_position, Chunk());
-
-  assert(success);
-  Chunk& chunk = it->second;
-
-  chunk.generate(chunk_position, m_generator);
-  chunk.remash(chunk_position, *this, m_block_datas);
-
-  // Lighting update on chunk load
-  for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
-    for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-      for(int lx=0; lx<CHUNK_WIDTH; ++lx)
-      {
-        glm::ivec3 position = { lx, ly, lz };
-        lighting_invalidate(local_to_global(position, chunk_position));
-      }
+    m_chunks.at(chunk_position).remash(chunk_position, *this, m_block_datas);
+    for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
+      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
+        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+        {
+          glm::ivec3 position = { lx, ly, lz };
+          lighting_invalidate(local_to_global(position, chunk_position));
+        }
+  }
 }
 
 void Dimension::load(glm::ivec2 center, int radius)

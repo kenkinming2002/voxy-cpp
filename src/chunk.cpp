@@ -1,9 +1,6 @@
 #include <chunk.hpp>
 #include <chunk_coords.hpp>
 
-#include <chunk_info.hpp>
-#include <chunk_info_generator.hpp>
-
 #include <dimension.hpp>
 
 #include <SDL.h>
@@ -32,8 +29,7 @@ void Chunk::update(glm::ivec2 chunk_position, const Dimension& dimension, const 
 
 std::optional<Block> Chunk::get_block(glm::ivec3 position) const
 {
-  assert(data);
-
+  if(!data)                                        return std::nullopt;
   if(position.x < 0 || position.x >= CHUNK_WIDTH)  return std::nullopt;
   if(position.y < 0 || position.y >= CHUNK_WIDTH)  return std::nullopt;
   if(position.z < 0 || position.z >= CHUNK_HEIGHT) return std::nullopt;
@@ -43,8 +39,7 @@ std::optional<Block> Chunk::get_block(glm::ivec3 position) const
 
 bool Chunk::set_block(glm::ivec3 position, Block block)
 {
-  assert(data);
-
+  if(!data)                                        return false;
   if(position.x < 0 || position.x >= CHUNK_WIDTH)  return false;
   if(position.y < 0 || position.y >= CHUNK_WIDTH)  return false;
   if(position.z < 0 || position.z >= CHUNK_HEIGHT) return false;
@@ -68,56 +63,11 @@ void Chunk::explode(glm::vec3 center, float radius)
       }
 }
 
-void Chunk::generate(glm::ivec2 chunk_position, const ChunkInfoGenerator& chunk_generator)
-{
-  assert(!data);
-  data = std::make_unique<ChunkData>();
-
-  const ChunkInfo* chunk_info = chunk_generator.try_get_chunk_info(chunk_position);
-  assert(chunk_info);
-
-  // 1: Create terrain based on height maps
-  int max_height = 0;
-  for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-    for(int lx=0; lx<CHUNK_WIDTH; ++lx)
-    {
-      int total_height = chunk_info->stone_height_map.heights[ly][lx]
-                       + chunk_info->grass_height_map.heights[ly][lx];
-      max_height = std::max(max_height, total_height);
-    }
-
-  for(int lz=0; lz<max_height; ++lz)
-  {
-    for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-      for(int lx=0; lx<CHUNK_WIDTH; ++lx)
-      {
-        int height1 = chunk_info->stone_height_map.heights[ly][lx];
-        int height2 = chunk_info->stone_height_map.heights[ly][lx] + chunk_info->grass_height_map.heights[ly][lx];
-        set_block(glm::ivec3(lx, ly, lz), lz < height1 ? Block::STONE :
-                                          lz < height2 ? Block::GRASS :
-                                                         Block::NONE);
-      }
-  }
-
-  // 2: Carve out caves based off worms
-  int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
-  glm::ivec2 corner1 = chunk_position - glm::ivec2(radius, radius);
-  glm::ivec2 corner2 = chunk_position + glm::ivec2(radius, radius);
-  for(int cy = corner1.y; cy <= corner2.y; ++cy)
-    for(int cx = corner1.x; cx <= corner2.x; ++cx)
-    {
-      glm::ivec2       neighbour_chunk_position = glm::ivec2(cx, cy);
-      const ChunkInfo *neighbour_chunk_info     = chunk_generator.try_get_chunk_info(neighbour_chunk_position);
-      assert(neighbour_chunk_info);
-
-      for(const Worm& worm : neighbour_chunk_info->worms)
-        for(const Worm::Node& node : worm.nodes)
-          explode(global_to_local(node.center, chunk_position), node.radius);
-    }
-}
-
 void Chunk::remash(glm::ivec2 chunk_position, const Dimension& dimension, const std::vector<BlockData>& block_datas)
 {
+  if(!data)
+    return;
+
   if(mesh)
     mesh.reset();
 
