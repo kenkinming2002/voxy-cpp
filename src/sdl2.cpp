@@ -28,6 +28,9 @@ namespace sdl2
     if(!window)
       throw std::runtime_error("Failed to create window\n");
 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     context = SDL_GL_CreateContext(window);
     if(!context) {
       SDL_DestroyWindow(window);

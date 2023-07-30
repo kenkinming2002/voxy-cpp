@@ -2,6 +2,9 @@
 #include <sdl2.hpp>
 #include <timer.hpp>
 #include <world.hpp>
+#include <text_renderer.hpp>
+
+#include <spdlog/spdlog.h>
 
 #include <stdexcept>
 
@@ -17,12 +20,21 @@ int main()
     throw std::runtime_error("Failed to load OpenGL functions with GLAD");
 
   gl::init_debug();
+
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_PACK_ALIGNMENT,   1);
 
   World world(SEED);
   Timer timer;
+
+  TextRenderer text_renderer;
 
   bool running = true;
   while(running) {
@@ -42,7 +54,17 @@ int main()
 
     float dt = timer.tick();
     world.update(dt);
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     world.render();
+
+    glm::vec2 position(0.0, 0.0);
+    text_renderer.render(position, "Hello World!");
+    text_renderer.render(position, "Goodbye World!");
+    text_renderer.render(position, "Fancy World");
+
     SDL_GL_SwapWindow(window);
   }
 }
