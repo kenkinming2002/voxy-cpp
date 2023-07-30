@@ -1,19 +1,10 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-#include <chunk_defs.hpp>
-#include <chunk_info.hpp>
+#include <camera.hpp>
 #include <chunk_manager.hpp>
 
-#include <camera.hpp>
-#include <mesh.hpp>
-#include <transform.hpp>
-
-#include <gl.hpp>
-
 #include <SDL.h>
-
-#include <glm/glm.hpp>
 
 /**********
  * Entity *

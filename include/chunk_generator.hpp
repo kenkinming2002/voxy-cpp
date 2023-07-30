@@ -1,8 +1,6 @@
 #ifndef CHUNK_GENERATOR_HPP
 #define CHUNK_GENERATOR_HPP
 
-#include <chunk_info.hpp>
-
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
@@ -11,13 +9,16 @@
 
 #include <condition_variable>
 #include <shared_mutex>
-
 #include <thread>
 
+#include <stddef.h>
+
+struct ChunkInfo;
 struct ChunkGenerator
 {
 public:
   ChunkGenerator(std::size_t seed);
+  ~ChunkGenerator();
 
 public:
   const ChunkInfo *try_get_chunk_info(glm::ivec2 chunk_position) const;

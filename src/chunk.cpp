@@ -1,5 +1,8 @@
 #include <chunk.hpp>
 #include <chunk_coords.hpp>
+#include <chunk_info.hpp>
+
+#include <glm/gtx/norm.hpp>
 
 void Chunk::update(const std::vector<BlockData>& block_datas)
 {

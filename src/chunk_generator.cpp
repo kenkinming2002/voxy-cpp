@@ -1,4 +1,5 @@
 #include <chunk_generator.hpp>
+#include <chunk_info.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -9,6 +10,7 @@ ChunkGenerator::ChunkGenerator(std::size_t seed)
   for(unsigned i=0; i<count; ++i)
     m_workers.emplace_back(std::bind(&ChunkGenerator::work, this, std::placeholders::_1));
 }
+ChunkGenerator::~ChunkGenerator() {}
 
 const ChunkInfo *ChunkGenerator::try_get_chunk_info(glm::ivec2 chunk_position) const
 {
@@ -67,3 +69,4 @@ void ChunkGenerator::work(std::stop_token stoken)
     }
   }
 }
+

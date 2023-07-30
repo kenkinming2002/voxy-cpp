@@ -1,23 +1,9 @@
-#include <camera.hpp>
 #include <gl.hpp>
 #include <sdl2.hpp>
-#include <mesh.hpp>
 #include <timer.hpp>
 #include <world.hpp>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <unordered_map>
 #include <stdexcept>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <utility>
-
-#include <algorithm>
-#include <math.h>
 
 static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
 
@@ -60,3 +46,4 @@ int main()
     SDL_GL_SwapWindow(window);
   }
 }
+

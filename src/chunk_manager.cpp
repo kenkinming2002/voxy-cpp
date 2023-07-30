@@ -1,6 +1,8 @@
 #include <chunk_manager.hpp>
 #include <chunk_coords.hpp>
 
+#include <camera.hpp>
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <spdlog/spdlog.h>

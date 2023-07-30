@@ -1,6 +1,7 @@
 #include <texture_array.hpp>
 
 #include <stb_image.h>
+
 #include <assert.h>
 
 TextureArray::TextureArray(const std::vector<std::string>& filenames)

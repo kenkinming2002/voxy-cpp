@@ -4,13 +4,13 @@
 #include <chunk_defs.hpp>
 #include <chunk_generator.hpp>
 #include <block.hpp>
-
 #include <mesh.hpp>
 
 #include <glm/glm.hpp>
-#include <glm/gtx/norm.hpp>
 
+#include <memory>
 #include <optional>
+#include <vector>
 
 struct ChunkData
 {

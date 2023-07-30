@@ -1,14 +1,8 @@
 #include <world.hpp>
 
-#include <chunk_coords.hpp>
-
 #include <glm/gtx/norm.hpp>
-#include <glm/gtx/io.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <spdlog/spdlog.h>
-
-#include <random>
 
 /*************
  * Constants *

@@ -5,8 +5,9 @@
 #include <glad/glad.h>
 
 #include <vector>
-#include <memory>
 #include <span>
+
+#include <stddef.h>
 
 enum class IndexType {
   UNSIGNED_BYTE,
@@ -36,7 +37,7 @@ struct MeshLayout
 {
   IndexType              index_type;
 
-  size_t                 stride;
+  std::size_t            stride;
   std::vector<Attribute> attributes;
 };
 

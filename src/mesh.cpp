@@ -49,7 +49,7 @@ void Mesh::draw() const
     case IndexType::UNSIGNED_INT:   m_element_count = m_indices.size() / 4; break;
     }
 
-    for(size_t i=0; i<m_layout.attributes.size(); ++i)
+    for(std::size_t i=0; i<m_layout.attributes.size(); ++i)
     {
       glEnableVertexAttribArray(i);
       switch(m_layout.attributes[i].type)

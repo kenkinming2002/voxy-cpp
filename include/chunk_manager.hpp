@@ -1,12 +1,8 @@
 #ifndef CHUNK_MANAGER_HPP
 #define CHUNK_MANAGER_HPP
 
-#include <chunk_defs.hpp>
-#include <chunk_info.hpp>
 #include <chunk.hpp>
 #include <chunk_generator.hpp>
-
-#include <camera.hpp>
 
 #include <texture_array.hpp>
 
@@ -16,13 +12,8 @@
 #include <glm/gtx/hash.hpp>
 
 #include <unordered_map>
-#include <unordered_set>
 
-#include <condition_variable>
-#include <shared_mutex>
-
-#include <thread>
-
+struct Camera;
 class ChunkManager
 {
 public:
