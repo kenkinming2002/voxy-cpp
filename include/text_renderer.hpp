@@ -1,5 +1,5 @@
-#ifndef UI_RENDERER_HPP
-#define UI_RENDERER_HPP
+#ifndef TEXT_RENDERER_HPP
+#define TEXT_RENDERER_HPP
 
 #include <gl.hpp>
 
@@ -38,4 +38,4 @@ private:
   GLuint m_vbo;
 };
 
-#endif // UI_RENDERER_HPP
+#endif // TEXT_RENDERER_HPP
