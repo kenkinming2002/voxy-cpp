@@ -5,7 +5,7 @@
 
 #include <unordered_set>
 
-static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 20000;
+static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 100000;
 
 class LightSystemImpl : public LightSystem
 {
