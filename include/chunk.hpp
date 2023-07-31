@@ -17,8 +17,6 @@ struct ChunkData
   Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 };
 
-class ChunkInfoGenerator;
-class Dimension;
 struct Chunk
 {
 public:
