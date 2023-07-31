@@ -1,5 +1,7 @@
 #include <application.hpp>
 
+#include <spdlog/spdlog.h>
+
 static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
 
 Application::Application() :
@@ -67,6 +69,7 @@ void Application::loop()
 
   // 2: Update
   float dt = m_timer.tick();
+
   m_player_movement_system->update(m_world, dt);
   m_light_system->update(m_world);
   m_chunk_generator_system->update(m_world);
@@ -80,5 +83,7 @@ void Application::loop()
   m_chunk_renderer_system->render(m_world);
   m_debug_system->render(m_world);
   m_window.swap_buffer();
+
+  spdlog::info("average frame time = {}", m_timer.average());
 }
 
