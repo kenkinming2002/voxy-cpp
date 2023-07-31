@@ -1,6 +1,6 @@
 #include <system/chunk_renderer.hpp>
 
-#include <world.hpp>
+#include <types/world.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 

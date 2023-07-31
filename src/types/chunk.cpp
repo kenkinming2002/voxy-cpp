@@ -1,7 +1,5 @@
-#include <chunk.hpp>
-#include <chunk_coords.hpp>
-
-#include <dimension.hpp>
+#include <types/chunk.hpp>
+#include <types/chunk_coords.hpp>
 
 #include <SDL.h>
 

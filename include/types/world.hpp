@@ -2,7 +2,7 @@
 #define WORLD_HPP
 
 #include <camera.hpp>
-#include <dimension.hpp>
+#include <types/dimension.hpp>
 
 /**********
  * Entity *

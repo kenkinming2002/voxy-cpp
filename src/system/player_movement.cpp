@@ -1,6 +1,6 @@
 #include <system/player_movement.hpp>
 
-#include <world.hpp>
+#include <types/world.hpp>
 
 static constexpr float ROTATION_SPEED = 0.1f;
 

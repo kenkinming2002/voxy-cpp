@@ -1,6 +1,6 @@
 #include <system/physics.hpp>
 
-#include <world.hpp>
+#include <types/world.hpp>
 
 #include <spdlog/spdlog.h>
 

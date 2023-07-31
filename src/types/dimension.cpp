@@ -1,6 +1,6 @@
-#include <dimension.hpp>
+#include <types/dimension.hpp>
 
-#include <chunk_coords.hpp>
+#include <types/chunk_coords.hpp>
 
 #include <camera.hpp>
 

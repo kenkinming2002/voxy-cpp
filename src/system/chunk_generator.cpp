@@ -1,7 +1,8 @@
 #include <system/chunk_generator.hpp>
 
-#include <world.hpp>
-#include <chunk_coords.hpp>
+#include <types/world.hpp>
+#include <types/chunk_coords.hpp>
+
 #include <perlin.hpp>
 
 #include <spdlog/spdlog.h>

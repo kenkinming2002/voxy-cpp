@@ -1,6 +1,6 @@
 #include <system/debug.hpp>
 
-#include <world.hpp>
+#include <types/world.hpp>
 
 #include <text_renderer.hpp>
 

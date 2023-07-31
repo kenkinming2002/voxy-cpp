@@ -1,7 +1,7 @@
 #ifndef DIMENSION_HPP
 #define DIMENSION_HPP
 
-#include <chunk.hpp>
+#include <types/chunk.hpp>
 
 #include <texture_array.hpp>
 

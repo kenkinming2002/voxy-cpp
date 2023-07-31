@@ -1,7 +1,7 @@
 #ifndef CHUNK_COORDS_HPP
 #define CHUNK_COORDS_HPP
 
-#include <chunk_defs.hpp>
+#include <types/chunk_defs.hpp>
 
 #include <glm/glm.hpp>
 

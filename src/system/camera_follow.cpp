@@ -1,6 +1,6 @@
 #include <system/camera_follow.hpp>
 
-#include <world.hpp>
+#include <types/world.hpp>
 
 class CameraFollowSystemImpl : public CameraFollowSystem
 {

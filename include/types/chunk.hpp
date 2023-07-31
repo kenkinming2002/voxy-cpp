@@ -1,9 +1,9 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
-#include <chunk_defs.hpp>
+#include <types/chunk_defs.hpp>
+#include <types/block.hpp>
 
-#include <block.hpp>
 #include <mesh.hpp>
 
 #include <glm/glm.hpp>
