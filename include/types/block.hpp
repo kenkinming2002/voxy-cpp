@@ -15,7 +15,8 @@ struct Block
   static const Block GRASS;
 
   std::uint32_t presence    : 1;
-  std::uint32_t id          : 27;
+  std::uint32_t id          : 26;
+  std::uint32_t sky         : 1;
   std::uint32_t light_level : 4;
 };
 

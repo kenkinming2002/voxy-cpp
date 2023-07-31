@@ -24,40 +24,64 @@ private:
       if(!block)
         continue;
 
-      // 1: Skylight
-      int sky_light_level = 15;
-      for(int z=position.z+1; z<CHUNK_HEIGHT; ++z)
+      int old_light_level = block->light_level;
+
+      // 1: Solid block
+      if(block->presence) // TODO: Check for opaqueness
       {
-        glm::ivec3 neighbour_position = { position.x, position.y, z };
+        block->sky         = false;
+        block->light_level = 0;
+        goto done;
+      }
+
+      // 2: Skylight
+      if(position.z == CHUNK_HEIGHT - 1)
+      {
+        block->sky         = true;
+        block->light_level = 15;
+      }
+      else
+      {
+        glm::ivec3 neighbour_position = position + glm::ivec3(0, 0, 1);
         Block*     neighbour_block    = world.dimension.get_block(neighbour_position);
-        if(neighbour_block->presence) // TODO: Opaqueness
+        if(neighbour_block->sky)
         {
-          sky_light_level = 0;
-          break;
+          block->sky         = true;
+          block->light_level = 15;
         }
       }
 
-      // 2: TODO: Emitters
+      if(block->light_level == 15)
+        goto done;
 
       // 3: Neighbours
-      int neighbour_light_level = 0;
       for(glm::ivec3 direction : DIRECTIONS)
       {
         glm::ivec3 neighbour_position = position + direction;
         Block*     neighbour_block    = world.dimension.get_block(neighbour_position);
-        neighbour_light_level = std::max<int>(neighbour_light_level, neighbour_block ? neighbour_block->light_level : 15);
-      }
-      neighbour_light_level = std::max(neighbour_light_level-1, 0);
 
-      int new_light_level = std::max(sky_light_level, neighbour_light_level);
-      if(block->light_level != new_light_level)
+        int neighbour_light_level;
+        if(neighbour_block)
+        {
+          if(neighbour_block->light_level != 0)
+            neighbour_light_level = (int)neighbour_block->light_level - 1;
+          else
+            neighbour_light_level = 0;
+        }
+        else
+            neighbour_light_level = 15;
+
+        block->light_level = std::max<int>(block->light_level, neighbour_light_level);
+      }
+
+done:
+      if(block->light_level != old_light_level)
       {
-        block->light_level = new_light_level;
-        world.dimension.minor_invalidate_mesh(position);
         for(glm::ivec3 direction : DIRECTIONS)
         {
           glm::ivec3 neighbour_position = position + direction;
-          world.dimension.pending_lighting_updates.insert(neighbour_position);
+          world.dimension.minor_invalidate_mesh(neighbour_position);
+          world.dimension.lighting_invalidate(neighbour_position);
         }
       }
     }
