@@ -13,19 +13,97 @@
 #include <unordered_map>
 #include <unordered_set>
 
+inline int modulo(int a, int b)
+{
+  int value = a % b;
+  if(value < 0)
+    value += b;
+
+  assert(0 <= value);
+  assert(value < b);
+  return value;
+}
+
 struct Camera;
 struct Dimension
 {
 public:
-  std::optional<Block> get_block(glm::ivec3 position) const;
-  bool set_block(glm::ivec3 position, Block block);
+  std::optional<Block> get_block(glm::ivec3 position) const
+  {
+    // FIXME: Refactor me`
+    glm::ivec3 local_position = {
+      modulo(position.x, CHUNK_WIDTH),
+      modulo(position.y, CHUNK_WIDTH),
+      position.z
+    };
+
+    glm::ivec2 chunk_index = {
+      (position.x - local_position.x) / CHUNK_WIDTH,
+      (position.y - local_position.y) / CHUNK_WIDTH,
+    };
+
+    auto it = chunks.find(chunk_index);
+    if(it == chunks.end())
+      return std::nullopt;
+
+    return it->second.get_block(local_position);
+  }
+
+  bool set_block(glm::ivec3 position, Block block)
+  {
+    // FIXME: Refactor me`
+    glm::ivec3 local_position = {
+      modulo(position.x, CHUNK_WIDTH),
+      modulo(position.y, CHUNK_WIDTH),
+      position.z
+    };
+
+    glm::ivec2 chunk_index = {
+      (position.x - local_position.x) / CHUNK_WIDTH,
+      (position.y - local_position.y) / CHUNK_WIDTH,
+    };
+
+    auto it = chunks.find(chunk_index);
+    if(it == chunks.end())
+      return false;
+
+    return it->second.set_block(local_position, block);
+  }
 
 public:
-  void major_invalidate_mesh(glm::ivec3 position);
-  void minor_invalidate_mesh(glm::ivec3 position);
+  void major_invalidate_mesh(glm::ivec3 position)
+  {
+    glm::ivec3 local_position = {
+      modulo(position.x, CHUNK_WIDTH),
+      modulo(position.y, CHUNK_WIDTH),
+      position.z
+    };
+    glm::ivec2 chunk_index = {
+      (position.x - local_position.x) / CHUNK_WIDTH,
+      (position.y - local_position.y) / CHUNK_WIDTH,
+    };
+    chunks[chunk_index].major_invalidate_mesh();
+  }
+
+  void minor_invalidate_mesh(glm::ivec3 position)
+  {
+    glm::ivec3 local_position = {
+      modulo(position.x, CHUNK_WIDTH),
+      modulo(position.y, CHUNK_WIDTH),
+      position.z
+    };
+    glm::ivec2 chunk_index = {
+      (position.x - local_position.x) / CHUNK_WIDTH,
+      (position.y - local_position.y) / CHUNK_WIDTH,
+    };
+    chunks[chunk_index].minor_invalidate_mesh();
+  }
 
 public:
-  void lighting_invalidate(glm::ivec3 position);
+  void lighting_invalidate(glm::ivec3 position)
+  {
+    pending_lighting_updates.insert(position);
+  }
 
 public:
   TextureArray           blocks_texture_array;

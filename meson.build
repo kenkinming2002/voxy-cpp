@@ -18,8 +18,6 @@ voxy_exe = executable('voxy', [
     'src/window.cpp',
     'src/main.cpp',
     'src/application.cpp',
-    'src/types/chunk.cpp',
-    'src/types/dimension.cpp',
     'src/system/chunk_generator.cpp',
     'src/system/chunk_mesher.cpp',
     'src/system/chunk_renderer.cpp',
