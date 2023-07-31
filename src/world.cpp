@@ -125,7 +125,18 @@ World::World(std::size_t seed) :
     .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
     .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
   },
-  m_dimension(seed),
+  m_dimension {
+    .blocks_texture_array = TextureArray({
+        "assets/stone.png",
+        "assets/grass_bottom.png",
+        "assets/grass_side.png",
+        "assets/grass_top.png",
+    }),
+    .block_datas = {
+      { .texture_indices = {0, 0, 0, 0, 0, 0} },
+      { .texture_indices = {2, 2, 2, 2, 1, 3} },
+    },
+  },
   m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT),
   m_chunk_generator_system(ChunkGeneratorSystem::create(seed)),
   m_chunk_mesher_system(ChunkMesherSystem::create()),
@@ -178,7 +189,7 @@ void World::update(float dt)
 
   // 3: Update
   m_light_system->update(*this);
-  for(auto& [chunk_index, chunk] : m_dimension.chunks())
+  for(auto& [chunk_index, chunk] : m_dimension.chunks)
     if(chunk.data)
       m_chunk_mesher_system->update_chunk(*this, chunk_index);
 
@@ -211,7 +222,7 @@ void World::render()
 
 void World::load(glm::ivec2 chunk_index)
 {
-  if(!m_dimension.chunks()[chunk_index].data)
+  if(!m_dimension.chunks[chunk_index].data)
   {
     if(!m_chunk_generator_system->try_generate_chunk(*this, chunk_index))
       return;
@@ -225,7 +236,7 @@ void World::load(glm::ivec2 chunk_index)
         }
   }
 
-  if(!m_dimension.chunks()[chunk_index].mesh)
+  if(!m_dimension.chunks[chunk_index].mesh)
     m_chunk_mesher_system->remesh_chunk(*this, chunk_index);
 }
 

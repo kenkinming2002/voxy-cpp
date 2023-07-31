@@ -14,27 +14,8 @@
 #include <unordered_set>
 
 struct Camera;
-class Dimension
+struct Dimension
 {
-public:
-  Dimension(std::size_t seed);
-
-public:
-  void update();
-
-public:
-  auto& chunks() { return m_chunks; }
-  const auto& chunks() const { return m_chunks; }
-
-public:
-  Chunk& get_chunk(glm::ivec2 chunk_index) { return m_chunks[chunk_index]; }
-  const std::vector<BlockData>& block_datas() const { return m_block_datas; }
-  std::unordered_set<glm::ivec3>& pending_lighting_updates() { return m_pending_lighting_updates; }
-
-public:
-  auto& block_texture_arrays() { return m_blocks_texture_array; }
-  const auto& block_texture_arrays() const { return m_blocks_texture_array; }
-
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
   bool set_block(glm::ivec3 position, Block block);
@@ -46,17 +27,13 @@ public:
 public:
   void lighting_invalidate(glm::ivec3 position);
 
-private:
-  std::unordered_map<glm::ivec2, Chunk> m_chunks;
+public:
+  TextureArray           blocks_texture_array;
+  std::vector<BlockData> block_datas;
 
-private:
-  std::vector<BlockData> m_block_datas;
-
-private:
-  TextureArray m_blocks_texture_array;
-
-private:
-  std::unordered_set<glm::ivec3> m_pending_lighting_updates;
+public:
+  std::unordered_map<glm::ivec2, Chunk> chunks;
+  std::unordered_set<glm::ivec3>        pending_lighting_updates;
 };
 
 #endif // DIMENSION_HPP

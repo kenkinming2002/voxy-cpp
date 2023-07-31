@@ -13,11 +13,11 @@ private:
   {
     for(unsigned i=0; i<LIGHTING_UPDATE_PER_FRAME; ++i)
     {
-      if(world.dimension().pending_lighting_updates().empty())
+      if(world.dimension().pending_lighting_updates.empty())
         return;
 
-      glm::ivec3 position = *world.dimension().pending_lighting_updates().begin();
-      world.dimension().pending_lighting_updates().erase(world.dimension().pending_lighting_updates().begin());
+      glm::ivec3 position = *world.dimension().pending_lighting_updates.begin();
+      world.dimension().pending_lighting_updates.erase(world.dimension().pending_lighting_updates.begin());
 
       std::optional<Block> block = world.dimension().get_block(position);
       if(!block)
@@ -57,7 +57,7 @@ private:
         for(glm::ivec3 direction : DIRECTIONS)
         {
           glm::ivec3 neighbour_position = position + direction;
-          world.dimension().pending_lighting_updates().insert(neighbour_position);
+          world.dimension().pending_lighting_updates.insert(neighbour_position);
         }
       }
     }

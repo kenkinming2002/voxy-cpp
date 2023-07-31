@@ -18,9 +18,9 @@ private:
     glUseProgram(m_program);
     {
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D_ARRAY, world.dimension().block_texture_arrays().id());
+      glBindTexture(GL_TEXTURE_2D_ARRAY, world.dimension().blocks_texture_array.id());
       glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
-      for(const auto& [chunk_index, chunk] : world.dimension().chunks())
+      for(const auto& [chunk_index, chunk] : world.dimension().chunks)
       {
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP   = projection * view * model;

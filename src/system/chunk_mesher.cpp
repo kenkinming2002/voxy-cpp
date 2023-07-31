@@ -16,7 +16,7 @@ class ChunkMesherSystemImpl : public ChunkMesherSystem
 private:
   void update_chunk(World& world, glm::ivec2 chunk_index) override
   {
-    Chunk& chunk = world.dimension().get_chunk(chunk_index);
+    Chunk& chunk = world.dimension().chunks[chunk_index];
 
     uint32_t tick = SDL_GetTicks();
     if(!chunk.mesh || chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
@@ -30,7 +30,7 @@ private:
 
   void remesh_chunk(World& world, glm::ivec2 chunk_index) override
   {
-    Chunk& chunk = world.dimension().get_chunk(chunk_index);
+    Chunk& chunk = world.dimension().chunks[chunk_index];
     if(!chunk.data)
     {
       spdlog::warn("Chunk at {}, {} has not yet been generated", chunk_index.x, chunk_index.y);
@@ -80,7 +80,7 @@ private:
             glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
             glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-            const BlockData& block_data = world.dimension().block_datas().at(block.id);
+            const BlockData& block_data = world.dimension().block_datas.at(block.id);
             vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
             vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
             vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
