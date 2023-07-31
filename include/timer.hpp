@@ -11,11 +11,9 @@ public:
 
 public:
   float tick();
-  float average() const;
 
 private:
   Uint32 m_previous_tick;
-  float m_dts[TIMER_AVERAGE_COUNT];
 };
 
 #endif // TIMER_HPP

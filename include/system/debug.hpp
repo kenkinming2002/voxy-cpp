@@ -11,6 +11,7 @@ public:
   static std::unique_ptr<DebugSystem> create();
 
 public:
+  virtual void update(float dt) = 0;
   virtual void render(const World& world) = 0;
   virtual ~DebugSystem() = default;
 };

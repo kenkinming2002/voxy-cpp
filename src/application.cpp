@@ -69,13 +69,13 @@ void Application::loop()
 
   // 2: Update
   float dt = m_timer.tick();
-
   m_player_movement_system->update(m_world, dt);
   m_light_system->update(m_world);
   m_chunk_generator_system->update(m_world);
   m_chunk_mesher_system->update(m_world);
   m_physics_system->update(m_world, dt);
   m_camera_follow_system->update(m_world, dt);
+  m_debug_system->update(dt);
 
   // 3: Render
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -83,7 +83,5 @@ void Application::loop()
   m_chunk_renderer_system->render(m_world);
   m_debug_system->render(m_world);
   m_window.swap_buffer();
-
-  spdlog::info("average frame time = {}", m_timer.average());
 }
 
