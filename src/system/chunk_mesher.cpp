@@ -48,16 +48,16 @@ private:
         for(int lx=0; lx<CHUNK_WIDTH; ++lx)
         {
           glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
-          Block      block    = world.dimension.get_block(position).value();
-          if(!block.presence)
+          Block*     block    = world.dimension.get_block(position);
+          if(!block->presence)
             continue;
 
           for(int i=0; i<std::size(DIRECTIONS); ++i)
           {
             glm::ivec3 direction          = DIRECTIONS[i];
             glm::ivec3 neighbour_position = position + direction;
-            Block      neighbour_block    = world.dimension.get_block(neighbour_position).value_or(Block{.presence = 0, .light_level = 15});
-            if(neighbour_block.presence)
+            Block*     neighbour_block    = world.dimension.get_block(neighbour_position);
+            if(neighbour_block && neighbour_block->presence)
               continue;
 
             uint32_t index_base = vertices.size();
@@ -73,11 +73,14 @@ private:
             glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
             glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-            const BlockData& block_data = world.dimension.block_datas.at(block.id);
-            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
-            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 0.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
-            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
-            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 1.0f}, .texture_index = block_data.texture_indices[i], .light_level = neighbour_block.light_level / 16.0f, });
+            const BlockData& block_data = world.dimension.block_datas.at(block->id);
+            uint32_t texture_index = block_data.texture_indices[i];
+            float    light_level   = (neighbour_block ? neighbour_block->light_level : 15) / 16.0f;
+
+            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 0.0f}, .texture_index = texture_index, .light_level = light_level, });
+            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 0.0f}, .texture_index = texture_index, .light_level = light_level, });
+            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 1.0f}, .texture_index = texture_index, .light_level = light_level, });
+            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 1.0f}, .texture_index = texture_index, .light_level = light_level, });
             // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
           }
         }

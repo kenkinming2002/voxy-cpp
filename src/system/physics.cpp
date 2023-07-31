@@ -43,9 +43,9 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const Dimensi
     for(int y = corner1.y; y<=corner2.y; ++y)
       for(int x = corner1.x; x<=corner2.x; ++x)
       {
-        glm::ivec3 position = glm::ivec3(x, y, z);
-        Block block = dimension.get_block(position).value_or(Block{.presence = false});
-        if(block.presence)
+        glm::ivec3   position = glm::ivec3(x, y, z);
+        const Block* block    = dimension.get_block(position);
+        if(block && block->presence)
         {
           glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, position, glm::vec3(1.0f, 1.0f, 1.0f));
           spdlog::info("Entity collision {}, {}, {} with block {}, {}, {}",

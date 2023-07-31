@@ -28,7 +28,7 @@ struct Camera;
 struct Dimension
 {
 public:
-  std::optional<Block> get_block(glm::ivec3 position) const
+  Block* get_block(glm::ivec3 position)
   {
     // FIXME: Refactor me`
     glm::ivec3 local_position = {
@@ -44,12 +44,12 @@ public:
 
     auto it = chunks.find(chunk_index);
     if(it == chunks.end())
-      return std::nullopt;
+      return nullptr;
 
     return it->second.get_block(local_position);
   }
 
-  bool set_block(glm::ivec3 position, Block block)
+  const Block* get_block(glm::ivec3 position) const
   {
     // FIXME: Refactor me`
     glm::ivec3 local_position = {
@@ -65,9 +65,9 @@ public:
 
     auto it = chunks.find(chunk_index);
     if(it == chunks.end())
-      return false;
+      return nullptr;
 
-    return it->second.set_block(local_position, block);
+    return it->second.get_block(local_position);
   }
 
 public:

@@ -208,7 +208,7 @@ private:
       for(int lx=0; lx<CHUNK_WIDTH; ++lx)
       {
         int total_height = chunk_info->stone_height_map.heights[ly][lx]
-          + chunk_info->grass_height_map.heights[ly][lx];
+                         + chunk_info->grass_height_map.heights[ly][lx];
         max_height = std::max(max_height, total_height);
       }
 
@@ -219,9 +219,13 @@ private:
         {
           int height1 = chunk_info->stone_height_map.heights[ly][lx];
           int height2 = chunk_info->stone_height_map.heights[ly][lx] + chunk_info->grass_height_map.heights[ly][lx];
-          chunk.set_block(glm::ivec3(lx, ly, lz), lz < height1 ? Block::STONE :
-                                                  lz < height2 ? Block::GRASS :
-                                                  Block::NONE);
+          Block *block = chunk.get_block(glm::ivec3(lx, ly, lz));
+          if(block) [[likely]]
+          {
+            if(lz < height1)      *block = Block::STONE;
+            else if(lz < height2) *block = Block::GRASS;
+            else                  *block = Block::NONE;
+          }
         }
     }
 

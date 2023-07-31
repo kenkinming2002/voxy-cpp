@@ -9,8 +9,6 @@
 #include <glm/gtx/norm.hpp>
 
 #include <memory>
-#include <optional>
-#include <vector>
 
 static constexpr int CHUNK_WIDTH  = 16;
 static constexpr int CHUNK_HEIGHT = 256;
@@ -23,25 +21,24 @@ struct ChunkData
 struct Chunk
 {
 public:
-  std::optional<Block> get_block(glm::ivec3 position) const
+  Block *get_block(glm::ivec3 position)
   {
-    if(!data)                                        return std::nullopt;
-    if(position.x < 0 || position.x >= CHUNK_WIDTH)  return std::nullopt;
-    if(position.y < 0 || position.y >= CHUNK_WIDTH)  return std::nullopt;
-    if(position.z < 0 || position.z >= CHUNK_HEIGHT) return std::nullopt;
+    if(!data)                                        return nullptr;
+    if(position.x < 0 || position.x >= CHUNK_WIDTH)  return nullptr;
+    if(position.y < 0 || position.y >= CHUNK_WIDTH)  return nullptr;
+    if(position.z < 0 || position.z >= CHUNK_HEIGHT) return nullptr;
 
-    return data->blocks[position.z][position.y][position.x];
+    return &data->blocks[position.z][position.y][position.x];
   }
 
-  bool set_block(glm::ivec3 position, Block block)
+  const Block *get_block(glm::ivec3 position) const
   {
-    if(!data)                                        return false;
-    if(position.x < 0 || position.x >= CHUNK_WIDTH)  return false;
-    if(position.y < 0 || position.y >= CHUNK_WIDTH)  return false;
-    if(position.z < 0 || position.z >= CHUNK_HEIGHT) return false;
+    if(!data)                                        return nullptr;
+    if(position.x < 0 || position.x >= CHUNK_WIDTH)  return nullptr;
+    if(position.y < 0 || position.y >= CHUNK_WIDTH)  return nullptr;
+    if(position.z < 0 || position.z >= CHUNK_HEIGHT) return nullptr;
 
-    data->blocks[position.z][position.y][position.x] = block;
-    return true;
+    return &data->blocks[position.z][position.y][position.x];
   }
 
   void explode(glm::vec3 center, float radius)
@@ -55,7 +52,8 @@ public:
         {
           glm::ivec3 pos = { x, y, z };
           if(glm::length2(glm::vec3(pos) - center) < radius * radius)
-            set_block(pos, Block{ .presence = false });
+            if(Block *block = get_block(pos))
+              block->presence = false;
         }
   }
 
