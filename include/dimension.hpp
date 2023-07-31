@@ -4,6 +4,7 @@
 #include <chunk.hpp>
 #include <chunk/generator.hpp>
 #include <chunk/mesher.hpp>
+#include <chunk/light_system.hpp>
 
 #include <texture_array.hpp>
 
@@ -28,6 +29,7 @@ public:
 public:
   Chunk& get_chunk(glm::ivec2 chunk_index) { return m_chunks[chunk_index]; }
   const std::vector<BlockData>& block_datas() const { return m_block_datas; }
+  std::unordered_set<glm::ivec3>& pending_lighting_updates() { return m_pending_lighting_updates; }
 
 public:
   void load(glm::ivec2 chunk_index);
@@ -37,16 +39,20 @@ public:
   std::optional<Block> get_block(glm::ivec3 position) const;
   bool set_block(glm::ivec3 position, Block block);
 
+public:
+  void major_invalidate_mesh(glm::ivec3 position);
+  void minor_invalidate_mesh(glm::ivec3 position);
+
 private:
   void lighting_invalidate(glm::ivec3 position);
-  void lighting_update();
 
 private:
   std::unordered_map<glm::ivec2, Chunk> m_chunks;
 
 private:
-  std::unique_ptr<ChunkGenerator> m_chunk_generator;
-  std::unique_ptr<ChunkMesher>    m_chunk_mesher;
+  std::unique_ptr<ChunkGenerator>   m_chunk_generator;
+  std::unique_ptr<ChunkMesher>      m_chunk_mesher;
+  std::unique_ptr<ChunkLightSystem> m_chunk_light_system;
 
 private:
   std::vector<BlockData> m_block_datas;
