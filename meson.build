@@ -9,6 +9,7 @@ voxy_exe = executable('voxy', [
     'src/gl.cpp',
     'src/sdl2.cpp',
     'src/glad.c',
+    'src/window.cpp',
     'src/main.cpp',
     'src/mesh.cpp',
     'src/texture_array.cpp',
