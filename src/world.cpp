@@ -40,6 +40,7 @@ World::World(std::size_t seed) :
   m_light_system(LightSystem::create()),
   m_physics_system(PhysicsSystem::create()),
   m_player_movement_system(PlayerMovementSystem::create()),
+  m_camera_follow_system(CameraFollowSystem::create()),
   m_debug_system(DebugSystem::create())
 {}
 
@@ -55,10 +56,7 @@ void World::update(float dt)
   m_chunk_generator_system->update(*this);
   m_chunk_mesher_system->update(*this);
   m_physics_system->update(*this, dt);
-
-  // 3: Camera update
-  m_camera.transform           = m_player.transform;
-  m_camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
+  m_camera_follow_system->update(*this, dt);
 }
 
 void World::render()

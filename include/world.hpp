@@ -15,6 +15,7 @@
 #include <system/physics.hpp>
 
 #include <system/player_movement.hpp>
+#include <system/camera_follow.hpp>
 
 #include <system/debug.hpp>
 
@@ -66,6 +67,7 @@ private:
   std::unique_ptr<PhysicsSystem> m_physics_system;
 
   std::unique_ptr<PlayerMovementSystem> m_player_movement_system;
+  std::unique_ptr<CameraFollowSystem>   m_camera_follow_system;
 
   std::unique_ptr<DebugSystem> m_debug_system;
 };
