@@ -1,4 +1,4 @@
-#include <chunk/generator.hpp>
+#include <system/chunk_generator.hpp>
 
 #include <dimension.hpp>
 #include <chunk_coords.hpp>
@@ -128,15 +128,15 @@ static ChunkInfo generate_chunk_info(glm::ivec2 chunk_index, size_t seed)
 }
 
 
-class ChunkGeneratorImpl : public ChunkGenerator
+class ChunkGeneratorSystemImpl : public ChunkGeneratorSystem
 {
 public:
-  ChunkGeneratorImpl(std::size_t seed)
+  ChunkGeneratorSystemImpl(std::size_t seed)
     : m_seed(seed)
   {
     unsigned count = std::thread::hardware_concurrency();
     for(unsigned i=0; i<count; ++i)
-      m_workers.emplace_back(std::bind(&ChunkGeneratorImpl::work, this, std::placeholders::_1));
+      m_workers.emplace_back(std::bind(&ChunkGeneratorSystemImpl::work, this, std::placeholders::_1));
   }
 
 private:
@@ -277,8 +277,8 @@ private:
   std::vector<std::jthread> m_workers;
 };
 
-std::unique_ptr<ChunkGenerator> ChunkGenerator::create(std::size_t seed)
+std::unique_ptr<ChunkGeneratorSystem> ChunkGeneratorSystem::create(std::size_t seed)
 {
-  return std::make_unique<ChunkGeneratorImpl>(seed);
+  return std::make_unique<ChunkGeneratorSystemImpl>(seed);
 }
 

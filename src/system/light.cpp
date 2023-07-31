@@ -1,4 +1,4 @@
-#include <chunk/light_system.hpp>
+#include <system/light.hpp>
 
 #include <dimension.hpp>
 
@@ -6,7 +6,7 @@
 
 static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 20000;
 
-class ChunkLightSystemImpl : public ChunkLightSystem
+class LightSystemImpl : public LightSystem
 {
 private:
   void update(Dimension& dimension) override
@@ -64,8 +64,8 @@ private:
   }
 };
 
-std::unique_ptr<ChunkLightSystem> ChunkLightSystem::create()
+std::unique_ptr<LightSystem> LightSystem::create()
 {
-  return std::make_unique<ChunkLightSystemImpl>();
+  return std::make_unique<LightSystemImpl>();
 }
 

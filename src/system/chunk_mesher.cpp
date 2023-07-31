@@ -1,4 +1,4 @@
-#include <chunk/mesher.hpp>
+#include <system/chunk_mesher.hpp>
 
 #include <dimension.hpp>
 #include <chunk_coords.hpp>
@@ -11,7 +11,7 @@
 
 static constexpr float REMASH_THROTTLE = 5.0f;
 
-class ChunkMesherImpl : public ChunkMesher
+class ChunkMesherSystemImpl : public ChunkMesherSystem
 {
 private:
   void update_chunk(Dimension& dimension, glm::ivec2 chunk_index) override
@@ -108,8 +108,8 @@ private:
   }
 };
 
-std::unique_ptr<ChunkMesher> ChunkMesher::create()
+std::unique_ptr<ChunkMesherSystem> ChunkMesherSystem::create()
 {
-  return std::make_unique<ChunkMesherImpl>();
+  return std::make_unique<ChunkMesherSystemImpl>();
 }
 

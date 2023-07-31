@@ -2,9 +2,10 @@
 #define DIMENSION_HPP
 
 #include <chunk.hpp>
-#include <chunk/generator.hpp>
-#include <chunk/mesher.hpp>
-#include <chunk/light_system.hpp>
+
+#include <system/chunk_generator.hpp>
+#include <system/chunk_mesher.hpp>
+#include <system/light.hpp>
 
 #include <texture_array.hpp>
 
@@ -50,9 +51,9 @@ private:
   std::unordered_map<glm::ivec2, Chunk> m_chunks;
 
 private:
-  std::unique_ptr<ChunkGenerator>   m_chunk_generator;
-  std::unique_ptr<ChunkMesher>      m_chunk_mesher;
-  std::unique_ptr<ChunkLightSystem> m_chunk_light_system;
+  std::unique_ptr<ChunkGeneratorSystem> m_chunk_generator_system;
+  std::unique_ptr<ChunkMesherSystem>    m_chunk_mesher_system;
+  std::unique_ptr<LightSystem>          m_light_system;
 
 private:
   std::vector<BlockData> m_block_datas;
