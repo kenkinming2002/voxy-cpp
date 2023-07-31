@@ -12,13 +12,13 @@ private:
     switch(event.type)
     {
       case SDL_MOUSEMOTION:
-        world.player().transform = world.player().transform.rotate(glm::vec3(0.0f,
+        world.player.transform = world.player.transform.rotate(glm::vec3(0.0f,
           -event.motion.yrel * ROTATION_SPEED,
           -event.motion.xrel * ROTATION_SPEED
         ));
         break;
       case SDL_MOUSEWHEEL:
-        world.camera().zoom(-event.wheel.y);
+        world.camera.zoom(-event.wheel.y);
         break;
     }
   }
@@ -36,10 +36,10 @@ private:
     if(keys[SDL_SCANCODE_A])      translation.x -= 1.0f;
     if(glm::length(translation) != 0.0f)
     {
-      translation = world.player().transform.gocal_to_global(translation);
+      translation = world.player.transform.gocal_to_global(translation);
       translation = glm::normalize(translation);
       translation *= dt;
-      world.player().velocity += translation * 10.0f;
+      world.player.velocity += translation * 10.0f;
     }
   }
 };

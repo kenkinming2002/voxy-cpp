@@ -143,8 +143,8 @@ private:
   void update(World& world) override
   {
     glm::ivec2 center = {
-      std::floor(world.player().transform.position.x / CHUNK_WIDTH),
-      std::floor(world.player().transform.position.y / CHUNK_WIDTH),
+      std::floor(world.player.transform.position.x / CHUNK_WIDTH),
+      std::floor(world.player.transform.position.y / CHUNK_WIDTH),
     };
     load(world, center, CHUNK_LOAD_RADIUS);
   }
@@ -161,7 +161,7 @@ private:
 
   void load(World& world, glm::ivec2 chunk_index)
   {
-    if(!world.dimension().chunks[chunk_index].data)
+    if(!world.dimension.chunks[chunk_index].data)
     {
       if(!try_generate_chunk(world, chunk_index))
         return;
@@ -171,14 +171,14 @@ private:
           for(int lx=0; lx<CHUNK_WIDTH; ++lx)
           {
             glm::ivec3 position = { lx, ly, lz };
-            world.dimension().lighting_invalidate(local_to_global(position, chunk_index));
+            world.dimension.lighting_invalidate(local_to_global(position, chunk_index));
           }
     }
   }
 
   bool try_generate_chunk(World& world, glm::ivec2 chunk_index)
   {
-    Chunk& chunk = world.dimension().chunks[chunk_index];
+    Chunk& chunk = world.dimension.chunks[chunk_index];
     if(chunk.data)
     {
       spdlog::warn("Chunk at {}, {} has already been generated", chunk_index.x, chunk_index.y);

@@ -102,8 +102,8 @@ class PhysicsSystemImpl : public PhysicsSystem
 private:
   void update(World& world, float dt) override
   {
-    entity_update_physics(world.player(), dt);
-    entity_resolve_collisions(world.player(), world.dimension());
+    entity_update_physics(world.player, dt);
+    entity_resolve_collisions(world.player, world.dimension);
   }
 };
 

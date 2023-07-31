@@ -6,7 +6,32 @@ Application::Application() :
   m_running(true),
   m_window("voxy", 1024, 720),
   m_timer(),
-  m_world(),
+  m_world{
+    .camera = {
+      .aspect = 1024.0f / 720.0f,
+      .fovy   = 45.0f,
+    },
+    .player = {
+      .transform = {
+        .position = glm::vec3(0.0f, 0.0f, 50.0f),
+        .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+      },
+      .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
+      .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+    },
+    .dimension = {
+      .blocks_texture_array = TextureArray({
+          "assets/stone.png",
+          "assets/grass_bottom.png",
+          "assets/grass_side.png",
+          "assets/grass_top.png",
+          }),
+      .block_datas = {
+        { .texture_indices = {0, 0, 0, 0, 0, 0} },
+        { .texture_indices = {2, 2, 2, 2, 1, 3} },
+      },
+    },
+  },
   m_chunk_generator_system(ChunkGeneratorSystem::create(SEED)),
   m_chunk_mesher_system(ChunkMesherSystem::create()),
   m_chunk_renderer_system(ChunkRendererSystem::create()),

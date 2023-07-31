@@ -13,13 +13,13 @@ private:
   {
     for(unsigned i=0; i<LIGHTING_UPDATE_PER_FRAME; ++i)
     {
-      if(world.dimension().pending_lighting_updates.empty())
+      if(world.dimension.pending_lighting_updates.empty())
         return;
 
-      glm::ivec3 position = *world.dimension().pending_lighting_updates.begin();
-      world.dimension().pending_lighting_updates.erase(world.dimension().pending_lighting_updates.begin());
+      glm::ivec3 position = *world.dimension.pending_lighting_updates.begin();
+      world.dimension.pending_lighting_updates.erase(world.dimension.pending_lighting_updates.begin());
 
-      std::optional<Block> block = world.dimension().get_block(position);
+      std::optional<Block> block = world.dimension.get_block(position);
       if(!block)
         continue;
 
@@ -28,7 +28,7 @@ private:
       for(int z=position.z+1; z<CHUNK_HEIGHT; ++z)
       {
         glm::ivec3 neighbour_position = { position.x, position.y, z };
-        Block      neighbour_block    = world.dimension().get_block(neighbour_position).value();
+        Block      neighbour_block    = world.dimension.get_block(neighbour_position).value();
         if(neighbour_block.presence) // TODO: Opaqueness
         {
           sky_light_level = 0;
@@ -43,7 +43,7 @@ private:
       for(glm::ivec3 direction : DIRECTIONS)
       {
         glm::ivec3 neighbour_position = position + direction;
-        Block      neighbour_block    = world.dimension().get_block(neighbour_position).value_or(Block{.light_level = 15});
+        Block      neighbour_block    = world.dimension.get_block(neighbour_position).value_or(Block{.light_level = 15});
         neighbour_light_level = std::max<int>(neighbour_light_level, neighbour_block.light_level);
       }
       neighbour_light_level = std::max(neighbour_light_level-1, 0);
@@ -52,12 +52,12 @@ private:
       if(block->light_level != new_light_level)
       {
         block->light_level = new_light_level;
-        world.dimension().set_block(position, *block);
-        world.dimension().minor_invalidate_mesh(position);
+        world.dimension.set_block(position, *block);
+        world.dimension.minor_invalidate_mesh(position);
         for(glm::ivec3 direction : DIRECTIONS)
         {
           glm::ivec3 neighbour_position = position + direction;
-          world.dimension().pending_lighting_updates.insert(neighbour_position);
+          world.dimension.pending_lighting_updates.insert(neighbour_position);
         }
       }
     }

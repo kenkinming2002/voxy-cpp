@@ -13,14 +13,14 @@ public:
 private:
   void render(const World& world) override
   {
-    glm::mat4 view       = world.camera().view();
-    glm::mat4 projection = world.camera().projection();
+    glm::mat4 view       = world.camera.view();
+    glm::mat4 projection = world.camera.projection();
     glUseProgram(m_program);
     {
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D_ARRAY, world.dimension().blocks_texture_array.id());
+      glBindTexture(GL_TEXTURE_2D_ARRAY, world.dimension.blocks_texture_array.id());
       glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
-      for(const auto& [chunk_index, chunk] : world.dimension().chunks)
+      for(const auto& [chunk_index, chunk] : world.dimension.chunks)
       {
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP   = projection * view * model;

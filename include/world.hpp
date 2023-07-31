@@ -20,23 +20,9 @@ struct Entity
  *********/
 struct World
 {
-public:
-  World();
-
-public:
-  Dimension& dimension() { return m_dimension; }
-  const Dimension& dimension() const { return m_dimension; }
-
-  auto& camera() { return m_camera; }
-  const auto& camera() const { return m_camera; }
-
-  auto& player() { return m_player; }
-  const auto& player() const { return m_player; }
-
-private:
-  Camera    m_camera;
-  Entity    m_player;
-  Dimension m_dimension;
+  Camera    camera;
+  Entity    player;
+  Dimension dimension;
 };
 
 #endif // WORLD_HPP

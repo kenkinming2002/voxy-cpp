@@ -21,12 +21,12 @@ private:
     std::string line;
     glm::vec2   cursor = DEBUG_MARGIN;
 
-    line = fmt::format("position: x = {}, y = {}, z = {}", world.player().transform.position.x, world.player().transform.position.y, world.player().transform.position.z);
+    line = fmt::format("position: x = {}, y = {}, z = {}", world.player.transform.position.x, world.player.transform.position.y, world.player.transform.position.z);
     m_text_renderer.render(cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
-    line = fmt::format("velocity: x = {}, y = {}, z = {}", world.player().velocity.x, world.player().velocity.y, world.player().velocity.z);
+    line = fmt::format("velocity: x = {}, y = {}, z = {}", world.player.velocity.x, world.player.velocity.y, world.player.velocity.z);
     m_text_renderer.render(cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
