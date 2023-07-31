@@ -2,6 +2,8 @@
 
 #include <world.hpp>
 
+#include <text_renderer.hpp>
+
 #include <fmt/format.h>
 
 static constexpr glm::vec2   DEBUG_MARGIN       = glm::vec2(3.0f, 3.0f);
