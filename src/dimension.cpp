@@ -40,9 +40,9 @@ Dimension::Dimension(std::size_t seed) :
 void Dimension::update()
 {
   lighting_update();
-  for(auto& [chunk_position, chunk] : m_chunks)
+  for(auto& [chunk_index, chunk] : m_chunks)
     if(chunk.data)
-      m_chunk_mesher->update_chunk(*this, chunk_position);
+      m_chunk_mesher->update_chunk(*this, chunk_index);
 }
 
 void Dimension::render(const Camera& camera) const
@@ -54,7 +54,7 @@ void Dimension::render(const Camera& camera) const
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
     glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
-    for(const auto& [chunk_position, chunk] : m_chunks)
+    for(const auto& [chunk_index, chunk] : m_chunks)
     {
       glm::mat4 model = glm::mat4(1.0f);
       glm::mat4 MVP   = projection * view * model;
@@ -65,11 +65,11 @@ void Dimension::render(const Camera& camera) const
   }
 }
 
-void Dimension::load(glm::ivec2 chunk_position)
+void Dimension::load(glm::ivec2 chunk_index)
 {
-  if(!m_chunks[chunk_position].data)
+  if(!m_chunks[chunk_index].data)
   {
-    if(!m_chunk_generator->try_generate_chunk(*this, chunk_position))
+    if(!m_chunk_generator->try_generate_chunk(*this, chunk_index))
       return;
 
     for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
@@ -77,12 +77,12 @@ void Dimension::load(glm::ivec2 chunk_position)
         for(int lx=0; lx<CHUNK_WIDTH; ++lx)
         {
           glm::ivec3 position = { lx, ly, lz };
-          lighting_invalidate(local_to_global(position, chunk_position));
+          lighting_invalidate(local_to_global(position, chunk_index));
         }
   }
 
-  if(!m_chunks[chunk_position].mesh)
-    m_chunk_mesher->remesh_chunk(*this, chunk_position);
+  if(!m_chunks[chunk_index].mesh)
+    m_chunk_mesher->remesh_chunk(*this, chunk_index);
 }
 
 void Dimension::load(glm::ivec2 center, int radius)
@@ -90,8 +90,8 @@ void Dimension::load(glm::ivec2 center, int radius)
   for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
     for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
     {
-      glm::ivec2 chunk_position(cx, cy);
-      load(chunk_position);
+      glm::ivec2 chunk_index(cx, cy);
+      load(chunk_index);
     }
 }
 
@@ -104,12 +104,12 @@ std::optional<Block> Dimension::get_block(glm::ivec3 position) const
     position.z
   };
 
-  glm::ivec2 chunk_position = {
+  glm::ivec2 chunk_index = {
     (position.x - local_position.x) / CHUNK_WIDTH,
     (position.y - local_position.y) / CHUNK_WIDTH,
   };
 
-  auto it = m_chunks.find(chunk_position);
+  auto it = m_chunks.find(chunk_index);
   if(it == m_chunks.end())
     return std::nullopt;
 
@@ -125,12 +125,12 @@ bool Dimension::set_block(glm::ivec3 position, Block block)
     position.z
   };
 
-  glm::ivec2 chunk_position = {
+  glm::ivec2 chunk_index = {
     (position.x - local_position.x) / CHUNK_WIDTH,
     (position.y - local_position.y) / CHUNK_WIDTH,
   };
 
-  auto it = m_chunks.find(chunk_position);
+  auto it = m_chunks.find(chunk_index);
   if(it == m_chunks.end())
     return false;
 
@@ -163,18 +163,18 @@ void Dimension::lighting_update()
       position.z
     };
 
-    glm::ivec2 chunk_position = {
+    glm::ivec2 chunk_index = {
       (position.x - local_position.x) / CHUNK_WIDTH,
       (position.y - local_position.y) / CHUNK_WIDTH,
     };
-    Chunk& chunk = m_chunks.at(chunk_position);
+    Chunk& chunk = m_chunks.at(chunk_index);
 
     // 1: Skylight
     int sky_light_level = 15;
     for(int z=position.z+1; z<CHUNK_HEIGHT; ++z)
     {
       glm::ivec3 neighbour_position = { position.x, position.y, z };
-      Block      neighbour_block    = chunk.get_block(global_to_local(neighbour_position, chunk_position)).value();
+      Block      neighbour_block    = chunk.get_block(global_to_local(neighbour_position, chunk_index)).value();
       if(neighbour_block.presence) // TODO: Opaqueness
       {
         sky_light_level = 0;

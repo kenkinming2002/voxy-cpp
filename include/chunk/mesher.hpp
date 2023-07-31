@@ -12,8 +12,8 @@ public:
   static std::unique_ptr<ChunkMesher> create();
 
 public:
-  virtual void update_chunk(Dimension& dimension, glm::ivec2 chunk_position) = 0;
-  virtual void remesh_chunk(Dimension& dimension, glm::ivec2 chunk_position) = 0;
+  virtual void update_chunk(Dimension& dimension, glm::ivec2 chunk_index) = 0;
+  virtual void remesh_chunk(Dimension& dimension, glm::ivec2 chunk_index) = 0;
   virtual ~ChunkMesher() = default;
 };
 

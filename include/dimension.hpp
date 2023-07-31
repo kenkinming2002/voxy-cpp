@@ -26,11 +26,11 @@ public:
   void render(const Camera& camera) const;
 
 public:
-  Chunk& get_chunk(glm::ivec2 chunk_position) { return m_chunks[chunk_position]; }
+  Chunk& get_chunk(glm::ivec2 chunk_index) { return m_chunks[chunk_index]; }
   const std::vector<BlockData>& block_datas() const { return m_block_datas; }
 
 public:
-  void load(glm::ivec2 chunk_position);
+  void load(glm::ivec2 chunk_index);
   void load(glm::ivec2 center, int radius);
 
 public:

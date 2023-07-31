@@ -14,9 +14,9 @@ static constexpr float REMASH_THROTTLE = 5.0f;
 class ChunkMesherImpl : public ChunkMesher
 {
 private:
-  void update_chunk(Dimension& dimension, glm::ivec2 chunk_position) override
+  void update_chunk(Dimension& dimension, glm::ivec2 chunk_index) override
   {
-    Chunk& chunk = dimension.get_chunk(chunk_position);
+    Chunk& chunk = dimension.get_chunk(chunk_index);
 
     uint32_t tick = SDL_GetTicks();
     if(!chunk.mesh || chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
@@ -24,16 +24,16 @@ private:
       chunk.mesh_invalidated_major = false;
       chunk.mesh_invalidated_minor = false;
       chunk.last_remash_tick = tick;
-      remesh_chunk(dimension, chunk_position);
+      remesh_chunk(dimension, chunk_index);
     }
   }
 
-  void remesh_chunk(Dimension& dimension, glm::ivec2 chunk_position) override
+  void remesh_chunk(Dimension& dimension, glm::ivec2 chunk_index) override
   {
-    Chunk& chunk = dimension.get_chunk(chunk_position);
+    Chunk& chunk = dimension.get_chunk(chunk_index);
     if(!chunk.data)
     {
-      spdlog::warn("Chunk at {}, {} has not yet been generated", chunk_position.x, chunk_position.y);
+      spdlog::warn("Chunk at {}, {} has not yet been generated", chunk_index.x, chunk_index.y);
       return;
     }
 
@@ -54,7 +54,7 @@ private:
       for(int ly=0; ly<CHUNK_WIDTH; ++ly)
         for(int lx=0; lx<CHUNK_WIDTH; ++lx)
         {
-          glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_position);
+          glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
           Block      block    = dimension.get_block(position).value();
           if(!block.presence)
             continue;
