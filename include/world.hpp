@@ -11,6 +11,7 @@
 #include <system/chunk_mesher.hpp>
 #include <system/chunk_renderer.hpp>
 #include <system/light.hpp>
+#include <system/physics.hpp>
 
 /**********
  * Entity *
@@ -59,6 +60,7 @@ private:
   std::unique_ptr<ChunkMesherSystem>    m_chunk_mesher_system;
   std::unique_ptr<ChunkRendererSystem>  m_chunk_renderer_system;
   std::unique_ptr<LightSystem>          m_light_system;
+  std::unique_ptr<PhysicsSystem>        m_physics_system;
 };
 
 #endif // WORLD_HPP
