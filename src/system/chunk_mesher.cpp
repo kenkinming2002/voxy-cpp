@@ -19,35 +19,20 @@ private:
   {
     for(auto& [chunk_index, chunk] : world.dimension.chunks)
       if(chunk.data)
-        update_chunk(world, chunk_index);
+      {
+        uint32_t tick = SDL_GetTicks();
+        if(!chunk.mesh || chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
+        {
+          chunk.mesh_invalidated_major = false;
+          chunk.mesh_invalidated_minor = false;
+          chunk.last_remash_tick = tick;
+          remesh_chunk(world, chunk_index, chunk);
+        }
+      }
   }
 
-  void update_chunk(World& world, glm::ivec2 chunk_index)
+  void remesh_chunk(World& world, glm::ivec2 chunk_index, Chunk& chunk)
   {
-    Chunk& chunk = world.dimension.chunks[chunk_index];
-
-    uint32_t tick = SDL_GetTicks();
-    if(!chunk.mesh || chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
-    {
-      chunk.mesh_invalidated_major = false;
-      chunk.mesh_invalidated_minor = false;
-      chunk.last_remash_tick = tick;
-      remesh_chunk(world, chunk_index);
-    }
-  }
-
-  void remesh_chunk(World& world, glm::ivec2 chunk_index)
-  {
-    Chunk& chunk = world.dimension.chunks[chunk_index];
-    if(!chunk.data)
-    {
-      spdlog::warn("Chunk at {}, {} has not yet been generated", chunk_index.x, chunk_index.y);
-      return;
-    }
-
-    if(chunk.mesh)
-      chunk.mesh.reset();
-
     struct Vertex
     {
       glm::vec3 position;

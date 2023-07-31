@@ -176,9 +176,10 @@ private:
 
   void load(World& world, glm::ivec2 chunk_index)
   {
-    if(!world.dimension.chunks[chunk_index].data)
+    Chunk& chunk = world.dimension.chunks[chunk_index];
+    if(!chunk.data)
     {
-      if(!try_generate_chunk(world, chunk_index))
+      if(!try_generate_chunk(world, chunk_index, chunk))
         return;
 
       for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
@@ -191,15 +192,8 @@ private:
     }
   }
 
-  bool try_generate_chunk(World& world, glm::ivec2 chunk_index)
+  bool try_generate_chunk(World& world, glm::ivec2 chunk_index, Chunk& chunk)
   {
-    Chunk& chunk = world.dimension.chunks[chunk_index];
-    if(chunk.data)
-    {
-      spdlog::warn("Chunk at {}, {} has already been generated", chunk_index.x, chunk_index.y);
-      return false;
-    }
-
     if(!can_generate_chunk(chunk_index))
       return false;
 
@@ -250,7 +244,6 @@ private:
     return true;
   }
 
-private:
   bool can_generate_chunk(glm::ivec2 chunk_index) const
   {
     int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
