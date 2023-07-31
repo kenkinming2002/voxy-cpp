@@ -10,8 +10,12 @@
 #include <system/chunk_generator.hpp>
 #include <system/chunk_mesher.hpp>
 #include <system/chunk_renderer.hpp>
+
 #include <system/light.hpp>
 #include <system/physics.hpp>
+
+#include <system/player_movement.hpp>
+
 #include <system/debug.hpp>
 
 /**********
@@ -57,9 +61,13 @@ private:
   std::unique_ptr<ChunkGeneratorSystem> m_chunk_generator_system;
   std::unique_ptr<ChunkMesherSystem>    m_chunk_mesher_system;
   std::unique_ptr<ChunkRendererSystem>  m_chunk_renderer_system;
-  std::unique_ptr<LightSystem>          m_light_system;
-  std::unique_ptr<PhysicsSystem>        m_physics_system;
-  std::unique_ptr<DebugSystem>          m_debug_system;
+
+  std::unique_ptr<LightSystem>   m_light_system;
+  std::unique_ptr<PhysicsSystem> m_physics_system;
+
+  std::unique_ptr<PlayerMovementSystem> m_player_movement_system;
+
+  std::unique_ptr<DebugSystem> m_debug_system;
 };
 
 #endif // WORLD_HPP

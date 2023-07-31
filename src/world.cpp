@@ -6,11 +6,6 @@
 
 #include <spdlog/spdlog.h>
 
-/*************
- * Constants *
- *************/
-static constexpr float ROTATION_SPEED = 0.1f;
-
 /*********
  * World *
  *********/
@@ -44,46 +39,18 @@ World::World(std::size_t seed) :
   m_chunk_renderer_system(ChunkRendererSystem::create()),
   m_light_system(LightSystem::create()),
   m_physics_system(PhysicsSystem::create()),
+  m_player_movement_system(PlayerMovementSystem::create()),
   m_debug_system(DebugSystem::create())
 {}
 
 void World::handle_event(SDL_Event event)
 {
-  switch(event.type)
-  {
-    case SDL_MOUSEMOTION:
-      m_player.transform = m_player.transform.rotate(glm::vec3(0.0f,
-        -event.motion.yrel * ROTATION_SPEED,
-        -event.motion.xrel * ROTATION_SPEED
-      ));
-      break;
-    case SDL_MOUSEWHEEL:
-      m_camera.zoom(-event.wheel.y);
-      break;
-  }
+  m_player_movement_system->handle_event(*this, event);
 }
 
 void World::update(float dt)
 {
-  // 1: Camera Movement
-  glm::vec3 translation = glm::vec3(0.0f);
-
-  const Uint8 *keys = SDL_GetKeyboardState(nullptr);
-  if(keys[SDL_SCANCODE_SPACE])  translation.z += 1.0f;
-  if(keys[SDL_SCANCODE_LSHIFT]) translation.z -= 1.0f;
-  if(keys[SDL_SCANCODE_W])      translation.y += 1.0f;
-  if(keys[SDL_SCANCODE_S])      translation.y -= 1.0f;
-  if(keys[SDL_SCANCODE_D])      translation.x += 1.0f;
-  if(keys[SDL_SCANCODE_A])      translation.x -= 1.0f;
-  if(glm::length(translation) != 0.0f)
-  {
-    translation = m_player.transform.gocal_to_global(translation);
-    translation = glm::normalize(translation);
-    translation *= dt;
-    m_player.velocity += translation * 10.0f;
-  }
-
-  // 2: Update
+  m_player_movement_system->update(*this, dt);
   m_light_system->update(*this);
   m_chunk_generator_system->update(*this);
   m_chunk_mesher_system->update(*this);
