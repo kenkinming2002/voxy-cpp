@@ -1,7 +1,6 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
-#include <types/chunk_defs.hpp>
 #include <types/block.hpp>
 
 #include <mesh.hpp>
@@ -11,6 +10,9 @@
 #include <memory>
 #include <optional>
 #include <vector>
+
+static constexpr int CHUNK_WIDTH  = 16;
+static constexpr int CHUNK_HEIGHT = 256;
 
 struct ChunkData
 {

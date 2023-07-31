@@ -1,6 +1,7 @@
 #include <system/light.hpp>
 
 #include <types/world.hpp>
+#include <types/directions.hpp>
 
 #include <unordered_set>
 

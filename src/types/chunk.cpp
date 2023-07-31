@@ -1,5 +1,5 @@
 #include <types/chunk.hpp>
-#include <types/chunk_coords.hpp>
+#include <types/coords.hpp>
 
 #include <SDL.h>
 

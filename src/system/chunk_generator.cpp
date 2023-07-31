@@ -1,7 +1,7 @@
 #include <system/chunk_generator.hpp>
 
 #include <types/world.hpp>
-#include <types/chunk_coords.hpp>
+#include <types/coords.hpp>
 
 #include <perlin.hpp>
 
@@ -19,6 +19,20 @@
 #include <thread>
 
 #include <random>
+
+static constexpr int CHUNK_LOAD_RADIUS = 2;
+
+static constexpr int CAVE_WORM_MAX = 2;
+static constexpr int CAVE_WORM_SEGMENT_MAX = 10;
+
+static constexpr float CAVE_WORM_MIN_HEIGHT = 10.0;
+static constexpr float CAVE_WORM_MAX_HEIGHT = 30.0;
+
+static constexpr float CAVE_WORM_MIN_RADIUS = 2.0;
+static constexpr float CAVE_WORM_MAX_RADIUS = 5.0;
+
+static constexpr float CAVE_WORM_STEP = 5.0f;
+
 
 struct HeightMap
 {
