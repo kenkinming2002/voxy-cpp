@@ -140,7 +140,43 @@ public:
   }
 
 private:
-  bool try_generate_chunk(World& world, glm::ivec2 chunk_index) override
+  void update(World& world) override
+  {
+    glm::ivec2 center = {
+      std::floor(world.player().transform.position.x / CHUNK_WIDTH),
+      std::floor(world.player().transform.position.y / CHUNK_WIDTH),
+    };
+    load(world, center, CHUNK_LOAD_RADIUS);
+  }
+
+  void load(World& world, glm::ivec2 center, int radius)
+  {
+    for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
+      for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
+      {
+        glm::ivec2 chunk_index(cx, cy);
+        load(world, chunk_index);
+      }
+  }
+
+  void load(World& world, glm::ivec2 chunk_index)
+  {
+    if(!world.dimension().chunks[chunk_index].data)
+    {
+      if(!try_generate_chunk(world, chunk_index))
+        return;
+
+      for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
+        for(int ly=0; ly<CHUNK_WIDTH; ++ly)
+          for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+          {
+            glm::ivec3 position = { lx, ly, lz };
+            world.dimension().lighting_invalidate(local_to_global(position, chunk_index));
+          }
+    }
+  }
+
+  bool try_generate_chunk(World& world, glm::ivec2 chunk_index)
   {
     Chunk& chunk = world.dimension().chunks[chunk_index];
     if(chunk.data)

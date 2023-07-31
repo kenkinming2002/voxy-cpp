@@ -12,7 +12,7 @@ public:
   static std::unique_ptr<ChunkGeneratorSystem> create(std::size_t seed);
 
 public:
-  virtual bool try_generate_chunk(World& world, glm::ivec2 chunk_index) = 0;
+  virtual void update(World& world) = 0;
   virtual ~ChunkGeneratorSystem() = default;
 };
 

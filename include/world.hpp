@@ -43,9 +43,8 @@ public:
   auto& camera() { return m_camera; }
   const auto& camera() const { return m_camera; }
 
-public:
-  void load(glm::ivec2 chunk_index);
-  void load(glm::ivec2 center, int radius);
+  auto& player() { return m_player; }
+  const auto& player() const { return m_player; }
 
 private:
   Camera    m_camera;

@@ -180,15 +180,9 @@ void World::update(float dt)
     m_player.velocity += translation * 10.0f;
   }
 
-  // 2: Lazy chunk loading
-  glm::ivec2 center = {
-    std::floor(m_player.transform.position.x / CHUNK_WIDTH),
-    std::floor(m_player.transform.position.y / CHUNK_WIDTH),
-  };
-  load(center, CHUNK_LOAD_RADIUS);
-
   // 3: Update
   m_light_system->update(*this);
+  m_chunk_generator_system->update(*this);
   m_chunk_mesher_system->update(*this);
 
   // 4: Entity Update
@@ -217,32 +211,4 @@ void World::render()
   cursor.x = DEBUG_MARGIN.x;
   cursor.y += DEBUG_FONT_HEIGHT;
 }
-
-void World::load(glm::ivec2 chunk_index)
-{
-  if(!m_dimension.chunks[chunk_index].data)
-  {
-    if(!m_chunk_generator_system->try_generate_chunk(*this, chunk_index))
-      return;
-
-    for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
-      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
-        {
-          glm::ivec3 position = { lx, ly, lz };
-          m_dimension.lighting_invalidate(local_to_global(position, chunk_index));
-        }
-  }
-}
-
-void World::load(glm::ivec2 center, int radius)
-{
-  for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
-    for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
-    {
-      glm::ivec2 chunk_index(cx, cy);
-      load(chunk_index);
-    }
-}
-
 
