@@ -14,7 +14,14 @@ static constexpr float REMASH_THROTTLE = 5.0f;
 class ChunkMesherSystemImpl : public ChunkMesherSystem
 {
 private:
-  void update_chunk(World& world, glm::ivec2 chunk_index) override
+  void update(World& world) override
+  {
+    for(auto& [chunk_index, chunk] : world.dimension().chunks)
+      if(chunk.data)
+        update_chunk(world, chunk_index);
+  }
+
+  void update_chunk(World& world, glm::ivec2 chunk_index)
   {
     Chunk& chunk = world.dimension().chunks[chunk_index];
 
@@ -28,7 +35,7 @@ private:
     }
   }
 
-  void remesh_chunk(World& world, glm::ivec2 chunk_index) override
+  void remesh_chunk(World& world, glm::ivec2 chunk_index)
   {
     Chunk& chunk = world.dimension().chunks[chunk_index];
     if(!chunk.data)

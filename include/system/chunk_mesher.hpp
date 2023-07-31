@@ -12,8 +12,7 @@ public:
   static std::unique_ptr<ChunkMesherSystem> create();
 
 public:
-  virtual void update_chunk(World& world, glm::ivec2 chunk_index) = 0;
-  virtual void remesh_chunk(World& world, glm::ivec2 chunk_index) = 0;
+  virtual void update(World& world) = 0;
   virtual ~ChunkMesherSystem() = default;
 };
 

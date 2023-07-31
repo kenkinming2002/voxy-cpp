@@ -189,9 +189,7 @@ void World::update(float dt)
 
   // 3: Update
   m_light_system->update(*this);
-  for(auto& [chunk_index, chunk] : m_dimension.chunks)
-    if(chunk.data)
-      m_chunk_mesher_system->update_chunk(*this, chunk_index);
+  m_chunk_mesher_system->update(*this);
 
   // 4: Entity Update
   entity_update_physics(m_player, dt);
@@ -235,9 +233,6 @@ void World::load(glm::ivec2 chunk_index)
           m_dimension.lighting_invalidate(local_to_global(position, chunk_index));
         }
   }
-
-  if(!m_dimension.chunks[chunk_index].mesh)
-    m_chunk_mesher_system->remesh_chunk(*this, chunk_index);
 }
 
 void World::load(glm::ivec2 center, int radius)
