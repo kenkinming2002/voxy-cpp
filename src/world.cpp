@@ -4,17 +4,12 @@
 
 #include <glm/gtx/norm.hpp>
 
-#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 /*************
  * Constants *
  *************/
 static constexpr float ROTATION_SPEED = 0.1f;
-
-static constexpr glm::vec2   DEBUG_MARGIN       = glm::vec2(3.0f, 3.0f);
-static constexpr const char *DEBUG_FONT        = "assets/arial.ttf";
-static constexpr float       DEBUG_FONT_HEIGHT = 20.0f;
 
 /*********
  * World *
@@ -44,12 +39,12 @@ World::World(std::size_t seed) :
       { .texture_indices = {2, 2, 2, 2, 1, 3} },
     },
   },
-  m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT),
   m_chunk_generator_system(ChunkGeneratorSystem::create(seed)),
   m_chunk_mesher_system(ChunkMesherSystem::create()),
   m_chunk_renderer_system(ChunkRendererSystem::create()),
   m_light_system(LightSystem::create()),
-  m_physics_system(PhysicsSystem::create())
+  m_physics_system(PhysicsSystem::create()),
+  m_debug_system(DebugSystem::create())
 {}
 
 void World::handle_event(SDL_Event event)
@@ -102,18 +97,6 @@ void World::update(float dt)
 void World::render()
 {
   m_chunk_renderer_system->render(*this);
-
-  std::string line;
-  glm::vec2   cursor = DEBUG_MARGIN;
-
-  line = fmt::format("position: x = {}, y = {}, z = {}", m_player.transform.position.x, m_player.transform.position.y, m_player.transform.position.z);
-  m_text_renderer.render(cursor, line.c_str());
-  cursor.x = DEBUG_MARGIN.x;
-  cursor.y += DEBUG_FONT_HEIGHT;
-
-  line = fmt::format("velocity: x = {}, y = {}, z = {}", m_player.velocity.x, m_player.velocity.y, m_player.velocity.z);
-  m_text_renderer.render(cursor, line.c_str());
-  cursor.x = DEBUG_MARGIN.x;
-  cursor.y += DEBUG_FONT_HEIGHT;
+  m_debug_system->render(*this);
 }
 

@@ -12,6 +12,7 @@
 #include <system/chunk_renderer.hpp>
 #include <system/light.hpp>
 #include <system/physics.hpp>
+#include <system/debug.hpp>
 
 /**********
  * Entity *
@@ -53,14 +54,12 @@ private:
   Dimension m_dimension;
 
 private:
-  TextRenderer m_text_renderer;
-
-private:
   std::unique_ptr<ChunkGeneratorSystem> m_chunk_generator_system;
   std::unique_ptr<ChunkMesherSystem>    m_chunk_mesher_system;
   std::unique_ptr<ChunkRendererSystem>  m_chunk_renderer_system;
   std::unique_ptr<LightSystem>          m_light_system;
   std::unique_ptr<PhysicsSystem>        m_physics_system;
+  std::unique_ptr<DebugSystem>          m_debug_system;
 };
 
 #endif // WORLD_HPP
