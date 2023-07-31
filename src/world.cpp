@@ -1,5 +1,7 @@
 #include <world.hpp>
 
+#include <chunk_coords.hpp>
+
 #include <glm/gtx/norm.hpp>
 
 #include <fmt/format.h>
@@ -124,7 +126,10 @@ World::World(std::size_t seed) :
     .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
   },
   m_dimension(seed),
-  m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT)
+  m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT),
+  m_chunk_generator_system(ChunkGeneratorSystem::create(seed)),
+  m_chunk_mesher_system(ChunkMesherSystem::create()),
+  m_light_system(LightSystem::create())
 {}
 
 void World::handle_event(SDL_Event event)
@@ -168,10 +173,13 @@ void World::update(float dt)
     std::floor(m_player.transform.position.x / CHUNK_WIDTH),
     std::floor(m_player.transform.position.y / CHUNK_WIDTH),
   };
-  m_dimension.load(center, CHUNK_LOAD_RADIUS);
+  load(center, CHUNK_LOAD_RADIUS);
 
   // 3: Update
-  m_dimension.update();
+  m_light_system->update(*this);
+  for(auto& [chunk_index, chunk] : m_dimension.chunks())
+    if(chunk.data)
+      m_chunk_mesher_system->update_chunk(*this, chunk_index);
 
   // 4: Entity Update
   entity_update_physics(m_player, dt);
@@ -198,6 +206,36 @@ void World::render()
   m_text_renderer.render(cursor, line.c_str());
   cursor.x = DEBUG_MARGIN.x;
   cursor.y += DEBUG_FONT_HEIGHT;
+}
+
+void World::load(glm::ivec2 chunk_index)
+{
+  if(!m_dimension.chunks()[chunk_index].data)
+  {
+    if(!m_chunk_generator_system->try_generate_chunk(*this, chunk_index))
+      return;
+
+    for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
+      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
+        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+        {
+          glm::ivec3 position = { lx, ly, lz };
+          m_dimension.lighting_invalidate(local_to_global(position, chunk_index));
+        }
+  }
+
+  if(!m_dimension.chunks()[chunk_index].mesh)
+    m_chunk_mesher_system->remesh_chunk(*this, chunk_index);
+}
+
+void World::load(glm::ivec2 center, int radius)
+{
+  for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
+    for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
+    {
+      glm::ivec2 chunk_index(cx, cy);
+      load(chunk_index);
+    }
 }
 
 

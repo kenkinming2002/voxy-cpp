@@ -5,14 +5,14 @@
 #include <memory>
 #include <stddef.h>
 
-class Dimension;
+struct World;
 class LightSystem
 {
 public:
   static std::unique_ptr<LightSystem> create();
 
 public:
-  virtual void update(Dimension& dimension) = 0;
+  virtual void update(World& world) = 0;
   virtual ~LightSystem() = default;
 };
 

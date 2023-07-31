@@ -7,6 +7,10 @@
 
 #include <SDL.h>
 
+#include <system/chunk_generator.hpp>
+#include <system/chunk_mesher.hpp>
+#include <system/light.hpp>
+
 /**********
  * Entity *
  **********/
@@ -31,6 +35,14 @@ public:
   void update(float dt);
   void render();
 
+public:
+  Dimension& dimension() { return m_dimension; }
+  const Dimension& dimension() const { return m_dimension; }
+
+public:
+  void load(glm::ivec2 chunk_index);
+  void load(glm::ivec2 center, int radius);
+
 private:
   Camera    m_camera;
   Entity    m_player;
@@ -38,6 +50,11 @@ private:
 
 private:
   TextRenderer m_text_renderer;
+
+private:
+  std::unique_ptr<ChunkGeneratorSystem> m_chunk_generator_system;
+  std::unique_ptr<ChunkMesherSystem>    m_chunk_mesher_system;
+  std::unique_ptr<LightSystem>          m_light_system;
 };
 
 #endif // WORLD_HPP

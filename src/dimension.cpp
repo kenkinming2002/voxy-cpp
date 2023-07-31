@@ -20,9 +20,6 @@ static int modulo(int a, int b)
 }
 
 Dimension::Dimension(std::size_t seed) :
-  m_chunk_generator_system(ChunkGeneratorSystem::create(seed)),
-  m_chunk_mesher_system(ChunkMesherSystem::create()),
-  m_light_system(LightSystem::create()),
   m_block_datas{
     { .texture_indices = {0, 0, 0, 0, 0, 0} },
     { .texture_indices = {2, 2, 2, 2, 1, 3} },
@@ -38,10 +35,6 @@ Dimension::Dimension(std::size_t seed) :
 
 void Dimension::update()
 {
-  m_light_system->update(*this);
-  for(auto& [chunk_index, chunk] : m_chunks)
-    if(chunk.data)
-      m_chunk_mesher_system->update_chunk(*this, chunk_index);
 }
 
 void Dimension::render(const Camera& camera) const
@@ -62,36 +55,6 @@ void Dimension::render(const Camera& camera) const
         chunk.mesh->draw();
     }
   }
-}
-
-void Dimension::load(glm::ivec2 chunk_index)
-{
-  if(!m_chunks[chunk_index].data)
-  {
-    if(!m_chunk_generator_system->try_generate_chunk(*this, chunk_index))
-      return;
-
-    for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
-      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
-        {
-          glm::ivec3 position = { lx, ly, lz };
-          lighting_invalidate(local_to_global(position, chunk_index));
-        }
-  }
-
-  if(!m_chunks[chunk_index].mesh)
-    m_chunk_mesher_system->remesh_chunk(*this, chunk_index);
-}
-
-void Dimension::load(glm::ivec2 center, int radius)
-{
-  for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
-    for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
-    {
-      glm::ivec2 chunk_index(cx, cy);
-      load(chunk_index);
-    }
 }
 
 std::optional<Block> Dimension::get_block(glm::ivec3 position) const

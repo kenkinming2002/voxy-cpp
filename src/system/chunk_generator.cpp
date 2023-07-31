@@ -1,6 +1,6 @@
 #include <system/chunk_generator.hpp>
 
-#include <dimension.hpp>
+#include <world.hpp>
 #include <chunk_coords.hpp>
 #include <perlin.hpp>
 
@@ -140,9 +140,9 @@ public:
   }
 
 private:
-  bool try_generate_chunk(Dimension& dimension, glm::ivec2 chunk_index) override
+  bool try_generate_chunk(World& world, glm::ivec2 chunk_index) override
   {
-    Chunk& chunk = dimension.get_chunk(chunk_index);
+    Chunk& chunk = world.dimension().get_chunk(chunk_index);
     if(chunk.data)
     {
       spdlog::warn("Chunk at {}, {} has already been generated", chunk_index.x, chunk_index.y);
