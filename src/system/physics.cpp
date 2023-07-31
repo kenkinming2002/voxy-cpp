@@ -3,8 +3,7 @@
 #include <types/world.hpp>
 #include <types/directions.hpp>
 
-#include <spdlog/spdlog.h>
-
+#include <optional>
 #include <unordered_set>
 
 static constexpr float FRICTION = 0.5f;
@@ -48,20 +47,17 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const Dimensi
         if(block && block->presence)
         {
           glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, position, glm::vec3(1.0f, 1.0f, 1.0f));
-          spdlog::info("Entity collision {}, {}, {} with block {}, {}, {}",
-            collision.x, collision.y, collision.z,
-            position.x, position.y, position.z
-          );
           collisions.push_back(collision);
         }
       }
 
-  spdlog::info("Entity colliding = {}", !collisions.empty());
   return collisions;
 }
 
 static void entity_resolve_collisions(Entity& entity, const Dimension& dimension)
 {
+  entity.collided = false;
+
   glm::vec3 original_position = entity.transform.position;
   glm::vec3 original_velocity = entity.velocity;
 
@@ -71,9 +67,10 @@ static void entity_resolve_collisions(Entity& entity, const Dimension& dimension
     if(collisions.empty())
       return;
 
+    entity.collided = true;
+
     float                    min = std::numeric_limits<float>::infinity();
     std::optional<glm::vec3> resolution;
-
     for(glm::vec3 collision : collisions)
       for(glm::vec3 direction : DIRECTIONS)
         if(float length = glm::dot(collision, direction); 0.0f < length && length < min)
@@ -84,15 +81,14 @@ static void entity_resolve_collisions(Entity& entity, const Dimension& dimension
 
     if(resolution)
     {
-      spdlog::info("Resolving collision by {}, {}, {}", resolution->x, resolution->y, resolution->z);
       entity.transform.position += *resolution;
+
       if(resolution->x != 0.0f) entity.velocity.x = 0.0f;
       if(resolution->y != 0.0f) entity.velocity.y = 0.0f;
       if(resolution->z != 0.0f) entity.velocity.z = 0.0f;
     }
-
   }
-  spdlog::warn("Failed to resolve collision");
+
   entity.transform.position = original_position;
   entity.velocity = original_velocity;
 }

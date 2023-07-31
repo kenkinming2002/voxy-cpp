@@ -11,6 +11,7 @@ struct Entity
 
   glm::vec3 velocity;
   glm::vec3 bounding_box;
+  bool      collided;
 };
 
 #endif // TYPES_ENTITY_HPP

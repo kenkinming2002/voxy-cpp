@@ -30,6 +30,11 @@ private:
     m_text_renderer.render(cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
+
+    line = fmt::format("collided = {}", world.player.collided);
+    m_text_renderer.render(cursor, line.c_str());
+    cursor.x = DEBUG_MARGIN.x;
+    cursor.y += DEBUG_FONT_HEIGHT;
   }
 
 private:
