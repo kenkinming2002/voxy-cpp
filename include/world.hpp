@@ -9,6 +9,7 @@
 
 #include <system/chunk_generator.hpp>
 #include <system/chunk_mesher.hpp>
+#include <system/chunk_renderer.hpp>
 #include <system/light.hpp>
 
 /**********
@@ -39,6 +40,9 @@ public:
   Dimension& dimension() { return m_dimension; }
   const Dimension& dimension() const { return m_dimension; }
 
+  auto& camera() { return m_camera; }
+  const auto& camera() const { return m_camera; }
+
 public:
   void load(glm::ivec2 chunk_index);
   void load(glm::ivec2 center, int radius);
@@ -54,6 +58,7 @@ private:
 private:
   std::unique_ptr<ChunkGeneratorSystem> m_chunk_generator_system;
   std::unique_ptr<ChunkMesherSystem>    m_chunk_mesher_system;
+  std::unique_ptr<ChunkRendererSystem>  m_chunk_renderer_system;
   std::unique_ptr<LightSystem>          m_light_system;
 };
 

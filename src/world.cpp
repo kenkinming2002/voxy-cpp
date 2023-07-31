@@ -129,6 +129,7 @@ World::World(std::size_t seed) :
   m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT),
   m_chunk_generator_system(ChunkGeneratorSystem::create(seed)),
   m_chunk_mesher_system(ChunkMesherSystem::create()),
+  m_chunk_renderer_system(ChunkRendererSystem::create()),
   m_light_system(LightSystem::create())
 {}
 
@@ -192,7 +193,7 @@ void World::update(float dt)
 
 void World::render()
 {
-  m_dimension.render(m_camera);
+  m_chunk_renderer_system->render(*this);
 
   std::string line;
   glm::vec2   cursor = DEBUG_MARGIN;

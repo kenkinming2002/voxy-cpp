@@ -24,7 +24,6 @@ Dimension::Dimension(std::size_t seed) :
     { .texture_indices = {0, 0, 0, 0, 0, 0} },
     { .texture_indices = {2, 2, 2, 2, 1, 3} },
   },
-  m_program(gl::compile_program("assets/chunk.vert", "assets/chunk.frag")),
   m_blocks_texture_array({
     "assets/stone.png",
     "assets/grass_bottom.png",
@@ -35,26 +34,6 @@ Dimension::Dimension(std::size_t seed) :
 
 void Dimension::update()
 {
-}
-
-void Dimension::render(const Camera& camera) const
-{
-  glm::mat4 view       = camera.view();
-  glm::mat4 projection = camera.projection();
-  glUseProgram(m_program);
-  {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
-    glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
-    for(const auto& [chunk_index, chunk] : m_chunks)
-    {
-      glm::mat4 model = glm::mat4(1.0f);
-      glm::mat4 MVP   = projection * view * model;
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
-      if(chunk.mesh)
-        chunk.mesh->draw();
-    }
-  }
 }
 
 std::optional<Block> Dimension::get_block(glm::ivec3 position) const

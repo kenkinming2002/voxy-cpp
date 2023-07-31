@@ -21,7 +21,6 @@ public:
 
 public:
   void update();
-  void render(const Camera& camera) const;
 
 public:
   auto& chunks() { return m_chunks; }
@@ -31,6 +30,10 @@ public:
   Chunk& get_chunk(glm::ivec2 chunk_index) { return m_chunks[chunk_index]; }
   const std::vector<BlockData>& block_datas() const { return m_block_datas; }
   std::unordered_set<glm::ivec3>& pending_lighting_updates() { return m_pending_lighting_updates; }
+
+public:
+  auto& block_texture_arrays() { return m_blocks_texture_array; }
+  const auto& block_texture_arrays() const { return m_blocks_texture_array; }
 
 public:
   std::optional<Block> get_block(glm::ivec3 position) const;
@@ -50,7 +53,6 @@ private:
   std::vector<BlockData> m_block_datas;
 
 private:
-  gl::Program  m_program;
   TextureArray m_blocks_texture_array;
 
 private:
