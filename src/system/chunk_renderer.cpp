@@ -15,19 +15,17 @@ private:
   {
     glm::mat4 view       = world.camera.view();
     glm::mat4 projection = world.camera.projection();
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 MVP   = projection * view * model;
+    glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
     glUseProgram(m_program);
     {
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D_ARRAY, world.dimension.blocks_texture_array.id());
       glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
       for(const auto& [chunk_index, chunk] : world.dimension.chunks)
-      {
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 MVP   = projection * view * model;
-        glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
         if(chunk.mesh)
           chunk.mesh->draw();
-      }
     }
   }
 
