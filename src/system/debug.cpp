@@ -78,6 +78,21 @@ private:
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
+
+    if(world.selection)
+    {
+      line = fmt::format("selection: position = {}, {}, {}", world.selection->x, world.selection->y, world.selection->z);
+      m_text_renderer.render(cursor, line.c_str());
+      cursor.x = DEBUG_MARGIN.x;
+      cursor.y += DEBUG_FONT_HEIGHT;
+    }
+    else
+    {
+      line = "selection: none";
+      m_text_renderer.render(cursor, line.c_str());
+      cursor.x = DEBUG_MARGIN.x;
+      cursor.y += DEBUG_FONT_HEIGHT;
+    }
   }
 
 private:
