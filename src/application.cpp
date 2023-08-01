@@ -39,7 +39,7 @@ Application::Application() :
   m_chunk_renderer_system(ChunkRendererSystem::create()),
   m_light_system(LightSystem::create()),
   m_physics_system(PhysicsSystem::create()),
-  m_player_movement_system(PlayerMovementSystem::create()),
+  m_player_control_system(PlayerControlSystem::create()),
   m_player_ui_system(PlayerUISystem::create()),
   m_camera_follow_system(CameraFollowSystem::create()),
   m_debug_system(DebugSystem::create())
@@ -65,12 +65,12 @@ void Application::loop()
         m_running = false;
         break;
     }
-    m_player_movement_system->handle_event(m_world, *event);
+    m_player_control_system->handle_event(m_world, *event);
   }
 
   // 2: Update
   float dt = m_timer.tick();
-  m_player_movement_system->update(m_world, dt);
+  m_player_control_system->update(m_world, dt);
   m_light_system->update(m_world);
   m_chunk_generator_system->update(m_world);
   m_chunk_mesher_system->update(m_world);

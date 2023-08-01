@@ -13,7 +13,7 @@
 #include <system/light.hpp>
 #include <system/physics.hpp>
 
-#include <system/player_movement.hpp>
+#include <system/player_control.hpp>
 #include <system/player_ui.hpp>
 
 #include <system/camera_follow.hpp>
@@ -50,9 +50,9 @@ private:
   std::unique_ptr<LightSystem>   m_light_system;
   std::unique_ptr<PhysicsSystem> m_physics_system;
 
-  std::unique_ptr<PlayerMovementSystem> m_player_movement_system;
-  std::unique_ptr<PlayerUISystem>       m_player_ui_system;
-  std::unique_ptr<CameraFollowSystem>   m_camera_follow_system;
+  std::unique_ptr<PlayerControlSystem> m_player_control_system;
+  std::unique_ptr<PlayerUISystem>      m_player_ui_system;
+  std::unique_ptr<CameraFollowSystem>  m_camera_follow_system;
 
   std::unique_ptr<DebugSystem> m_debug_system;
 };

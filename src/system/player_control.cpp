@@ -1,4 +1,4 @@
-#include <system/player_movement.hpp>
+#include <system/player_control.hpp>
 
 #include <types/world.hpp>
 
@@ -9,7 +9,7 @@
 static constexpr float ROTATION_SPEED = 0.1f;
 static constexpr float RAY_CAST_LENGTH = 20.0f;
 
-class PlayerMovementSystemImpl : public PlayerMovementSystem
+class PlayerControlSystemImpl : public PlayerControlSystem
 {
 private:
   void handle_event(World& world, SDL_Event event) override
@@ -55,8 +55,8 @@ private:
   }
 };
 
-std::unique_ptr<PlayerMovementSystem> PlayerMovementSystem::create()
+std::unique_ptr<PlayerControlSystem> PlayerControlSystem::create()
 {
-  return std::make_unique<PlayerMovementSystemImpl>();
+  return std::make_unique<PlayerControlSystemImpl>();
 }
 
