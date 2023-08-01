@@ -23,16 +23,17 @@ private:
           case SDL_BUTTON_LEFT:
             if(world.selection)
               if(Block *block = world.dimension.get_block(*world.selection))
-              {
-                block->presence = false;
-                world.dimension.major_invalidate_mesh(*world.selection);
-                world.dimension.lighting_invalidate(*world.selection);
-                for(glm::ivec3 direction : DIRECTIONS)
+                if(block->presence)
                 {
-                  glm::ivec3 neighbour_position = *world.selection + direction;
-                  world.dimension.major_invalidate_mesh(neighbour_position);
+                  block->presence = false;
+                  world.dimension.major_invalidate_mesh(*world.selection);
+                  world.dimension.lighting_invalidate(*world.selection);
+                  for(glm::ivec3 direction : DIRECTIONS)
+                  {
+                    glm::ivec3 neighbour_position = *world.selection + direction;
+                    world.dimension.major_invalidate_mesh(neighbour_position);
+                  }
                 }
-              }
             break;
           case SDL_BUTTON_RIGHT:
             if(world.placement)
