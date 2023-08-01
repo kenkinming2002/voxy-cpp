@@ -50,10 +50,10 @@ static Mesh build_unit_cube_mesh()
   );
 }
 
-class UIRendererSystemImpl : public PlayerUISystem
+class PlayerUISystemImpl : public PlayerUISystem
 {
 public:
-  UIRendererSystemImpl()
+  PlayerUISystemImpl()
     : m_program(gl::compile_program("assets/ui_selection.vert", "assets/ui_selection.frag")),
       m_mesh(build_unit_cube_mesh()) {}
 
@@ -85,7 +85,7 @@ private:
 
 std::unique_ptr<PlayerUISystem> PlayerUISystem::create()
 {
-  return std::make_unique<UIRendererSystemImpl>();
+  return std::make_unique<PlayerUISystemImpl>();
 }
 
 
