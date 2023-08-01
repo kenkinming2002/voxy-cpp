@@ -5,73 +5,20 @@
 
 #include <glm/glm.hpp>
 
-inline glm::ivec3 global_to_local(glm::ivec3 position, glm::ivec2 chunk_index)
+template<glm::length_t L, typename T, glm::qualifier Q>
+inline glm::vec<L, T, Q> global_to_local(glm::vec<L, T, Q> position, glm::ivec2 chunk_index)
 {
-  return glm::ivec3(
-      position.x - chunk_index.x * CHUNK_WIDTH,
-      position.y - chunk_index.y * CHUNK_WIDTH,
-      position.z
-  );
+  position[0] -= chunk_index[0] * CHUNK_WIDTH;
+  position[1] -= chunk_index[1] * CHUNK_WIDTH;
+  return position;
 }
 
-inline glm::vec3 global_to_local(glm::vec3 position, glm::ivec2 chunk_index)
+template<glm::length_t L, typename T, glm::qualifier Q>
+inline glm::vec<L, T, Q> local_to_global(glm::vec<L, T, Q> position, glm::ivec2 chunk_index)
 {
-  return glm::vec3(
-      position.x - chunk_index.x * CHUNK_WIDTH,
-      position.y - chunk_index.y * CHUNK_WIDTH,
-      position.z
-  );
+  position[0] += chunk_index[0] * CHUNK_WIDTH;
+  position[1] += chunk_index[1] * CHUNK_WIDTH;
+  return position;
 }
-
-inline glm::ivec3 local_to_global(glm::ivec3 position, glm::ivec2 chunk_index)
-{
-  return glm::ivec3(
-      position.x + chunk_index.x * CHUNK_WIDTH,
-      position.y + chunk_index.y * CHUNK_WIDTH,
-      position.z
-  );
-}
-
-inline glm::vec3 local_to_global(glm::vec3 position, glm::ivec2 chunk_index)
-{
-  return glm::vec3(
-      position.x + chunk_index.x * CHUNK_WIDTH,
-      position.y + chunk_index.y * CHUNK_WIDTH,
-      position.z
-  );
-}
-
-inline glm::ivec2 global_to_local(glm::ivec2 position, glm::ivec2 chunk_index)
-{
-  return glm::ivec2(
-      position.x - chunk_index.x * CHUNK_WIDTH,
-      position.y - chunk_index.y * CHUNK_WIDTH
-  );
-}
-
-inline glm::vec2 global_to_local(glm::vec2 position, glm::ivec2 chunk_index)
-{
-  return glm::vec2(
-      position.x - chunk_index.x * CHUNK_WIDTH,
-      position.y - chunk_index.y * CHUNK_WIDTH
-  );
-}
-
-inline glm::ivec2 local_to_global(glm::ivec2 position, glm::ivec2 chunk_index)
-{
-  return glm::ivec2(
-      position.x + chunk_index.x * CHUNK_WIDTH,
-      position.y + chunk_index.y * CHUNK_WIDTH
-  );
-}
-
-inline glm::vec2 local_to_global(glm::vec2 position, glm::ivec2 chunk_index)
-{
-  return glm::vec2(
-      position.x + chunk_index.x * CHUNK_WIDTH,
-      position.y + chunk_index.y * CHUNK_WIDTH
-  );
-}
-
 
 #endif // CHUNK_COORDS_HPP
