@@ -18,19 +18,40 @@ private:
     switch(event.type)
     {
       case SDL_MOUSEBUTTONDOWN:
-        if(event.button.button == SDL_BUTTON_LEFT)
-          if(world.selection)
-            if(Block *block = world.dimension.get_block(*world.selection))
-            {
-              block->presence = false;
-              world.dimension.major_invalidate_mesh(*world.selection);
-              world.dimension.lighting_invalidate(*world.selection);
-              for(glm::ivec3 direction : DIRECTIONS)
+        switch(event.button.button)
+        {
+          case SDL_BUTTON_LEFT:
+            if(world.selection)
+              if(Block *block = world.dimension.get_block(*world.selection))
               {
-                glm::ivec3 neighbour_position = *world.selection + direction;
-                world.dimension.major_invalidate_mesh(neighbour_position);
+                block->presence = false;
+                world.dimension.major_invalidate_mesh(*world.selection);
+                world.dimension.lighting_invalidate(*world.selection);
+                for(glm::ivec3 direction : DIRECTIONS)
+                {
+                  glm::ivec3 neighbour_position = *world.selection + direction;
+                  world.dimension.major_invalidate_mesh(neighbour_position);
+                }
               }
-            }
+            break;
+          case SDL_BUTTON_RIGHT:
+            if(world.placement)
+              if(Block *block = world.dimension.get_block(*world.placement))
+                if(!block->presence)
+                {
+                  block->presence = true;
+                  block->id       = Block::ID_STONE;
+
+                  world.dimension.major_invalidate_mesh(*world.placement);
+                  world.dimension.lighting_invalidate(*world.placement);
+                  for(glm::ivec3 direction : DIRECTIONS)
+                  {
+                    glm::ivec3 neighbour_position = *world.placement + direction;
+                    world.dimension.major_invalidate_mesh(neighbour_position);
+                  }
+                }
+            break;
+        }
         break;
       case SDL_MOUSEMOTION:
         world.player.transform = world.player.transform.rotate(glm::vec3(0.0f,
