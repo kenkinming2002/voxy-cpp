@@ -1,6 +1,7 @@
 #include <system/player_control.hpp>
 
 #include <types/world.hpp>
+#include <types/directions.hpp>
 
 #include <ray_cast.hpp>
 
@@ -16,6 +17,21 @@ private:
   {
     switch(event.type)
     {
+      case SDL_MOUSEBUTTONDOWN:
+        if(event.button.button == SDL_BUTTON_LEFT)
+          if(world.selection)
+            if(Block *block = world.dimension.get_block(*world.selection))
+            {
+              block->presence = false;
+              world.dimension.major_invalidate_mesh(*world.selection);
+              world.dimension.lighting_invalidate(*world.selection);
+              for(glm::ivec3 direction : DIRECTIONS)
+              {
+                glm::ivec3 neighbour_position = *world.selection + direction;
+                world.dimension.major_invalidate_mesh(neighbour_position);
+              }
+            }
+        break;
       case SDL_MOUSEMOTION:
         world.player.transform = world.player.transform.rotate(glm::vec3(0.0f,
           -event.motion.yrel * ROTATION_SPEED,
