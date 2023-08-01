@@ -24,7 +24,8 @@ private:
       if(!block)
         continue;
 
-      int old_light_level = block->light_level;
+      bool old_sky        = block->sky;
+      int  old_light_level = block->light_level;
 
       // 1: Solid block
       if(block->presence) // TODO: Check for opaqueness
@@ -75,6 +76,12 @@ private:
       }
 
 done:
+      if(block->sky != old_sky)
+      {
+        glm::ivec3 neighbour_position = position + glm::ivec3(0, 0, -1);
+        world.dimension.lighting_invalidate(neighbour_position);
+      }
+
       if(block->light_level != old_light_level)
       {
         for(glm::ivec3 direction : DIRECTIONS)
