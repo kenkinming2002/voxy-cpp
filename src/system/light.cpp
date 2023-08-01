@@ -24,8 +24,12 @@ private:
       if(!block)
         continue;
 
-      bool old_sky        = block->sky;
+      bool old_sky         = block->sky;
       int  old_light_level = block->light_level;
+
+      // 0: Reset
+      block->sky         = false;
+      block->light_level = 0;
 
       // 1: Solid block
       if(block->presence) // TODO: Check for opaqueness
@@ -40,6 +44,7 @@ private:
       {
         block->sky         = true;
         block->light_level = 15;
+        goto done;
       }
       else
       {
@@ -49,11 +54,9 @@ private:
         {
           block->sky         = true;
           block->light_level = 15;
+          goto done;
         }
       }
-
-      if(block->light_level == 15)
-        goto done;
 
       // 3: Neighbours
       for(glm::ivec3 direction : DIRECTIONS)
