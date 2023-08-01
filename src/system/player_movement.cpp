@@ -47,14 +47,11 @@ private:
       world.player.velocity += translation * 10.0f;
     }
 
-    std::optional<glm::ivec3> hit = ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+    world.selection = ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
         const Block *block = world.dimension.get_block(block_position);
         return block && block->presence;
         return true;
     });
-
-    if(hit)
-      spdlog::info("hit at {}, {}, {}", hit->x, hit->y, hit->z);
   }
 };
 

@@ -26,7 +26,7 @@ private:
         glm::mat4 MVP   = projection * view * model;
         glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"),    1, GL_FALSE, glm::value_ptr(MVP));
         if(chunk.mesh)
-          chunk.mesh->draw();
+          chunk.mesh->draw_triangles();
       }
     }
   }

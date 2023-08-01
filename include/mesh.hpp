@@ -48,7 +48,8 @@ public:
   ~Mesh();
 
 public:
-  void draw() const;
+  void draw_triangles() const;
+  void draw_lines() const;
 
 private:
   MeshLayout m_layout;

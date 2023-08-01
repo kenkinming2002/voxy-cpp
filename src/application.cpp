@@ -40,6 +40,7 @@ Application::Application() :
   m_light_system(LightSystem::create()),
   m_physics_system(PhysicsSystem::create()),
   m_player_movement_system(PlayerMovementSystem::create()),
+  m_player_ui_system(PlayerUISystem::create()),
   m_camera_follow_system(CameraFollowSystem::create()),
   m_debug_system(DebugSystem::create())
 {}
@@ -81,6 +82,7 @@ void Application::loop()
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   m_chunk_renderer_system->render(m_world);
+  m_player_ui_system->render(m_world);
   m_debug_system->render(m_world);
   m_window.swap_buffer();
 }
