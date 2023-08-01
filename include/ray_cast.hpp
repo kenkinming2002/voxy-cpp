@@ -41,17 +41,16 @@ inline void ray_step(glm::ivec3& block_position, glm::vec3& position, glm::vec3 
   length         -= t;
 }
 
-inline std::optional<glm::ivec3> ray_cast(glm::vec3 position, glm::vec3 direction, float length, auto callback) requires(std::is_invocable_r_v<bool, decltype(callback), glm::ivec3>)
+inline void ray_cast(glm::vec3 position, glm::vec3 direction, float length, auto callback) requires(std::is_invocable_r_v<bool, decltype(callback), glm::ivec3>)
 {
   glm::ivec3 block_position = glm::floor(position);
   while(length >= 0.0f)
   {
     if(callback(block_position))
-      return block_position;
+      return;
 
     ray_step(block_position, position, direction, length);
   }
-  return std::nullopt;
 }
 
 #endif // RAYCAST_HPP

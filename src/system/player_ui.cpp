@@ -76,6 +76,23 @@ private:
       glLineWidth(UI_SELECTION_THICKNESS);
       m_mesh.draw_lines();
     }
+
+    // 1: Selection
+    if(world.placement)
+    {
+      glm::vec3 position = *world.placement;
+
+      glm::mat4 view       = world.camera.view();
+      glm::mat4 projection = world.camera.projection();
+      glm::mat4 model      = glm::translate(glm::mat4(1.0f), position);
+      glm::mat4 MVP        = projection * view * model;
+
+      glUseProgram(m_program);
+      glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+
+      glLineWidth(UI_SELECTION_THICKNESS);
+      m_mesh.draw_lines();
+    }
   }
 
 private:

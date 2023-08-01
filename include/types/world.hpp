@@ -14,6 +14,7 @@ struct World
   Entity    player;
   Dimension dimension;
 
+  std::optional<glm::ivec3> placement;
   std::optional<glm::ivec3> selection;
 };
 

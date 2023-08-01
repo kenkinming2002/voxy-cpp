@@ -63,11 +63,20 @@ private:
       world.player.velocity += translation * 10.0f;
     }
 
-    world.selection = ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+    world.selection.reset();
+    world.placement.reset();
+    ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
         const Block *block = world.dimension.get_block(block_position);
+        if(block && block->presence)
+          world.selection = block_position;
+        else
+          world.placement = block_position;
         return block && block->presence;
-        return true;
     });
+
+    // Can only place against a selected block
+    if(!world.selection)
+      world.placement.reset();
   }
 };
 
