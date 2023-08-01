@@ -2,7 +2,12 @@
 
 #include <types/world.hpp>
 
+#include <ray_cast.hpp>
+
+#include <spdlog/spdlog.h>
+
 static constexpr float ROTATION_SPEED = 0.1f;
+static constexpr float RAY_CAST_LENGTH = 20.0f;
 
 class PlayerMovementSystemImpl : public PlayerMovementSystem
 {
@@ -41,6 +46,15 @@ private:
       translation *= dt;
       world.player.velocity += translation * 10.0f;
     }
+
+    std::optional<glm::ivec3> hit = ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+        const Block *block = world.dimension.get_block(block_position);
+        return block && block->presence;
+        return true;
+    });
+
+    if(hit)
+      spdlog::info("hit at {}, {}, {}", hit->x, hit->y, hit->z);
   }
 };
 
