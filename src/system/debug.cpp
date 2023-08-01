@@ -31,10 +31,15 @@ private:
 
   void render(const World& world) override
   {
+    // 1: Frame time
     float average = 0.0f;
     for(size_t i=0; i<DT_AVERAGE_COUNT; ++i)
       average += m_dts[i];
     average /= DT_AVERAGE_COUNT;
+
+    // 2: Current block
+    glm::ivec3   position = glm::floor(world.player.transform.position);
+    const Block* block    = world.dimension.get_block(position);
 
     std::string line;
     glm::vec2   cursor = DEBUG_MARGIN;
@@ -58,6 +63,21 @@ private:
     m_text_renderer.render(cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
+
+    if(block)
+    {
+      line = fmt::format("block: position = {}, {}, {}, presence = {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->presence, block->id, block->sky, block->light_level);
+      m_text_renderer.render(cursor, line.c_str());
+      cursor.x = DEBUG_MARGIN.x;
+      cursor.y += DEBUG_FONT_HEIGHT;
+    }
+    else
+    {
+      line = fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z);
+      m_text_renderer.render(cursor, line.c_str());
+      cursor.x = DEBUG_MARGIN.x;
+      cursor.y += DEBUG_FONT_HEIGHT;
+    }
   }
 
 private:
