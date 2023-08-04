@@ -9,6 +9,7 @@ Application::Application() :
   m_window("voxy", 1024, 720),
   m_timer(),
   m_world{
+    .seed = SEED,
     .camera = {
       .aspect = 1024.0f / 720.0f,
       .fovy   = 45.0f,
@@ -34,7 +35,7 @@ Application::Application() :
       },
     },
   },
-  m_chunk_generator_system(ChunkGeneratorSystem::create(SEED)),
+  m_chunk_generator_system(ChunkGeneratorSystem::create()),
   m_chunk_mesher_system(ChunkMesherSystem::create()),
   m_chunk_renderer_system(ChunkRendererSystem::create()),
   m_light_system(LightSystem::create()),

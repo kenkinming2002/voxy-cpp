@@ -128,6 +128,8 @@ public:
 struct World
 {
 public:
+  std::size_t seed;
+
   Camera    camera;
   Entity    player;
   Dimension dimension;

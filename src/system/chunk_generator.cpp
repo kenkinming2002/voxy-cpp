@@ -121,9 +121,6 @@ static ChunkInfo generate_chunk_info(glm::ivec2 chunk_index, size_t seed)
 
 class ChunkGeneratorSystemImpl : public ChunkGeneratorSystem
 {
-public:
-  ChunkGeneratorSystemImpl(std::size_t seed) : m_seed(seed) { }
-
 private:
   void update(World& world) override
   {
@@ -186,7 +183,7 @@ private:
         if(!neighbour_chunk.info)
         {
           if(!world.dimension.chunk_info_futures.contains(neighbour_chunk_index))
-            world.dimension.chunk_info_futures.emplace(neighbour_chunk_index, std::async(std::launch::async, [=]() { return generate_chunk_info(neighbour_chunk_index, m_seed); }));
+            world.dimension.chunk_info_futures.emplace(neighbour_chunk_index, std::async(std::launch::async, [=, seed=world.seed]() { return generate_chunk_info(neighbour_chunk_index, seed); }));
 
           return false;
         }
@@ -248,13 +245,10 @@ private:
 
     spdlog::info("End generating chunk data at {}, {}", chunk_index.x, chunk_index.y);
   }
-
-private:
-  std::size_t m_seed;
 };
 
-std::unique_ptr<ChunkGeneratorSystem> ChunkGeneratorSystem::create(std::size_t seed)
+std::unique_ptr<ChunkGeneratorSystem> ChunkGeneratorSystem::create()
 {
-  return std::make_unique<ChunkGeneratorSystemImpl>(seed);
+  return std::make_unique<ChunkGeneratorSystemImpl>();
 }
 

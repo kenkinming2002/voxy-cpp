@@ -9,7 +9,7 @@ struct World;
 class ChunkGeneratorSystem
 {
 public:
-  static std::unique_ptr<ChunkGeneratorSystem> create(std::size_t seed);
+  static std::unique_ptr<ChunkGeneratorSystem> create();
 
 public:
   virtual void update(World& world) = 0;
