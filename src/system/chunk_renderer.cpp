@@ -25,7 +25,7 @@ private:
       glUniform1i(glGetUniformLocation(m_program, "blocksTextureArray"), 0);
       for(const auto& [chunk_index, chunk] : world.dimension.chunks)
         if(chunk.mesh)
-          chunk.mesh->draw();
+          chunk.mesh->draw_triangles();
     }
   }
 
