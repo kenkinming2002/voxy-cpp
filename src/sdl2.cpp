@@ -2,12 +2,17 @@
 
 #include <stdexcept>
 
+#include <spdlog/spdlog.h>
+
 namespace sdl2
 {
   Context::Context()
   {
-    if(!SDL_Init(SDL_INIT_EVERYTHING))
-      throw std::runtime_error("Failed to initialize GLFW");
+    if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
+      spdlog::error("Failed to initialize SDL2 {}", SDL_GetError());
+      throw std::runtime_error("Failed to initialize SDL2");
+    }
   }
 
   Context::~Context()
