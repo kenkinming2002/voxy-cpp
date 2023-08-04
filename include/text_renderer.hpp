@@ -1,7 +1,7 @@
 #ifndef TEXT_RENDERER_HPP
 #define TEXT_RENDERER_HPP
 
-#include <gl.hpp>
+#include <shader_program.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -21,7 +21,7 @@ public:
   void render(glm::vec2& cursor, const char *str);
 
 private:
-  gl::Program m_program;
+  ShaderProgram m_shader_program;
 
   struct Glyph
   {

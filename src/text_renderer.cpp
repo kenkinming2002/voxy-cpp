@@ -11,8 +11,7 @@ struct Vertex
   glm::vec2 tex_coords;
 };
 
-TextRenderer::TextRenderer(const char *font, unsigned height) :
-  m_program(gl::compile_program("./assets/ui.vert", "./assets/ui.frag"))
+TextRenderer::TextRenderer(const char *font, unsigned height) : m_shader_program("./assets/ui.vert", "./assets/ui.frag")
 {
   FT_Library library;
   FT_Face    face;
@@ -77,11 +76,11 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
 {
   glDisable(GL_DEPTH_TEST);
 
-  glUseProgram(m_program);
+  glUseProgram(m_shader_program.id());
   glBindVertexArray(m_vao);
 
   glm::mat4 projection = glm::ortho(0.0f, 1024.0f, 0.0f, 720.0f);
-  glUniformMatrix4fv(glGetUniformLocation(m_program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+  glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
   for(const char *it = str; *it; ++it)
   {
@@ -90,7 +89,7 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_glyphs[c].texture);
-    glUniform1i(glGetUniformLocation(m_program, "ourTexture"), 0);
+    glUniform1i(glGetUniformLocation(m_shader_program.id(), "ourTexture"), 0);
 
     glm::vec2 position  = cursor + m_glyphs[c].bearing;
     glm::vec2 dimension = m_glyphs[c].dimenson;

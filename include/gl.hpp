@@ -20,12 +20,8 @@ namespace gl
     GLuint handle;                                                                    \
   }
 
-  GL_HPP_TYPE(Shader, GLenum type);
-  GL_HPP_TYPE(Program,);
   GL_HPP_TYPE(Texture,);
 
-  gl::Shader compile_shader(GLenum type, const char* path);
-  gl::Program compile_program(const char* vertex_shader_path, const char *fragment_shader_path);
   gl::Texture load_texture(const char *path);
 
   void init_debug();

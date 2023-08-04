@@ -13,6 +13,7 @@ voxy_exe = executable('voxy', [
     'src/perlin.cpp',
     'src/sdl2.cpp',
     'src/text_renderer.cpp',
+    'src/shader_program.cpp',
     'src/texture_array.cpp',
     'src/timer.cpp',
     'src/window.cpp',

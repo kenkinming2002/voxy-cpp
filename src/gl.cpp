@@ -8,72 +8,8 @@
 
 namespace gl
 {
-  Shader::Shader(GLenum type) { handle = glCreateShader(type); }
-  Shader::~Shader()           { glDeleteShader(handle);  }
-
-  Program::Program()  { handle = glCreateProgram(); }
-  Program::~Program() { glDeleteProgram(handle);  }
-
   Texture::Texture()  { glCreateTextures(GL_TEXTURE_2D, 1, &handle); }
   Texture::~Texture() { glDeleteTextures(1, &handle);  }
-
-  gl::Shader compile_shader(GLenum type, const char* path)
-  {
-    gl::Shader shader(type);
-
-    std::ifstream     ifs;
-    std::stringstream ss;
-
-    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    ifs.open(path);
-    ss << ifs.rdbuf();
-
-    std::string source = ss.str();
-
-    const GLchar *sources[] = { source.c_str() };
-    glShaderSource(shader, 1, sources, nullptr);
-    glCompileShader(shader);
-
-    GLint success;
-    GLchar info_log[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if(!success) {
-      glGetShaderInfoLog(shader, 512, nullptr, info_log);
-
-      std::string message;
-      message.append("Failed to compile OpenGL shader:\n");
-      message.append(info_log);
-      throw std::runtime_error(std::move(message));
-    }
-
-    return shader;
-  }
-
-  gl::Program compile_program(const char* vertex_shader_path, const char *fragment_shader_path)
-  {
-    gl::Program program;
-
-    gl::Shader vertex_shader   = compile_shader(GL_VERTEX_SHADER, vertex_shader_path);
-    gl::Shader fragment_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader_path);
-
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-
-    GLint success;
-    GLchar info_log[512] = {};
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if(!success) {
-      glGetProgramInfoLog(program, 512, nullptr, info_log);
-
-      std::string message;
-      message.append("Failed to link OpenGL program:");
-      message.append(info_log);
-      throw std::runtime_error(std::move(message));
-    }
-
-    return program;
-  }
 
   gl::Texture load_texture(const char *path)
   {

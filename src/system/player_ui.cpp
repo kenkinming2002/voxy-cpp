@@ -4,7 +4,7 @@
 #include <types/directions.hpp>
 
 #include <mesh.hpp>
-#include <gl.hpp>
+#include <shader_program.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -54,7 +54,7 @@ class PlayerUISystemImpl : public PlayerUISystem
 {
 public:
   PlayerUISystemImpl()
-    : m_program(gl::compile_program("assets/ui_selection.vert", "assets/ui_selection.frag")),
+    : m_shader_program("assets/ui_selection.vert", "assets/ui_selection.frag"),
       m_mesh(build_unit_cube_mesh()) {}
 
 private:
@@ -70,8 +70,8 @@ private:
       glm::mat4 model      = glm::translate(glm::mat4(1.0f), position);
       glm::mat4 MVP        = projection * view * model;
 
-      glUseProgram(m_program);
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+      glUseProgram(m_shader_program.id());
+      glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
 
       glLineWidth(UI_SELECTION_THICKNESS);
       m_mesh.draw_lines();
@@ -87,8 +87,8 @@ private:
       glm::mat4 model      = glm::translate(glm::mat4(1.0f), position);
       glm::mat4 MVP        = projection * view * model;
 
-      glUseProgram(m_program);
-      glUniformMatrix4fv(glGetUniformLocation(m_program, "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+      glUseProgram(m_shader_program.id());
+      glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
 
       glLineWidth(UI_SELECTION_THICKNESS);
       m_mesh.draw_lines();
@@ -96,8 +96,8 @@ private:
   }
 
 private:
-  gl::Program m_program;
-  Mesh        m_mesh;
+  ShaderProgram m_shader_program;
+  Mesh          m_mesh;
 };
 
 std::unique_ptr<PlayerUISystem> PlayerUISystem::create()
