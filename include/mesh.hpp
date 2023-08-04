@@ -67,7 +67,7 @@ private:
 };
 
 template<typename T>
-inline static std::vector<std::byte> as_bytes(const std::vector<T>& data) requires(std::is_pod_v<T>)
+inline static std::vector<std::byte> as_bytes(const std::vector<T>& data) requires(std::is_standard_layout_v<T>)
 {
   auto bytes = std::as_bytes(std::span(data));
   return std::vector(bytes.begin(), bytes.end());
