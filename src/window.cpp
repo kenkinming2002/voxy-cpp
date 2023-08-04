@@ -1,10 +1,13 @@
 #include <window.hpp>
 
-#include <gl.hpp>
-
 #include <glad/glad.h>
 
 #include <stdexcept>
+
+static void GLAPIENTRY message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+  fprintf(stderr, "OpenGL Error: type = %u: %s\n", type, message);
+}
 
 Window::Window(const char *name, unsigned width, unsigned height) : m_context(), m_window(name, width, height)
 {
@@ -12,7 +15,7 @@ Window::Window(const char *name, unsigned width, unsigned height) : m_context(),
   if(!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     throw std::runtime_error("Failed to load OpenGL functions with GLAD");
 
-  gl::init_debug();
+  glDebugMessageCallback(message_callback, 0);
 
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_DEPTH_TEST);

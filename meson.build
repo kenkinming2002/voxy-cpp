@@ -7,7 +7,7 @@ fmt_dep = dependency('fmt')
 spdlog_dep = dependency('spdlog')
 voxy_exe = executable('voxy', [
     'src/camera.cpp',
-    'src/gl.cpp',
+    'src/stb_image.cpp',
     'src/glad.c',
     'src/mesh.cpp',
     'src/perlin.cpp',

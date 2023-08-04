@@ -5,8 +5,6 @@
 
 #include <texture_array.hpp>
 
-#include <gl.hpp>
-
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
