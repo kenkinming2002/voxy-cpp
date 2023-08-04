@@ -35,7 +35,7 @@ static constexpr float CAVE_WORM_STEP = 5.0f;
 
 struct HeightMap
 {
-  float heights[CHUNK_WIDTH][CHUNK_WIDTH];
+  float heights[Chunk::WIDTH][Chunk::WIDTH];
 };
 
 struct Worm
@@ -67,8 +67,8 @@ static HeightMap generate_height_map(glm::ivec2 chunk_index, std::mt19937& prng,
   size_t seed = prng();
 
   HeightMap height_map;
-  for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-    for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+  for(int ly=0; ly<Chunk::WIDTH; ++ly)
+    for(int lx=0; lx<Chunk::WIDTH; ++lx)
     {
       glm::ivec2 position = local_to_global(glm::ivec2(lx, ly), chunk_index);
       height_map.heights[ly][lx] = perlin(seed, position, frequency, amplitude, lacunarity, presistence, count);
@@ -92,8 +92,8 @@ static std::vector<Worm> generate_worms(glm::ivec2 chunk_index, std::mt19937& pr
     Worm worm;
 
     glm::vec3 local_origin;
-    local_origin.x = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
-    local_origin.y = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
+    local_origin.x = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
+    local_origin.y = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
     local_origin.z = std::uniform_real_distribution<float>(CAVE_WORM_MIN_HEIGHT, CAVE_WORM_MAX_HEIGHT)(prng);
     glm::vec3 origin = local_to_global(local_origin, chunk_index);
 
@@ -157,8 +157,8 @@ private:
   void update(World& world) override
   {
     glm::ivec2 center = {
-      std::floor(world.player.transform.position.x / CHUNK_WIDTH),
-      std::floor(world.player.transform.position.y / CHUNK_WIDTH),
+      std::floor(world.player.transform.position.x / Chunk::WIDTH),
+      std::floor(world.player.transform.position.y / Chunk::WIDTH),
     };
     load(world, center, CHUNK_LOAD_RADIUS);
   }
@@ -181,12 +181,12 @@ private:
       if(!try_generate_chunk(world, chunk_index, chunk))
         return;
 
-      for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
-        for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-          for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+      for(int lz=0; lz<Chunk::HEIGHT; ++lz)
+        for(int ly=0; ly<Chunk::WIDTH; ++ly)
+          for(int lx=0; lx<Chunk::WIDTH; ++lx)
           {
             glm::ivec3 position = { lx, ly, lz };
-            world.dimension.lighting_invalidate(local_to_global(position, chunk_index));
+            world.lighting_invalidate(local_to_global(position, chunk_index));
           }
     }
   }
@@ -203,8 +203,8 @@ private:
 
     // 1: Create terrain based on height maps
     int max_height = 0;
-    for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-      for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+    for(int ly=0; ly<Chunk::WIDTH; ++ly)
+      for(int lx=0; lx<Chunk::WIDTH; ++lx)
       {
         int total_height = chunk_info->stone_height_map.heights[ly][lx]
                          + chunk_info->grass_height_map.heights[ly][lx];
@@ -213,8 +213,8 @@ private:
 
     for(int lz=0; lz<max_height; ++lz)
     {
-      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+      for(int ly=0; ly<Chunk::WIDTH; ++ly)
+        for(int lx=0; lx<Chunk::WIDTH; ++lx)
         {
           int height1 = chunk_info->stone_height_map.heights[ly][lx];
           int height2 = chunk_info->stone_height_map.heights[ly][lx] + chunk_info->grass_height_map.heights[ly][lx];
@@ -229,7 +229,7 @@ private:
     }
 
     // 2: Carve out caves based off worms
-    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
+    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
     glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
     glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
     for(int cy = corner1.y; cy <= corner2.y; ++cy)
@@ -249,7 +249,7 @@ private:
 
   bool can_generate_chunk(glm::ivec2 chunk_index) const
   {
-    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / CHUNK_WIDTH);
+    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
     glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
     glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
     for(int cy = corner1.y; cy <= corner2.y; ++cy)

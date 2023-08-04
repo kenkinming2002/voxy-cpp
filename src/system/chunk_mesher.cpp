@@ -41,12 +41,12 @@ private:
 
     std::vector<uint32_t> indices;
     std::vector<Vertex>   vertices;
-    for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
-      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
-        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
+    for(int lz=0; lz<Chunk::HEIGHT; ++lz)
+      for(int ly=0; ly<Chunk::WIDTH; ++ly)
+        for(int lx=0; lx<Chunk::WIDTH; ++lx)
         {
           glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
-          Block*     block    = world.dimension.get_block(position);
+          Block*     block    = world.get_block(position);
           if(!block->presence)
             continue;
 
@@ -54,7 +54,7 @@ private:
           {
             glm::ivec3 direction          = DIRECTIONS[i];
             glm::ivec3 neighbour_position = position + direction;
-            Block*     neighbour_block    = world.dimension.get_block(neighbour_position);
+            Block*     neighbour_block    = world.get_block(neighbour_position);
             if(neighbour_block && neighbour_block->presence)
               continue;
 

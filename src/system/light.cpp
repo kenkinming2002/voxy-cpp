@@ -39,7 +39,7 @@ private:
       }
 
       // 2: Skylight
-      if(position.z == CHUNK_HEIGHT - 1)
+      if(position.z == Chunk::HEIGHT - 1)
       {
         block->sky         = true;
         block->light_level = 15;

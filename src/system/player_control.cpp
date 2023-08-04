@@ -32,22 +32,22 @@ private:
         {
           case SDL_BUTTON_LEFT:
             if(world.selection)
-              if(Block *block = world.dimension.get_block(*world.selection))
+              if(Block *block = world.get_block(*world.selection))
                 if(block->presence)
                 {
                   block->presence = false;
-                  world.dimension.major_invalidate_mesh(*world.selection);
-                  world.dimension.lighting_invalidate(*world.selection);
+                  world.major_invalidate_mesh(*world.selection);
+                  world.lighting_invalidate(*world.selection);
                   for(glm::ivec3 direction : DIRECTIONS)
                   {
                     glm::ivec3 neighbour_position = *world.selection + direction;
-                    world.dimension.major_invalidate_mesh(neighbour_position);
+                    world.major_invalidate_mesh(neighbour_position);
                   }
                 }
             break;
           case SDL_BUTTON_RIGHT:
             if(world.placement)
-              if(Block *block = world.dimension.get_block(*world.placement))
+              if(Block *block = world.get_block(*world.placement))
                 if(!block->presence)
                 {
                   // Cannot place a block that collide with the player
@@ -57,12 +57,12 @@ private:
                   block->presence = true;
                   block->id       = Block::ID_STONE;
 
-                  world.dimension.major_invalidate_mesh(*world.placement);
-                  world.dimension.lighting_invalidate(*world.placement);
+                  world.major_invalidate_mesh(*world.placement);
+                  world.lighting_invalidate(*world.placement);
                   for(glm::ivec3 direction : DIRECTIONS)
                   {
                     glm::ivec3 neighbour_position = *world.placement + direction;
-                    world.dimension.major_invalidate_mesh(neighbour_position);
+                    world.major_invalidate_mesh(neighbour_position);
                   }
                 }
             break;
@@ -102,7 +102,7 @@ private:
     world.selection.reset();
     world.placement.reset();
     ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
-        const Block *block = world.dimension.get_block(block_position);
+        const Block *block = world.get_block(block_position);
         if(block && block->presence)
           world.selection = block_position;
         else

@@ -39,7 +39,7 @@ private:
 
     // 2: Current block
     glm::ivec3   position = glm::floor(world.player.transform.position);
-    const Block* block    = world.dimension.get_block(position);
+    const Block* block    = world.get_block(position);
 
     std::string line;
     glm::vec2   cursor = DEBUG_MARGIN;
