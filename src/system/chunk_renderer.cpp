@@ -1,6 +1,6 @@
 #include <system/chunk_renderer.hpp>
 
-#include <types/world.hpp>
+#include <world.hpp>
 
 #include <shader_program.hpp>
 

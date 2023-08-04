@@ -1,7 +1,6 @@
 #include <system/player_control.hpp>
 
-#include <types/world.hpp>
-#include <types/directions.hpp>
+#include <world.hpp>
 
 #include <ray_cast.hpp>
 

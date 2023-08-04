@@ -1,7 +1,6 @@
 #include <system/chunk_generator.hpp>
 
-#include <types/world.hpp>
-#include <types/coords.hpp>
+#include <world.hpp>
 
 #include <perlin.hpp>
 

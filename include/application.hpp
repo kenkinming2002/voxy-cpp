@@ -4,7 +4,7 @@
 #include <timer.hpp>
 #include <window.hpp>
 
-#include <types/world.hpp>
+#include <world.hpp>
 
 #include <system/chunk_generator.hpp>
 #include <system/chunk_mesher.hpp>

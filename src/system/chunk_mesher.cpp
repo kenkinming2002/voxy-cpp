@@ -1,8 +1,6 @@
 #include <system/chunk_mesher.hpp>
 
-#include <types/world.hpp>
-#include <types/directions.hpp>
-#include <types/coords.hpp>
+#include <world.hpp>
 
 #include <SDL.h>
 

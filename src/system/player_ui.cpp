@@ -1,7 +1,6 @@
 #include <system/player_ui.hpp>
 
-#include <types/world.hpp>
-#include <types/directions.hpp>
+#include <world.hpp>
 
 #include <mesh.hpp>
 #include <shader_program.hpp>
