@@ -39,15 +39,7 @@ TextRenderer::TextRenderer(const char *font, unsigned height) : m_shader_program
     m_glyphs[c].advance.x = face->glyph->advance.x / 64.0f;
     m_glyphs[c].advance.y = face->glyph->advance.y / 64.0f;
 
-    glGenTextures(1, &m_glyphs[c].texture);
-    glBindTexture(GL_TEXTURE_2D, m_glyphs[c].texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+    m_glyphs[c].texture = std::make_unique<Texture>(face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows, 1);
   }
 
   FT_Done_Face(face);
@@ -88,7 +80,7 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
     assert(c >= 0 && c < 128);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_glyphs[c].texture);
+    glBindTexture(GL_TEXTURE_2D, m_glyphs[c].texture->id());
     glUniform1i(glGetUniformLocation(m_shader_program.id(), "ourTexture"), 0);
 
     glm::vec2 position  = cursor + m_glyphs[c].bearing;
@@ -110,11 +102,5 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
   }
 
   glEnable(GL_DEPTH_TEST);
-}
-
-TextRenderer::~TextRenderer()
-{
-  for(int c = 0; c<128; ++c)
-    glDeleteTextures(1, &m_glyphs[c].texture);
 }
 

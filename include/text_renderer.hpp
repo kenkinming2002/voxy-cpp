@@ -2,6 +2,7 @@
 #define TEXT_RENDERER_HPP
 
 #include <shader_program.hpp>
+#include <texture.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -15,7 +16,6 @@ class TextRenderer
 {
 public:
   TextRenderer(const char *font, unsigned height);
-  ~TextRenderer();
 
 public:
   void render(glm::vec2& cursor, const char *str);
@@ -29,7 +29,7 @@ private:
     glm::vec2  bearing;
     glm::vec2  advance;
 
-    GLuint texture;
+    std::unique_ptr<Texture> texture;
   };
   Glyph m_glyphs[128];
 
