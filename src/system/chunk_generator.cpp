@@ -32,29 +32,6 @@ static constexpr float CAVE_WORM_MAX_RADIUS = 5.0;
 
 static constexpr float CAVE_WORM_STEP = 5.0f;
 
-
-struct HeightMap
-{
-  float heights[Chunk::WIDTH][Chunk::WIDTH];
-};
-
-struct Worm
-{
-  struct Node
-  {
-    glm::vec3 center;
-    float     radius;
-  };
-  std::vector<Node> nodes;
-};
-
-struct ChunkInfo
-{
-  HeightMap         stone_height_map;
-  HeightMap         grass_height_map;
-  std::vector<Worm> worms;
-};
-
 template <class T>
 static size_t hash_combine(std::size_t seed, const T& v)
 {
@@ -145,17 +122,23 @@ static ChunkInfo generate_chunk_info(glm::ivec2 chunk_index, size_t seed)
 class ChunkGeneratorSystemImpl : public ChunkGeneratorSystem
 {
 public:
-  ChunkGeneratorSystemImpl(std::size_t seed)
-    : m_seed(seed)
-  {
-    unsigned count = std::thread::hardware_concurrency();
-    for(unsigned i=0; i<count; ++i)
-      m_workers.emplace_back(std::bind(&ChunkGeneratorSystemImpl::work, this, std::placeholders::_1));
-  }
+  ChunkGeneratorSystemImpl(std::size_t seed) : m_seed(seed) { }
 
 private:
   void update(World& world) override
   {
+    // 1: Retrieve
+    for(auto it = world.dimension.chunk_info_futures.begin(); it != world.dimension.chunk_info_futures.end(); )
+      if(it->second.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
+      {
+        spdlog::info("Finish generating chunk info at {}, {}", it->first.x, it->first.y);
+        world.dimension.chunks[it->first].info = std::make_unique<ChunkInfo>(it->second.get());
+        world.dimension.chunk_info_futures.erase(it++);
+      }
+      else
+        ++it;
+
+    // 2: Loading
     glm::ivec2 center = {
       std::floor(world.player.transform.position.x / Chunk::WIDTH),
       std::floor(world.player.transform.position.y / Chunk::WIDTH),
@@ -177,37 +160,57 @@ private:
   {
     Chunk& chunk = world.dimension.chunks[chunk_index];
     if(!chunk.data)
-    {
-      if(!try_generate_chunk(world, chunk_index, chunk))
-        return;
-
-      for(int lz=0; lz<Chunk::HEIGHT; ++lz)
-        for(int ly=0; ly<Chunk::WIDTH; ++ly)
-          for(int lx=0; lx<Chunk::WIDTH; ++lx)
-          {
-            glm::ivec3 position = { lx, ly, lz };
-            world.lighting_invalidate(local_to_global(position, chunk_index));
-          }
-    }
+      if(can_generate_chunk(world, chunk_index))
+      {
+        generate_chunk(world, chunk_index);
+        for(int lz=0; lz<Chunk::HEIGHT; ++lz)
+          for(int ly=0; ly<Chunk::WIDTH; ++ly)
+            for(int lx=0; lx<Chunk::WIDTH; ++lx)
+            {
+              glm::ivec3 position = { lx, ly, lz };
+              world.lighting_invalidate(local_to_global(position, chunk_index));
+            }
+      }
   }
 
-  bool try_generate_chunk(World& world, glm::ivec2 chunk_index, Chunk& chunk)
+  bool can_generate_chunk(World& world, glm::ivec2 chunk_index) const
   {
-    if(!can_generate_chunk(chunk_index))
-      return false;
+    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
+    glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
+    glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
+    for(int cy = corner1.y; cy <= corner2.y; ++cy)
+      for(int cx = corner1.x; cx <= corner2.x; ++cx)
+      {
+        glm::ivec2 neighbour_chunk_index = glm::ivec2(cx, cy);
+        Chunk&     neighbour_chunk       = world.dimension.chunks[neighbour_chunk_index];
+        if(!neighbour_chunk.info)
+        {
+          if(!world.dimension.chunk_info_futures.contains(neighbour_chunk_index))
+            world.dimension.chunk_info_futures.emplace(neighbour_chunk_index, std::async(std::launch::async, [=]() { return generate_chunk_info(neighbour_chunk_index, m_seed); }));
 
+          return false;
+        }
+      }
+
+    return true;
+  }
+
+  void generate_chunk(World& world, glm::ivec2 chunk_index)
+  {
+    spdlog::info("Begin generating chunk data at {}, {}", chunk_index.x, chunk_index.y);
+
+    Chunk& chunk = world.dimension.chunks[chunk_index];
     chunk.data = std::make_unique<ChunkData>();
 
-    const ChunkInfo* chunk_info = try_get_chunk_info(chunk_index);
-    assert(chunk_info);
+    const ChunkInfo& chunk_info = *world.dimension.chunks[chunk_index].info.get();
 
     // 1: Create terrain based on height maps
     int max_height = 0;
     for(int ly=0; ly<Chunk::WIDTH; ++ly)
       for(int lx=0; lx<Chunk::WIDTH; ++lx)
       {
-        int total_height = chunk_info->stone_height_map.heights[ly][lx]
-                         + chunk_info->grass_height_map.heights[ly][lx];
+        int total_height = chunk_info.stone_height_map.heights[ly][lx]
+                         + chunk_info.grass_height_map.heights[ly][lx];
         max_height = std::max(max_height, total_height);
       }
 
@@ -216,8 +219,8 @@ private:
       for(int ly=0; ly<Chunk::WIDTH; ++ly)
         for(int lx=0; lx<Chunk::WIDTH; ++lx)
         {
-          int height1 = chunk_info->stone_height_map.heights[ly][lx];
-          int height2 = chunk_info->stone_height_map.heights[ly][lx] + chunk_info->grass_height_map.heights[ly][lx];
+          int height1 = chunk_info.stone_height_map.heights[ly][lx];
+          int height2 = chunk_info.stone_height_map.heights[ly][lx] + chunk_info.grass_height_map.heights[ly][lx];
           Block *block = chunk.get_block(glm::ivec3(lx, ly, lz));
           if(block) [[likely]]
           {
@@ -236,92 +239,18 @@ private:
       for(int cx = corner1.x; cx <= corner2.x; ++cx)
       {
         glm::ivec2       neighbour_chunk_index = glm::ivec2(cx, cy);
-        const ChunkInfo *neighbour_chunk_info     = try_get_chunk_info(neighbour_chunk_index);
-        assert(neighbour_chunk_info);
+        const ChunkInfo& neighbour_chunk_info  = *world.dimension.chunks[neighbour_chunk_index].info.get();
 
-        for(const Worm& worm : neighbour_chunk_info->worms)
+        for(const Worm& worm : neighbour_chunk_info.worms)
           for(const Worm::Node& node : worm.nodes)
             chunk.explode(global_to_local(node.center, chunk_index), node.radius);
       }
 
-    return true;
-  }
-
-  bool can_generate_chunk(glm::ivec2 chunk_index) const
-  {
-    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
-    glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
-    glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
-    for(int cy = corner1.y; cy <= corner2.y; ++cy)
-      for(int cx = corner1.x; cx <= corner2.x; ++cx)
-      {
-        glm::ivec2 neighbour_chunk_index = glm::ivec2(cx, cy);
-        if(!try_get_chunk_info(neighbour_chunk_index))
-          return false;
-      }
-
-    return true;
-  }
-
-  const ChunkInfo *try_get_chunk_info(glm::ivec2 chunk_index) const
-  {
-    {
-      std::lock_guard guard(m_mutex);
-      if(auto it = m_chunk_infos.find(chunk_index); it != m_chunk_infos.end())
-        return &it->second;
-
-      if(m_pending_chunk_infos.contains(chunk_index)) return nullptr;
-      if(m_loading_chunk_infos.contains(chunk_index)) return nullptr;
-      m_pending_chunk_infos.insert(chunk_index);
-    }
-    m_cv.notify_one();
-    return nullptr;
-  }
-
-  void work(std::stop_token stoken)
-  {
-    std::unique_lock lk(m_mutex);
-    for(;;)
-    {
-      m_cv.wait(lk, stoken, [this]() { return !m_pending_chunk_infos.empty(); });
-      if(stoken.stop_requested())
-        return;
-
-      while(!m_pending_chunk_infos.empty())
-      {
-        glm::ivec2 chunk_index = *m_pending_chunk_infos.begin();
-        m_pending_chunk_infos.erase(m_pending_chunk_infos.begin());
-        m_loading_chunk_infos.insert(chunk_index);
-
-        lk.unlock();
-
-        spdlog::info("Begin Generating chunk info at {}, {}", chunk_index.x, chunk_index.y);
-        ChunkInfo chunk_info = generate_chunk_info(chunk_index, m_seed);
-        spdlog::info("End Generating chunk info at {}, {}", chunk_index.x, chunk_index.y);
-
-        lk.lock();
-
-        m_loading_chunk_infos.erase(chunk_index);
-        m_chunk_infos.emplace(chunk_index, std::move(chunk_info));
-        if(stoken.stop_requested())
-          return;
-      }
-    }
+    spdlog::info("End generating chunk data at {}, {}", chunk_index.x, chunk_index.y);
   }
 
 private:
   std::size_t m_seed;
-
-private:
-  mutable std::shared_mutex           m_mutex;
-  mutable std::condition_variable_any m_cv;
-
-  mutable std::unordered_set<glm::ivec2>    m_pending_chunk_infos;
-  mutable std::unordered_set<glm::ivec2>    m_loading_chunk_infos;
-  std::unordered_map<glm::ivec2, ChunkInfo> m_chunk_infos;
-
-private:
-  std::vector<std::jthread> m_workers;
 };
 
 std::unique_ptr<ChunkGeneratorSystem> ChunkGeneratorSystem::create(std::size_t seed)

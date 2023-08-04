@@ -11,6 +11,9 @@
 
 #include <unordered_map>
 #include <unordered_set>
+
+#include <future>
+
 #include <optional>
 #include <memory>
 
@@ -47,6 +50,7 @@ inline const Block Block::NONE  = Block{ .presence = false };
 inline const Block Block::STONE = Block{ .presence = true, .id = ID_STONE };
 inline const Block Block::GRASS = Block{ .presence = true, .id = ID_GRASS };
 
+struct ChunkInfo;
 struct ChunkData;
 struct Chunk
 {
@@ -55,6 +59,7 @@ public:
   static constexpr int HEIGHT = 256;
 
 public:
+  std::unique_ptr<ChunkInfo> info;
   std::unique_ptr<ChunkData> data;
   std::unique_ptr<Mesh>      mesh;
 
@@ -71,11 +76,33 @@ public:
   void minor_invalidate_mesh();
 };
 
+struct HeightMap
+{
+  float heights[Chunk::WIDTH][Chunk::WIDTH];
+};
+
+struct Worm
+{
+  struct Node
+  {
+    glm::vec3 center;
+    float     radius;
+  };
+  std::vector<Node> nodes;
+};
+
+struct ChunkInfo
+{
+  HeightMap         stone_height_map;
+  HeightMap         grass_height_map;
+  std::vector<Worm> worms;
+};
+
+
 struct ChunkData
 {
   Block blocks[Chunk::HEIGHT][Chunk::WIDTH][Chunk::WIDTH];
 };
-
 
 struct Dimension
 {
@@ -84,7 +111,9 @@ public:
   std::vector<BlockData> block_datas;
 
   std::unordered_map<glm::ivec2, Chunk> chunks;
-  std::unordered_set<glm::ivec3>        pending_lighting_updates;
+  std::unordered_map<glm::ivec2, std::future<ChunkInfo>> chunk_info_futures;
+
+  std::unordered_set<glm::ivec3> pending_lighting_updates;
 
 public:
   Block* get_block(glm::ivec3 position);
