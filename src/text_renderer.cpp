@@ -11,7 +11,25 @@ struct Vertex
   glm::vec2 tex_coords;
 };
 
-TextRenderer::TextRenderer(const char *font, unsigned height) : m_shader_program("./assets/ui.vert", "./assets/ui.frag")
+TextRenderer::TextRenderer(const char *font, unsigned height) :
+  m_shader_program("./assets/ui.vert", "./assets/ui.frag"),
+  m_quad_mesh(
+    MeshLayout{
+      .index_type = IndexType::UNSIGNED_BYTE,
+      .stride     = sizeof(Vertex),
+      .attributes = {
+        { .type = AttributeType::FLOAT2, .offset = offsetof(Vertex, position),   },
+        { .type = AttributeType::FLOAT2, .offset = offsetof(Vertex, tex_coords), },
+      }
+    },
+    as_bytes(std::vector<uint8_t>{0, 1, 2, 2, 1, 3}),
+    as_bytes(std::vector<Vertex>{
+      { .position = glm::vec2(0.0f, 0.0f), .tex_coords = glm::vec2(0.0f, 1.0f), },
+      { .position = glm::vec2(1.0f, 0.0f), .tex_coords = glm::vec2(1.0f, 1.0f), },
+      { .position = glm::vec2(0.0f, 1.0f), .tex_coords = glm::vec2(0.0f, 0.0f), },
+      { .position = glm::vec2(1.0f, 1.0f), .tex_coords = glm::vec2(1.0f, 0.0f), },
+    })
+  )
 {
   FT_Library library;
   FT_Face    face;
@@ -44,24 +62,6 @@ TextRenderer::TextRenderer(const char *font, unsigned height) : m_shader_program
 
   FT_Done_Face(face);
   FT_Done_FreeType(library);
-
-  glGenVertexArrays(1, &m_vao);
-  glBindVertexArray(m_vao);
-
-  glGenBuffers(1, &m_veo);
-
-  uint8_t indices[] = { 0, 1, 2, 2, 1, 3 };
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_veo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
-
-  glGenBuffers(1, &m_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords));
 }
 
 void TextRenderer::render(glm::vec2& cursor, const char *str)
@@ -69,10 +69,6 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
   glDisable(GL_DEPTH_TEST);
 
   glUseProgram(m_shader_program.id());
-  glBindVertexArray(m_vao);
-
-  glm::mat4 projection = glm::ortho(0.0f, 1024.0f, 0.0f, 720.0f);
-  glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
   for(const char *it = str; *it; ++it)
   {
@@ -85,18 +81,18 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
 
     glm::vec2 position  = cursor + m_glyphs[c].bearing;
     glm::vec2 dimension = m_glyphs[c].dimenson;
-    struct Vertex vertices[] = {
-      { .position = position,                                .tex_coords = glm::vec2(0.0f, 1.0f), },
-      { .position = position + glm::vec2(dimension.x, 0.0f), .tex_coords = glm::vec2(1.0f, 1.0f), },
-      { .position = position + glm::vec2(0.0f, dimension.y), .tex_coords = glm::vec2(0.0f, 0.0f), },
-      { .position = position + dimension,                    .tex_coords = glm::vec2(1.0f, 0.0f), },
-    };
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof vertices, nullptr, GL_DYNAMIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, (void*)0);
+    glm::mat4 projection = glm::ortho(0.0f, 1024.0f, 0.0f, 720.0f);
+    glm::mat4 view       = glm::mat4(1.0f);
+
+    glm::mat4 model  = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(position.x, position.y, 0.0f));
+    model = glm::scale    (model, glm::vec3(dimension.x, dimension.y, 0.0f));
+
+    glm::mat4 MVP = projection * view * model;
+    glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+
+    m_quad_mesh.draw_triangles();
 
     cursor += m_glyphs[c].advance;
   }

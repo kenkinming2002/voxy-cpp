@@ -2,6 +2,7 @@
 #define TEXT_RENDERER_HPP
 
 #include <shader_program.hpp>
+#include <mesh.hpp>
 #include <texture.hpp>
 
 #include <ft2build.h>
@@ -22,6 +23,7 @@ public:
 
 private:
   ShaderProgram m_shader_program;
+  Mesh          m_quad_mesh;
 
   struct Glyph
   {
@@ -32,10 +34,6 @@ private:
     std::unique_ptr<Texture> texture;
   };
   Glyph m_glyphs[128];
-
-  GLuint m_vao;
-  GLuint m_veo;
-  GLuint m_vbo;
 };
 
 #endif // TEXT_RENDERER_HPP
