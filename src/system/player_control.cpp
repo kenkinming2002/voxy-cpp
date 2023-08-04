@@ -10,6 +10,17 @@
 static constexpr float ROTATION_SPEED = 0.1f;
 static constexpr float RAY_CAST_LENGTH = 20.0f;
 
+static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 position2, glm::vec3 dimension2)
+{
+  glm::vec3 min = glm::max(position1,            position2);
+  glm::vec3 max = glm::min(position1+dimension1, position2+dimension2);
+  for(int i=0; i<3; ++i)
+    if(min[i] >= max[i])
+      return false;
+  return true;
+}
+
+
 class PlayerControlSystemImpl : public PlayerControlSystem
 {
 private:
@@ -40,6 +51,10 @@ private:
               if(Block *block = world.dimension.get_block(*world.placement))
                 if(!block->presence)
                 {
+                  // Cannot place a block that collide with the player
+                  if(aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f)))
+                    break;
+
                   block->presence = true;
                   block->id       = Block::ID_STONE;
 
