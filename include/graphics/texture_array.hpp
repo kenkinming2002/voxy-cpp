@@ -6,17 +6,20 @@
 #include <vector>
 #include <string>
 
-struct TextureArray
+namespace graphics
 {
-public:
-  TextureArray(const std::vector<std::string>& filenames);
-  ~TextureArray();
+  struct TextureArray
+  {
+    public:
+      TextureArray(const std::vector<std::string>& filenames);
+      ~TextureArray();
 
-public:
-  GLuint id() const { return m_id; }
+    public:
+      GLuint id() const { return m_id; }
 
-private:
-  GLuint m_id;
-};
+    private:
+      GLuint m_id;
+  };
+}
 
 #endif // TEXTURE_ARRAY_HPP

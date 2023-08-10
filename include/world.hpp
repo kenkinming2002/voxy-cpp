@@ -61,7 +61,7 @@ public:
 public:
   std::unique_ptr<ChunkInfo> info;
   std::unique_ptr<ChunkData> data;
-  std::unique_ptr<Mesh>      mesh;
+  std::unique_ptr<graphics::Mesh> mesh;
 
   bool     mesh_invalidated_major;
   bool     mesh_invalidated_minor;
@@ -107,7 +107,7 @@ struct ChunkData
 struct Dimension
 {
 public:
-  TextureArray           blocks_texture_array;
+  graphics::TextureArray blocks_texture_array;
   std::vector<BlockData> block_datas;
 
   std::unordered_map<glm::ivec2, Chunk> chunks;

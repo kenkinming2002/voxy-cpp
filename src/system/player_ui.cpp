@@ -9,7 +9,7 @@
 
 static constexpr float UI_SELECTION_THICKNESS = 3.0f;
 
-static Mesh build_unit_cube_mesh()
+static graphics::Mesh build_unit_cube_mesh()
 {
   std::vector<uint8_t>  indices;
   std::vector<glm::vec3> vertices;
@@ -34,18 +34,18 @@ static Mesh build_unit_cube_mesh()
       for(int x : {0, 1})
         vertices.push_back(glm::vec3(x, y, z));
 
-  MeshLayout layout{
-    .index_type = IndexType::UNSIGNED_BYTE,
+  graphics::MeshLayout layout{
+    .index_type = graphics::IndexType::UNSIGNED_BYTE,
       .stride = sizeof(glm::vec3),
       .attributes = {
-        { .type = AttributeType::FLOAT3, .offset = 0, },
+        { .type = graphics::AttributeType::FLOAT3, .offset = 0, },
       },
   };
 
-  return Mesh(
+  return graphics::Mesh(
     std::move(layout),
-    as_bytes(indices),
-    as_bytes(vertices)
+    graphics::as_bytes(indices),
+    graphics::as_bytes(vertices)
   );
 }
 
@@ -95,8 +95,8 @@ private:
   }
 
 private:
-  ShaderProgram m_shader_program;
-  Mesh          m_mesh;
+  graphics::ShaderProgram m_shader_program;
+  graphics::Mesh          m_mesh;
 };
 
 std::unique_ptr<System> create_player_ui_system()

@@ -52,7 +52,7 @@ Voxy::Voxy() :
       .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
     },
     .dimension = {
-      .blocks_texture_array = TextureArray({
+      .blocks_texture_array = graphics::TextureArray({
           "assets/stone.png",
           "assets/grass_bottom.png",
           "assets/grass_side.png",

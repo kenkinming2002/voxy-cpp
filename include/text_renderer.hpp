@@ -22,8 +22,8 @@ public:
   void render(glm::vec2& cursor, const char *str);
 
 private:
-  ShaderProgram m_shader_program;
-  Mesh          m_quad_mesh;
+  graphics::ShaderProgram m_shader_program;
+  graphics::Mesh          m_quad_mesh;
 
   struct Glyph
   {
@@ -31,7 +31,7 @@ private:
     glm::vec2  bearing;
     glm::vec2  advance;
 
-    std::unique_ptr<Texture> texture;
+    std::unique_ptr<graphics::Texture> texture;
   };
   Glyph m_glyphs[128];
 };

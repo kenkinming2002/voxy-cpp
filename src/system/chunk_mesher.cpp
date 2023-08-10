@@ -83,21 +83,21 @@ private:
           }
         }
 
-    MeshLayout layout{
-      .index_type = IndexType::UNSIGNED_INT,
+    graphics::MeshLayout layout{
+      .index_type = graphics::IndexType::UNSIGNED_INT,
         .stride = sizeof(Vertex),
         .attributes = {
-          { .type = AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
-          { .type = AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
-          { .type = AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index),  },
-          { .type = AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_level),    },
+          { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
+          { .type = graphics::AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
+          { .type = graphics::AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index),  },
+          { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_level),    },
         },
     };
 
-    chunk.mesh = std::make_unique<Mesh>(
+    chunk.mesh = std::make_unique<graphics::Mesh>(
       std::move(layout),
-      as_bytes(indices),
-      as_bytes(vertices)
+      graphics::as_bytes(indices),
+      graphics::as_bytes(vertices)
     );
   }
 };

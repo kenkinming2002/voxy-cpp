@@ -14,16 +14,16 @@ struct Vertex
 TextRenderer::TextRenderer(const char *font, unsigned height) :
   m_shader_program("./assets/ui.vert", "./assets/ui.frag"),
   m_quad_mesh(
-    MeshLayout{
-      .index_type = IndexType::UNSIGNED_BYTE,
+    graphics::MeshLayout{
+      .index_type = graphics::IndexType::UNSIGNED_BYTE,
       .stride     = sizeof(Vertex),
       .attributes = {
-        { .type = AttributeType::FLOAT2, .offset = offsetof(Vertex, position),   },
-        { .type = AttributeType::FLOAT2, .offset = offsetof(Vertex, tex_coords), },
+        { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, position),   },
+        { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, tex_coords), },
       }
     },
-    as_bytes(std::vector<uint8_t>{0, 1, 2, 2, 1, 3}),
-    as_bytes(std::vector<Vertex>{
+    graphics::as_bytes(std::vector<uint8_t>{0, 1, 2, 2, 1, 3}),
+    graphics::as_bytes(std::vector<Vertex>{
       { .position = glm::vec2(0.0f, 0.0f), .tex_coords = glm::vec2(0.0f, 1.0f), },
       { .position = glm::vec2(1.0f, 0.0f), .tex_coords = glm::vec2(1.0f, 1.0f), },
       { .position = glm::vec2(0.0f, 1.0f), .tex_coords = glm::vec2(0.0f, 0.0f), },
@@ -57,7 +57,7 @@ TextRenderer::TextRenderer(const char *font, unsigned height) :
     m_glyphs[c].advance.x = face->glyph->advance.x / 64.0f;
     m_glyphs[c].advance.y = face->glyph->advance.y / 64.0f;
 
-    m_glyphs[c].texture = std::make_unique<Texture>(face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows, 1);
+    m_glyphs[c].texture = std::make_unique<graphics::Texture>(face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows, 1);
   }
 
   FT_Done_Face(face);

@@ -31,7 +31,7 @@ private:
   }
 
 private:
-  ShaderProgram m_shader_program;
+  graphics::ShaderProgram m_shader_program;
 };
 
 std::unique_ptr<System> create_chunk_renderer_system()

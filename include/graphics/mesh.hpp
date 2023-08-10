@@ -9,68 +9,71 @@
 
 #include <stddef.h>
 
-enum class IndexType {
-  UNSIGNED_BYTE,
-  UNSIGNED_SHORT,
-  UNSIGNED_INT,
-};
-
-enum class AttributeType {
-  FLOAT1,
-  FLOAT2,
-  FLOAT3,
-  FLOAT4,
-
-  UNSIGNED_INT1,
-  UNSIGNED_INT2,
-  UNSIGNED_INT3,
-  UNSIGNED_INT4,
-};
-
-struct Attribute
+namespace graphics
 {
-  AttributeType type;
-  size_t        offset;
-};
+  enum class IndexType {
+    UNSIGNED_BYTE,
+    UNSIGNED_SHORT,
+    UNSIGNED_INT,
+  };
 
-struct MeshLayout
-{
-  IndexType              index_type;
+  enum class AttributeType {
+    FLOAT1,
+    FLOAT2,
+    FLOAT3,
+    FLOAT4,
 
-  std::size_t            stride;
-  std::vector<Attribute> attributes;
-};
+    UNSIGNED_INT1,
+    UNSIGNED_INT2,
+    UNSIGNED_INT3,
+    UNSIGNED_INT4,
+  };
 
-struct Mesh
-{
-public:
-  Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices);
-  ~Mesh();
+  struct Attribute
+  {
+    AttributeType type;
+    size_t        offset;
+  };
 
-public:
-  void draw_triangles() const;
-  void draw_lines() const;
+  struct MeshLayout
+  {
+    IndexType              index_type;
 
-private:
-  MeshLayout m_layout;
+    std::size_t            stride;
+    std::vector<Attribute> attributes;
+  };
 
-  mutable std::vector<std::byte> m_indices;
-  mutable std::vector<std::byte> m_vertices;
+  struct Mesh
+  {
+  public:
+    Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices);
+    ~Mesh();
 
-  mutable bool m_generated;
+  public:
+    void draw_triangles() const;
+    void draw_lines() const;
 
-  mutable GLuint m_vao;
-  mutable GLuint m_ebo;
-  mutable GLuint m_vbo;
+  private:
+    MeshLayout m_layout;
 
-  mutable GLsizei m_element_count;
-};
+    mutable std::vector<std::byte> m_indices;
+    mutable std::vector<std::byte> m_vertices;
 
-template<typename T>
-inline static std::vector<std::byte> as_bytes(const std::vector<T>& data) requires(std::is_standard_layout_v<T>)
-{
-  auto bytes = std::as_bytes(std::span(data));
-  return std::vector(bytes.begin(), bytes.end());
+    mutable bool m_generated;
+
+    mutable GLuint m_vao;
+    mutable GLuint m_ebo;
+    mutable GLuint m_vbo;
+
+    mutable GLsizei m_element_count;
+  };
+
+  template<typename T>
+  inline static std::vector<std::byte> as_bytes(const std::vector<T>& data) requires(std::is_standard_layout_v<T>)
+  {
+    auto bytes = std::as_bytes(std::span(data));
+    return std::vector(bytes.begin(), bytes.end());
+  }
 }
 
 #endif // MESH_HPP
