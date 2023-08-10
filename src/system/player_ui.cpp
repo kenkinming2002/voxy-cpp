@@ -2,8 +2,8 @@
 
 #include <world.hpp>
 
-#include <mesh.hpp>
-#include <shader_program.hpp>
+#include <graphics/mesh.hpp>
+#include <graphics/shader_program.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 

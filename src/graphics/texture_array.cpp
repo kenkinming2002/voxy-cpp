@@ -1,4 +1,4 @@
-#include <texture_array.hpp>
+#include <graphics/texture_array.hpp>
 
 #include <stb_image.h>
 

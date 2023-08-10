@@ -3,8 +3,8 @@
 
 #include <camera.hpp>
 
-#include <texture_array.hpp>
-#include <mesh.hpp>
+#include <graphics/texture_array.hpp>
+#include <graphics/mesh.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>

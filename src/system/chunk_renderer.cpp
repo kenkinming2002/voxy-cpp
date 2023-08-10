@@ -2,7 +2,7 @@
 
 #include <world.hpp>
 
-#include <shader_program.hpp>
+#include <graphics/shader_program.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 
