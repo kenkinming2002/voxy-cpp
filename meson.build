@@ -20,7 +20,6 @@ spdlog_dep = dependency('spdlog')
 
 voxy_exe = executable('voxy', [
     'src/camera.cpp',
-    'src/perlin.cpp',
     'src/text_renderer.cpp',
     'src/main.cpp',
     'src/application.cpp',

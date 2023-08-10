@@ -48,7 +48,7 @@ static HeightMap generate_height_map(glm::ivec2 chunk_index, std::mt19937& prng,
     for(int lx=0; lx<Chunk::WIDTH; ++lx)
     {
       glm::ivec2 position = local_to_global(glm::ivec2(lx, ly), chunk_index);
-      height_map.heights[ly][lx] = perlin(seed, position, frequency, amplitude, lacunarity, presistence, count);
+      height_map.heights[ly][lx] = perlin(seed, glm::vec2(position), frequency, amplitude, lacunarity, presistence, count);
     }
 
   return height_map;
