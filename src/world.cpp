@@ -35,7 +35,7 @@ void Chunk::explode(glm::vec3 center, float radius)
         glm::ivec3 pos = { x, y, z };
         if(glm::length2(glm::vec3(pos) - center) < radius * radius)
           if(Block* block = get_block(pos))
-            block->presence = false;
+            block->id = Block::ID_NONE;
       }
 }
 

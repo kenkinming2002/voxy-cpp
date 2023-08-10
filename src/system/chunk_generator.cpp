@@ -202,16 +202,7 @@ private:
     const ChunkInfo& chunk_info = *world.dimension.chunks[chunk_index].info.get();
 
     // 1: Create terrain based on height maps
-    int max_height = 0;
-    for(int ly=0; ly<Chunk::WIDTH; ++ly)
-      for(int lx=0; lx<Chunk::WIDTH; ++lx)
-      {
-        int total_height = chunk_info.stone_height_map.heights[ly][lx]
-                         + chunk_info.grass_height_map.heights[ly][lx];
-        max_height = std::max(max_height, total_height);
-      }
-
-    for(int lz=0; lz<max_height; ++lz)
+    for(int lz=0; lz<Chunk::HEIGHT; ++lz)
       for(int ly=0; ly<Chunk::WIDTH; ++ly)
         for(int lx=0; lx<Chunk::WIDTH; ++lx)
         {
@@ -222,21 +213,19 @@ private:
           {
             if(lz < height1)
             {
-              block->presence    = true;
               block->id          = Block::ID_STONE;
               block->light_level = 0;
               block->sky         = false;
             }
             else if(lz < height1 + height2)
             {
-              block->presence    = true;
               block->id          = Block::ID_GRASS;
               block->light_level = 0;
               block->sky         = false;
             }
             else
             {
-              block->presence    = false;
+              block->id          = Block::ID_NONE;
               block->light_level = 15;
               block->sky         = true;
             }

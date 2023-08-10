@@ -26,7 +26,7 @@ private:
       block->light_level = 0;
 
       // 1: Solid block
-      if(block->presence) // TODO: Check for opaqueness
+      if(block->id != Block::ID_NONE) // TODO: Check for opaqueness
       {
         block->sky         = false;
         block->light_level = 0;

@@ -47,7 +47,7 @@ private:
         {
           glm::ivec3 position = local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
           Block*     block    = world.get_block(position);
-          if(!block->presence)
+          if(block->id == Block::ID_NONE)
             continue;
 
           for(int i=0; i<std::size(DIRECTIONS); ++i)
@@ -55,7 +55,7 @@ private:
             glm::ivec3 direction          = DIRECTIONS[i];
             glm::ivec3 neighbour_position = position + direction;
             Block*     neighbour_block    = world.get_block(neighbour_position);
-            if(neighbour_block && neighbour_block->presence)
+            if(neighbour_block && neighbour_block->id != Block::ID_NONE)
               continue;
 
             uint32_t index_base = vertices.size();

@@ -43,7 +43,7 @@ static std::vector<glm::vec3> entity_collide(const Entity& entity, const Dimensi
       {
         glm::ivec3   position = glm::ivec3(x, y, z);
         const Block* block    = dimension.get_block(position);
-        if(block && block->presence)
+        if(block && block->id != Block::ID_NONE)
         {
           glm::vec3 collision = aabb_collide(entity.transform.position, entity.bounding_box, position, glm::vec3(1.0f, 1.0f, 1.0f));
           collisions.push_back(collision);

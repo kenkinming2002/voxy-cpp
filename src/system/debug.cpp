@@ -66,7 +66,7 @@ private:
 
     if(block)
     {
-      line = fmt::format("block: position = {}, {}, {}, presence = {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->presence, block->id, block->sky, block->light_level);
+      line = fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level);
       m_text_renderer.render(cursor, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;

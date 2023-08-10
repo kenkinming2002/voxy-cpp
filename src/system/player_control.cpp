@@ -33,9 +33,9 @@ private:
           case SDL_BUTTON_LEFT:
             if(world.selection)
               if(Block *block = world.get_block(*world.selection))
-                if(block->presence)
+                if(block->id != Block::ID_NONE)
                 {
-                  block->presence = false;
+                  block->id = Block::ID_NONE;
                   world.invalidate_mesh_major(*world.selection);
                   world.invalidate_light(*world.selection);
                   for(glm::ivec3 direction : DIRECTIONS)
@@ -48,15 +48,13 @@ private:
           case SDL_BUTTON_RIGHT:
             if(world.placement)
               if(Block *block = world.get_block(*world.placement))
-                if(!block->presence)
+                if(block->id == Block::ID_NONE)
                 {
                   // Cannot place a block that collide with the player
                   if(aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f)))
                     break;
 
-                  block->presence = true;
-                  block->id       = Block::ID_STONE;
-
+                  block->id = Block::ID_STONE;
                   world.invalidate_mesh_major(*world.placement);
                   world.invalidate_light(*world.placement);
                   for(glm::ivec3 direction : DIRECTIONS)
@@ -103,11 +101,11 @@ private:
     world.placement.reset();
     ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
         const Block *block = world.get_block(block_position);
-        if(block && block->presence)
+        if(block && block->id != Block::ID_NONE)
           world.selection = block_position;
         else
           world.placement = block_position;
-        return block && block->presence;
+        return block && block->id != Block::ID_NONE;
     });
 
     // Can only place against a selected block
