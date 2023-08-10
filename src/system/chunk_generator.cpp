@@ -119,10 +119,10 @@ static ChunkInfo generate_chunk_info(glm::ivec2 chunk_index, size_t seed)
 }
 
 
-class ChunkGeneratorSystemImpl : public ChunkGeneratorSystem
+class ChunkGeneratorSystem : public System
 {
 private:
-  void update(World& world) override
+  void on_update(World& world, float dt) override
   {
     // 1: Retrieve
     for(auto it = world.dimension.chunk_info_futures.begin(); it != world.dimension.chunk_info_futures.end(); )
@@ -247,8 +247,8 @@ private:
   }
 };
 
-std::unique_ptr<ChunkGeneratorSystem> ChunkGeneratorSystem::create()
+std::unique_ptr<System> create_chunk_generator_system()
 {
-  return std::make_unique<ChunkGeneratorSystemImpl>();
+  return std::make_unique<ChunkGeneratorSystem>();
 }
 

@@ -1,20 +1,10 @@
 #ifndef SYSTEM_DEBUG_HPP
 #define SYSTEM_DEBUG_HPP
 
+#include <system.hpp>
 #include <memory>
-#include <stddef.h>
 
-struct World;
-class DebugSystem
-{
-public:
-  static std::unique_ptr<DebugSystem> create();
-
-public:
-  virtual void update(float dt) = 0;
-  virtual void render(const World& world) = 0;
-  virtual ~DebugSystem() = default;
-};
+std::unique_ptr<System> create_debug_system();
 
 #endif // SYSTEM_DEBUG_HPP
 

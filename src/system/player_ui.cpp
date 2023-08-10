@@ -49,15 +49,15 @@ static Mesh build_unit_cube_mesh()
   );
 }
 
-class PlayerUISystemImpl : public PlayerUISystem
+class PlayerUISystem : public System
 {
 public:
-  PlayerUISystemImpl()
+  PlayerUISystem()
     : m_shader_program("assets/ui_selection.vert", "assets/ui_selection.frag"),
       m_mesh(build_unit_cube_mesh()) {}
 
 private:
-  void render(const World& world) override
+  void on_render(const World& world) override
   {
     // 1: Selection
     if(world.selection)
@@ -99,9 +99,9 @@ private:
   Mesh          m_mesh;
 };
 
-std::unique_ptr<PlayerUISystem> PlayerUISystem::create()
+std::unique_ptr<System> create_player_ui_system()
 {
-  return std::make_unique<PlayerUISystemImpl>();
+  return std::make_unique<PlayerUISystem>();
 }
 
 

@@ -20,10 +20,10 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
 }
 
 
-class PlayerControlSystemImpl : public PlayerControlSystem
+class PlayerControlSystem : public System
 {
 private:
-  void handle_event(World& world, SDL_Event event) override
+  void on_event(World& world, SDL_Event event) override
   {
     switch(event.type)
     {
@@ -80,7 +80,7 @@ private:
     }
   }
 
-  void update(World& world, float dt) override
+  void on_update(World& world, float dt) override
   {
     glm::vec3 translation = glm::vec3(0.0f);
 
@@ -116,8 +116,8 @@ private:
   }
 };
 
-std::unique_ptr<PlayerControlSystem> PlayerControlSystem::create()
+std::unique_ptr<System> create_player_control_system()
 {
-  return std::make_unique<PlayerControlSystemImpl>();
+  return std::make_unique<PlayerControlSystem>();
 }
 

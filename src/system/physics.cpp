@@ -93,18 +93,18 @@ static void entity_resolve_collisions(Entity& entity, const Dimension& dimension
 }
 
 
-class PhysicsSystemImpl : public PhysicsSystem
+class PhysicsSystem : public System
 {
 private:
-  void update(World& world, float dt) override
+  void on_update(World& world, float dt) override
   {
     entity_update_physics(world.player, dt);
     entity_resolve_collisions(world.player, world.dimension);
   }
 };
 
-std::unique_ptr<PhysicsSystem> PhysicsSystem::create()
+std::unique_ptr<System> create_physics_system()
 {
-  return std::make_unique<PhysicsSystemImpl>();
+  return std::make_unique<PhysicsSystem>();
 }
 

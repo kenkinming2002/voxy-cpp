@@ -6,13 +6,13 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-class ChunkRendererSystemImpl : public ChunkRendererSystem
+class ChunkRendererSystem : public System
 {
 public:
-  ChunkRendererSystemImpl() : m_shader_program("assets/chunk.vert", "assets/chunk.frag") {}
+  ChunkRendererSystem() : m_shader_program("assets/chunk.vert", "assets/chunk.frag") {}
 
 private:
-  void render(const World& world) override
+  void on_render(const World& world) override
   {
     glUseProgram(m_shader_program.id());
 
@@ -34,8 +34,8 @@ private:
   ShaderProgram m_shader_program;
 };
 
-std::unique_ptr<ChunkRendererSystem> ChunkRendererSystem::create()
+std::unique_ptr<System> create_chunk_renderer_system()
 {
-  return std::make_unique<ChunkRendererSystemImpl>();
+  return std::make_unique<ChunkRendererSystem>();
 }
 

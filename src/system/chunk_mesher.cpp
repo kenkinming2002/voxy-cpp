@@ -10,10 +10,10 @@
 
 static constexpr float REMASH_THROTTLE = 5.0f;
 
-class ChunkMesherSystemImpl : public ChunkMesherSystem
+class ChunkMesherSystem : public System
 {
 private:
-  void update(World& world) override
+  void on_update(World& world, float dt) override
   {
     for(auto& [chunk_index, chunk] : world.dimension.chunks)
       if(chunk.data)
@@ -102,8 +102,8 @@ private:
   }
 };
 
-std::unique_ptr<ChunkMesherSystem> ChunkMesherSystem::create()
+std::unique_ptr<System> create_chunk_mesher_system()
 {
-  return std::make_unique<ChunkMesherSystemImpl>();
+  return std::make_unique<ChunkMesherSystem>();
 }
 

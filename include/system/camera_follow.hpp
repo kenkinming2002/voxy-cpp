@@ -1,19 +1,10 @@
 #ifndef SYSTEM_CAMERA_FOLLOW_HPP
 #define SYSTEM_CAMERA_FOLLOW_HPP
 
+#include <system.hpp>
 #include <memory>
-#include <stddef.h>
 
-struct World;
-class CameraFollowSystem
-{
-public:
-  static std::unique_ptr<CameraFollowSystem> create();
-
-public:
-  virtual void update(World& world, float dt) = 0;
-  virtual ~CameraFollowSystem() = default;
-};
+std::unique_ptr<System> create_camera_follow_system();
 
 #endif // SYSTEM_CAMERA_FOLLOW_HPP
 

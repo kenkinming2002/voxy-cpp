@@ -1,19 +1,9 @@
 #ifndef SYSTEM_CHUNK_GENERATOR_HPP
 #define SYSTEM_CHUNK_GENERATOR_HPP
 
-#include <glm/fwd.hpp>
+#include <system.hpp>
 #include <memory>
-#include <stddef.h>
 
-struct World;
-class ChunkGeneratorSystem
-{
-public:
-  static std::unique_ptr<ChunkGeneratorSystem> create();
-
-public:
-  virtual void update(World& world) = 0;
-  virtual ~ChunkGeneratorSystem() = default;
-};
+std::unique_ptr<System> create_chunk_generator_system();
 
 #endif // SYSTEM_CHUNK_GENERATOR_HPP

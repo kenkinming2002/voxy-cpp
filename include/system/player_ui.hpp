@@ -1,20 +1,10 @@
 #ifndef SYSTEM_PLAYER_UI_HPP
 #define SYSTEM_PLAYER_UI_HPP
 
-#include <glm/fwd.hpp>
+#include <system.hpp>
 #include <memory>
-#include <stddef.h>
 
-struct World;
-class PlayerUISystem
-{
-public:
-  static std::unique_ptr<PlayerUISystem> create();
-
-public:
-  virtual void render(const World& world) = 0;
-  virtual ~PlayerUISystem() = default;
-};
+std::unique_ptr<System> create_player_ui_system();
 
 #endif // SYSTEM_PLAYER_UI_HPP
 

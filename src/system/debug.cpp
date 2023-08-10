@@ -12,24 +12,24 @@ static constexpr float       DEBUG_FONT_HEIGHT = 20.0f;
 
 static constexpr size_t DT_AVERAGE_COUNT = 32;
 
-class DebugSystemImpl : public DebugSystem
+class DebugSystem : public System
 {
 public:
-  DebugSystemImpl() : m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT)
+  DebugSystem() : m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT)
   {
     for(size_t i=0; i<DT_AVERAGE_COUNT; ++i)
       m_dts[i] = 0.0f;
   }
 
 private:
-  void update(float dt) override
+  void on_update(World& world, float dt) override
   {
     for(size_t i=0; i<DT_AVERAGE_COUNT-1; ++i)
       m_dts[i] = m_dts[i+1];
     m_dts[DT_AVERAGE_COUNT-1] = dt;
   }
 
-  void render(const World& world) override
+  void on_render(const World& world) override
   {
     // 1: Frame time
     float average = 0.0f;
@@ -100,9 +100,9 @@ private:
   float m_dts[DT_AVERAGE_COUNT];
 };
 
-std::unique_ptr<DebugSystem> DebugSystem::create()
+std::unique_ptr<System> create_debug_system()
 {
-  return std::make_unique<DebugSystemImpl>();
+  return std::make_unique<DebugSystem>();
 }
 
 

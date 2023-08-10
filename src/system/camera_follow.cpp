@@ -2,18 +2,18 @@
 
 #include <world.hpp>
 
-class CameraFollowSystemImpl : public CameraFollowSystem
+class CameraFollowSystem : public System
 {
 private:
-  void update(World& world, float dt) override
+  void on_update(World& world, float dt) override
   {
     world.camera.transform           = world.player.transform;
     world.camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
   }
 };
 
-std::unique_ptr<CameraFollowSystem> CameraFollowSystem::create()
+std::unique_ptr<System> create_camera_follow_system()
 {
-  return std::make_unique<CameraFollowSystemImpl>();
+  return std::make_unique<CameraFollowSystem>();
 }
 

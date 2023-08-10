@@ -6,10 +6,10 @@
 
 static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 100000;
 
-class LightSystemImpl : public LightSystem
+class LightSystem : public System
 {
 private:
-  void update(World& world) override
+  void on_update(World& world, float dt) override
   {
     for(unsigned i=0; i<LIGHTING_UPDATE_PER_FRAME; ++i)
     {
@@ -97,8 +97,8 @@ done:
   }
 };
 
-std::unique_ptr<LightSystem> LightSystem::create()
+std::unique_ptr<System> create_light_system()
 {
-  return std::make_unique<LightSystemImpl>();
+  return std::make_unique<LightSystem>();
 }
 
