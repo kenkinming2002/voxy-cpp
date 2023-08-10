@@ -4,18 +4,13 @@
 
 #include <unordered_set>
 
-static constexpr size_t LIGHTING_UPDATE_PER_FRAME = 100000;
-
 class LightSystem : public System
 {
 private:
   void on_update(World& world, float dt) override
   {
-    for(unsigned i=0; i<LIGHTING_UPDATE_PER_FRAME; ++i)
+    while(!world.dimension.pending_lighting_updates.empty())
     {
-      if(world.dimension.pending_lighting_updates.empty())
-        return;
-
       glm::ivec3 position = *world.dimension.pending_lighting_updates.begin();
       world.dimension.pending_lighting_updates.erase(world.dimension.pending_lighting_updates.begin());
 
