@@ -1,101 +1,89 @@
 #include <application.hpp>
 
-#include <system/chunk_generator.hpp>
-#include <system/chunk_mesher.hpp>
-#include <system/chunk_renderer.hpp>
-
-#include <system/light.hpp>
-#include <system/physics.hpp>
-
-#include <system/player_control.hpp>
-#include <system/player_ui.hpp>
-
-#include <system/camera_follow.hpp>
-
-#include <system/debug.hpp>
-
 #include <spdlog/spdlog.h>
+#include <glad/glad.h>
+#include <cstdlib>
 
-static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
+static constexpr const char* WINDOW_NAME   = "voxy";
+static constexpr unsigned    WINDOW_WIDTH  = 1024;
+static constexpr unsigned    WINDOW_HEIGHT = 720;
 
-Application::Application() :
-  m_running(true),
-  m_window("voxy", 1024, 720),
-  m_timer(),
-  m_world{
-    .seed = SEED,
-    .camera = {
-      .aspect = 1024.0f / 720.0f,
-      .fovy   = 45.0f,
-    },
-    .player = {
-      .transform = {
-        .position = glm::vec3(0.0f, 0.0f, 50.0f),
-        .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-      },
-      .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
-      .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
-    },
-    .dimension = {
-      .blocks_texture_array = TextureArray({
-          "assets/stone.png",
-          "assets/grass_bottom.png",
-          "assets/grass_side.png",
-          "assets/grass_top.png",
-          }),
-      .block_datas = {
-        { .texture_indices = {0, 0, 0, 0, 0, 0} },
-        { .texture_indices = {2, 2, 2, 2, 1, 3} },
-      },
-    },
-  }
+static void GLAPIENTRY message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-  m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_mesher_system());
-  m_systems.push_back(create_chunk_renderer_system());
-  m_systems.push_back(create_light_system());
-  m_systems.push_back(create_physics_system());
-  m_systems.push_back(create_player_control_system());
-  m_systems.push_back(create_player_ui_system());
-  m_systems.push_back(create_camera_follow_system());
-  m_systems.push_back(create_debug_system());
+  fprintf(stderr, "OpenGL Error: type = %u: %s\n", type, message);
+}
+
+Application::Application()
+{
+  if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
+  {
+    spdlog::error("Failed to initialize SDL2 {}", SDL_GetError());
+    std::exit(-1);
+  }
+
+  m_window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+  if(!m_window)
+  {
+    spdlog::error("Failed to create window {}", SDL_GetError());
+    std::exit(-1);
+  }
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+  m_gl_context = SDL_GL_CreateContext(m_window);
+  if(!m_gl_context)
+  {
+    spdlog::error("Failed to create OpenGL Context {}", SDL_GetError());
+    std::exit(-1);
+  }
+
+  if(!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+  {
+    spdlog::error("Failed to create Load OpenGL functions");
+    std::exit(-1);
+  }
+
+  glDebugMessageCallback(message_callback, 0);
+
+  glEnable(GL_LINE_SMOOTH);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_PACK_ALIGNMENT,   1);
+
+  m_previous_ticks = SDL_GetTicks();
+}
+
+Application::~Application()
+{
+  SDL_GL_DeleteContext(m_gl_context);
+  SDL_DestroyWindow(m_window);
 }
 
 void Application::run()
 {
-  while(m_running)
-    loop();
-}
-
-void Application::loop()
-{
-  // 1: Handle Events
-  while(auto event = m_window.poll_event())
+  for(;;)
   {
-    switch(event->type) {
-      case SDL_KEYDOWN:
-        if(event->key.keysym.sym == SDLK_ESCAPE)
-          m_running = false;
-        break;
-      case SDL_QUIT:
-        m_running = false;
-        break;
+    SDL_Event event;
+    while(SDL_PollEvent(&event)) {
+      if(event.type == SDL_QUIT)
+        return;
+      this->on_event(event);
     }
-    for(auto& system : m_systems)
-      system->on_event(m_world, *event);
+
+    Uint32 ticks = SDL_GetTicks();
+    float dt = (ticks - m_previous_ticks) / 1000.0f;
+    m_previous_ticks = ticks;
+
+    this->on_update(dt);
+    this->on_render();
+    SDL_GL_SwapWindow(m_window);
   }
-
-  // 2: Update
-  float dt = m_timer.tick();
-  for(auto& system : m_systems)
-    system->on_update(m_world, dt);
-
-  // 3: Render
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  for(auto& system : m_systems)
-    system->on_render(m_world);
-
-  m_window.swap_buffer();
 }
 

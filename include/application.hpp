@@ -1,33 +1,26 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include <timer.hpp>
-#include <window.hpp>
-
-#include <world.hpp>
-#include <system.hpp>
+#include <SDL.h>
 
 class Application
 {
 public:
   Application();
+  virtual ~Application();
 
 public:
   void run();
 
-private:
-  void loop();
+public:
+  virtual void on_event(SDL_Event event) = 0;
+  virtual void on_update(float dt)       = 0;
+  virtual void on_render()               = 0;
 
 private:
-  bool m_running;
-
-private:
-  Window m_window;
-  Timer  m_timer;
-
-private:
-  World  m_world;
-  std::vector<std::unique_ptr<System>> m_systems;
+  SDL_Window*   m_window;
+  SDL_GLContext m_gl_context;
+  Uint32        m_previous_ticks;
 };
 
 #endif // APPLICATION_HPP
