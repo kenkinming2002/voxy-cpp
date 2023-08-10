@@ -165,7 +165,7 @@ private:
             for(int lx=0; lx<Chunk::WIDTH; ++lx)
             {
               glm::ivec3 position = { lx, ly, lz };
-              world.lighting_invalidate(local_to_global(position, chunk_index));
+              world.invalidate_light(local_to_global(position, chunk_index));
             }
       }
   }

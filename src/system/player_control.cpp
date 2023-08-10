@@ -36,12 +36,12 @@ private:
                 if(block->presence)
                 {
                   block->presence = false;
-                  world.major_invalidate_mesh(*world.selection);
-                  world.lighting_invalidate(*world.selection);
+                  world.invalidate_mesh_major(*world.selection);
+                  world.invalidate_light(*world.selection);
                   for(glm::ivec3 direction : DIRECTIONS)
                   {
                     glm::ivec3 neighbour_position = *world.selection + direction;
-                    world.major_invalidate_mesh(neighbour_position);
+                    world.invalidate_mesh_major(neighbour_position);
                   }
                 }
             break;
@@ -57,12 +57,12 @@ private:
                   block->presence = true;
                   block->id       = Block::ID_STONE;
 
-                  world.major_invalidate_mesh(*world.placement);
-                  world.lighting_invalidate(*world.placement);
+                  world.invalidate_mesh_major(*world.placement);
+                  world.invalidate_light(*world.placement);
                   for(glm::ivec3 direction : DIRECTIONS)
                   {
                     glm::ivec3 neighbour_position = *world.placement + direction;
-                    world.major_invalidate_mesh(neighbour_position);
+                    world.invalidate_mesh_major(neighbour_position);
                   }
                 }
             break;

@@ -141,10 +141,10 @@ public:
   Block* get_block(glm::ivec3 position);
   const Block* get_block(glm::ivec3 position) const;
 
-  void major_invalidate_mesh(glm::ivec3 position);
-  void minor_invalidate_mesh(glm::ivec3 position);
+  void invalidate_mesh_major(glm::ivec3 position);
+  void invalidate_mesh_minor(glm::ivec3 position);
 
-  void lighting_invalidate(glm::ivec3 position);
+  void invalidate_light(glm::ivec3 position);
 };
 
 
