@@ -212,21 +212,36 @@ private:
       }
 
     for(int lz=0; lz<max_height; ++lz)
-    {
       for(int ly=0; ly<Chunk::WIDTH; ++ly)
         for(int lx=0; lx<Chunk::WIDTH; ++lx)
         {
           int height1 = chunk_info.stone_height_map.heights[ly][lx];
-          int height2 = chunk_info.stone_height_map.heights[ly][lx] + chunk_info.grass_height_map.heights[ly][lx];
+          int height2 = chunk_info.grass_height_map.heights[ly][lx];
           Block *block = chunk.get_block(glm::ivec3(lx, ly, lz));
           if(block) [[likely]]
           {
-            if(lz < height1)      *block = Block::STONE;
-            else if(lz < height2) *block = Block::GRASS;
-            else                  *block = Block::NONE;
+            if(lz < height1)
+            {
+              block->presence    = true;
+              block->id          = Block::ID_STONE;
+              block->light_level = 0;
+              block->sky         = false;
+            }
+            else if(lz < height1 + height2)
+            {
+              block->presence    = true;
+              block->id          = Block::ID_GRASS;
+              block->light_level = 0;
+              block->sky         = false;
+            }
+            else
+            {
+              block->presence    = false;
+              block->light_level = 15;
+              block->sky         = true;
+            }
           }
         }
-    }
 
     // 2: Carve out caves based off worms
     int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
