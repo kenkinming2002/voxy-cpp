@@ -71,7 +71,7 @@ private:
     for(int ly=0; ly<Chunk::WIDTH; ++ly)
       for(int lx=0; lx<Chunk::WIDTH; ++lx)
       {
-        glm::ivec2 position = local_to_global(glm::ivec2(lx, ly), chunk_index);
+        glm::ivec2 position = coordinates::local_to_global(glm::ivec2(lx, ly), chunk_index);
         height_map.heights[ly][lx] = perlin(seed, glm::vec2(position), frequency, amplitude, lacunarity, presistence, count);
       }
 
@@ -97,7 +97,7 @@ private:
       local_origin.x = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
       local_origin.y = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
       local_origin.z = std::uniform_real_distribution<float>(CAVE_WORM_MIN_HEIGHT, CAVE_WORM_MAX_HEIGHT)(prng);
-      glm::vec3 origin = local_to_global(local_origin, chunk_index);
+      glm::vec3 origin = coordinates::local_to_global(local_origin, chunk_index);
 
       glm::vec3 position = origin;
       for(unsigned i=0; i<CAVE_WORM_SEGMENT_MAX; ++i)
@@ -236,7 +236,7 @@ private:
         for(const Worm& worm : neighbour_chunk_info.worms)
           for(const Worm::Node& node : worm.nodes)
           {
-            glm::vec3  center  = global_to_local(node.center, chunk_index);
+            glm::vec3  center  = coordinates::global_to_local(node.center, chunk_index);
             float      radius  = node.radius;
             glm::ivec3 corner1 = glm::floor(glm::vec3(center) - glm::vec3(radius, radius, radius));
             glm::ivec3 corner2 = glm::ceil (glm::vec3(center) + glm::vec3(radius, radius, radius));

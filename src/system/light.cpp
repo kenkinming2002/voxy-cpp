@@ -59,7 +59,7 @@ private:
       for(auto& [chunk_index, chunk] : world.dimension.chunks)
       {
         for(glm::vec3 position : chunk.pending_lighting_updates)
-          items.push_back(Item{.position = local_to_global(position, chunk_index)});
+          items.push_back(Item{.position = coordinates::local_to_global(position, chunk_index)});
         chunk.pending_lighting_updates.clear();
       }
       if(items.empty())

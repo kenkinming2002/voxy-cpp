@@ -33,7 +33,7 @@ private:
       for(int ly=0; ly<Chunk::WIDTH; ++ly)
         for(int lx=0; lx<Chunk::WIDTH; ++lx)
         {
-          glm::ivec3   position = local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
+          glm::ivec3   position = coordinates::local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
           const Block* block    = world.get_block(position);
           if(block->id == Block::ID_NONE)
             continue;
