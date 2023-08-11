@@ -86,6 +86,17 @@ void Dimension::minor_invalidate_mesh(glm::ivec3 position)
 
 void Dimension::lighting_invalidate(glm::ivec3 position)
 {
-  pending_lighting_updates.insert(position);
+  glm::ivec3 local_position = {
+    modulo(position.x, Chunk::WIDTH),
+    modulo(position.y, Chunk::WIDTH),
+    position.z
+  };
+  glm::ivec2 chunk_index = {
+    (position.x - local_position.x) / Chunk::WIDTH,
+    (position.y - local_position.y) / Chunk::WIDTH,
+  };
+
+  if(auto it = chunks.find(chunk_index); it != chunks.end())
+    it->second.lighting_invalidate(local_position);
 }
 

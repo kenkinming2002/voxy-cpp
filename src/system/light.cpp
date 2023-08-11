@@ -1,6 +1,7 @@
 #include <system/light.hpp>
 
 #include <world.hpp>
+#include <coordinates.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -51,14 +52,18 @@ private:
       std::uint8_t new_light_level;
     };
 
-    while(!world.dimension.pending_lighting_updates.empty())
+    for(;;)
     {
       // 1: Prepare items
       std::vector<Item> items;
-      items.reserve(world.dimension.pending_lighting_updates.size());
-      for(glm::vec3 position : world.dimension.pending_lighting_updates)
-        items.push_back(Item{.position = position});
-      world.dimension.pending_lighting_updates.clear();
+      for(auto& [chunk_index, chunk] : world.dimension.chunks)
+      {
+        for(glm::vec3 position : chunk.pending_lighting_updates)
+          items.push_back(Item{.position = local_to_global(position, chunk_index)});
+        chunk.pending_lighting_updates.clear();
+      }
+      if(items.empty())
+        break;
 
       // 2: Update
 #pragma omp parallel for

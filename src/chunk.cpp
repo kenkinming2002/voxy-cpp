@@ -39,3 +39,7 @@ void Chunk::explode(glm::vec3 center, float radius)
 void Chunk::major_invalidate_mesh() { mesh_invalidated_major = true; }
 void Chunk::minor_invalidate_mesh() { mesh_invalidated_minor = true; }
 
+void Chunk::lighting_invalidate(glm::ivec3 position)
+{
+  pending_lighting_updates.insert(position);
+}
