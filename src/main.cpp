@@ -4,7 +4,6 @@
 #include <system.hpp>
 
 #include <system/chunk_generator.hpp>
-#include <system/chunk_mesher.hpp>
 #include <system/chunk_renderer.hpp>
 
 #include <system/light.hpp>
@@ -66,7 +65,6 @@ Voxy::Voxy() :
   }
 {
   m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_mesher_system());
   m_systems.push_back(create_chunk_renderer_system());
   m_systems.push_back(create_light_system());
   m_systems.push_back(create_physics_system());

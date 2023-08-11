@@ -59,7 +59,6 @@ public:
 
 public:
   std::unique_ptr<ChunkData> data;
-  std::unique_ptr<graphics::Mesh> mesh;
 
   bool     mesh_invalidated_major;
   bool     mesh_invalidated_minor;

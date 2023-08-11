@@ -8,4 +8,3 @@ std::unique_ptr<System> create_chunk_renderer_system();
 
 #endif // SYSTEM_CHUNK_RENDERER_HPP
 
-

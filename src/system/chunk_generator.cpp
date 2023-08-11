@@ -259,6 +259,9 @@ private:
       {
         ChunkData chunk_data = do_generate_chunk(world.seed, chunk_index);
         world.dimension.chunks[chunk_index].data = std::make_unique<ChunkData>(chunk_data);
+        world.dimension.chunks[chunk_index].mesh_invalidated_major = true;
+        world.dimension.chunks[chunk_index].mesh_invalidated_minor = false;
+        world.dimension.chunks[chunk_index].last_remash_tick       = SDL_GetTicks();
         commit_generate_chunk(world, chunk_index);
 
         spdlog::info("End generating chunk data at {}, {}", chunk_index.x, chunk_index.y);

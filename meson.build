@@ -30,7 +30,6 @@ voxy_exe = executable('voxy', [
     'src/graphics/texture_array.cpp',
     'src/graphics/shader_program.cpp',
     'src/system/chunk_generator.cpp',
-    'src/system/chunk_mesher.cpp',
     'src/system/chunk_renderer.cpp',
     'src/system/light.cpp',
     'src/system/physics.cpp',
