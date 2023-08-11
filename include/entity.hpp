@@ -6,10 +6,17 @@
 
 struct Entity
 {
+public:
   Transform transform;
 
   glm::vec3 velocity;
   glm::vec3 bounding_box;
   bool      collided;
+
+public:
+  void apply_force(glm::vec3 force, float dt)
+  {
+    velocity += dt * force;
+  }
 };
 
