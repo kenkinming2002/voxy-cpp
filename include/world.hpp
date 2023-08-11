@@ -36,16 +36,3 @@ public:
   void invalidate_light(glm::ivec3 position);
 };
 
-
-/***********
- * Helpers *
- ***********/
-static constexpr glm::ivec3 DIRECTIONS[] = {
-  {-1, 0, 0},
-  { 1, 0, 0},
-  {0, -1, 0},
-  {0,  1, 0},
-  {0, 0, -1},
-  {0, 0,  1},
-};
-

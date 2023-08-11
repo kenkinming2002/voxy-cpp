@@ -2,6 +2,7 @@
 
 #include <world.hpp>
 #include <coordinates.hpp>
+#include <directions.hpp>
 
 #include <spdlog/spdlog.h>
 

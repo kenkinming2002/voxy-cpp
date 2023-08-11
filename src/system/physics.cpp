@@ -1,6 +1,7 @@
 #include <system/physics.hpp>
 
 #include <world.hpp>
+#include <directions.hpp>
 
 #include <optional>
 #include <unordered_set>

@@ -2,6 +2,7 @@
 
 #include <world.hpp>
 #include <coordinates.hpp>
+#include <directions.hpp>
 
 #include <graphics/shader_program.hpp>
 #include <graphics/mesh.hpp>
