@@ -53,11 +53,11 @@ private:
   template<typename Prng>
   static std::vector<HeightMap> generate_height_maps(Prng& prng, const TerrainConfig& config, glm::ivec2 chunk_index)
   {
-    size_t seed = prng();
-
     std::vector<HeightMap> height_maps;
     for(const TerrainLayerConfig& terrain_layer_config : config.layers)
     {
+      size_t seed = prng();
+
       HeightMap height_map;
       for(int y=0; y<Chunk::WIDTH; ++y)
         for(int x=0; x<Chunk::WIDTH; ++x)
