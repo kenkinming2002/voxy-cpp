@@ -1,8 +1,8 @@
 #include <system/chunk_generator.hpp>
 
-#include <world.hpp>
-
+#include <coordinates.hpp>
 #include <perlin.hpp>
+#include <world.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -10,13 +10,9 @@
 #include <glm/gtx/hash.hpp>
 #include <glm/gtx/norm.hpp>
 
-#include <unordered_set>
 #include <unordered_map>
 
-#include <condition_variable>
-#include <shared_mutex>
-#include <thread>
-
+#include <future>
 #include <random>
 
 template <class T>

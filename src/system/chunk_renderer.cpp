@@ -1,6 +1,7 @@
 #include <system/chunk_renderer.hpp>
 
 #include <world.hpp>
+#include <coordinates.hpp>
 
 #include <graphics/shader_program.hpp>
 #include <graphics/mesh.hpp>
