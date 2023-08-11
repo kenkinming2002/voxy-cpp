@@ -191,9 +191,9 @@ private:
     return success;
   }
 
-  ChunkData do_generate_chunk(std::size_t seed, glm::ivec2 chunk_index)
+  Chunk do_generate_chunk(std::size_t seed, glm::ivec2 chunk_index)
   {
-    ChunkData chunk_data = {};
+    Chunk chunk = {};
 
     const ChunkInfo& chunk_info = m_chunk_infos.at(chunk_index);
 
@@ -204,7 +204,7 @@ private:
         {
           int height1 = chunk_info.stone_height_map.heights[ly][lx];
           int height2 = chunk_info.grass_height_map.heights[ly][lx];
-          Block *block = chunk_data.get_block(glm::ivec3(lx, ly, lz));
+          Block *block = chunk.get_block(glm::ivec3(lx, ly, lz));
           if(block) [[likely]]
           {
             if(lz < height1)
@@ -238,10 +238,13 @@ private:
         const ChunkInfo& neighbour_chunk_info  = m_chunk_infos.at(glm::ivec2(x, y));
         for(const Worm& worm : neighbour_chunk_info.worms)
           for(const Worm::Node& node : worm.nodes)
-            chunk_data.explode(global_to_local(node.center, chunk_index), node.radius);
+            chunk.explode(global_to_local(node.center, chunk_index), node.radius);
       }
 
-    return chunk_data;
+    chunk.mesh_invalidated_major = true;
+    chunk.mesh_invalidated_minor = false;
+    chunk.last_remash_tick       = SDL_GetTicks();
+    return chunk;
   }
 
   void commit_generate_chunk(World& world, glm::ivec2 chunk_index)
@@ -254,14 +257,14 @@ private:
 
   void load(World& world, glm::ivec2 chunk_index)
   {
-    if(!world.dimension.chunks[chunk_index].data)
+    if(!world.dimension.chunks.contains(chunk_index))
       if(prepare_generate_chunk(world.seed, chunk_index))
       {
-        ChunkData chunk_data = do_generate_chunk(world.seed, chunk_index);
-        world.dimension.chunks[chunk_index].data = std::make_unique<ChunkData>(chunk_data);
-        world.dimension.chunks[chunk_index].mesh_invalidated_major = true;
-        world.dimension.chunks[chunk_index].mesh_invalidated_minor = false;
-        world.dimension.chunks[chunk_index].last_remash_tick       = SDL_GetTicks();
+        Chunk chunk = do_generate_chunk(world.seed, chunk_index);
+
+        auto [_, success] = world.dimension.chunks.emplace(chunk_index, chunk);
+        assert(success);
+
         commit_generate_chunk(world, chunk_index);
 
         spdlog::info("End generating chunk data at {}, {}", chunk_index.x, chunk_index.y);

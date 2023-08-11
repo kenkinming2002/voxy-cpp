@@ -92,17 +92,16 @@ private:
   void on_update(World& world, float dt) override
   {
     for(auto& [chunk_index, chunk] : world.dimension.chunks)
-      if(chunk.data)
+    {
+      uint32_t tick = SDL_GetTicks();
+      if(chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
       {
-        uint32_t tick = SDL_GetTicks();
-        if(chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
-        {
-          chunk.mesh_invalidated_major = false;
-          chunk.mesh_invalidated_minor = false;
-          chunk.last_remash_tick = tick;
-          m_chunk_meshes.insert_or_assign(chunk_index, generate_chunk_mesh(world, chunk_index, chunk));
-        }
+        chunk.mesh_invalidated_major = false;
+        chunk.mesh_invalidated_minor = false;
+        chunk.last_remash_tick = tick;
+        m_chunk_meshes.insert_or_assign(chunk_index, generate_chunk_mesh(world, chunk_index, chunk));
       }
+    }
   }
 
   void on_render(const World& world) override
