@@ -194,22 +194,22 @@ private:
     const ChunkInfo& chunk_info = m_chunk_infos.at(chunk_index);
 
     // 1: Create terrain based on height maps
-    for(int lz=0; lz<Chunk::HEIGHT; ++lz)
-      for(int ly=0; ly<Chunk::WIDTH; ++ly)
-        for(int lx=0; lx<Chunk::WIDTH; ++lx)
+    for(int z=0; z<Chunk::HEIGHT; ++z)
+      for(int y=0; y<Chunk::WIDTH; ++y)
+        for(int x=0; x<Chunk::WIDTH; ++x)
         {
-          int height1 = chunk_info.stone_height_map.heights[ly][lx];
-          int height2 = chunk_info.grass_height_map.heights[ly][lx];
-          Block *block = chunk.get_block(glm::ivec3(lx, ly, lz));
+          int height1 = chunk_info.stone_height_map.heights[y][x];
+          int height2 = chunk_info.grass_height_map.heights[y][x];
+          Block *block = chunk.get_block(glm::ivec3(x, y, z));
           if(block) [[likely]]
           {
-            if(lz < height1)
+            if(z < height1)
             {
               block->id          = Block::ID_STONE;
               block->light_level = 0;
               block->sky         = false;
             }
-            else if(lz < height1 + height2)
+            else if(z < height1 + height2)
             {
               block->id          = Block::ID_GRASS;
               block->light_level = 0;
@@ -225,30 +225,43 @@ private:
         }
 
     // 2: Carve out caves based off worms
+    glm::ivec2 center  = chunk_index;
     int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
-    glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
-    glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
+    glm::ivec2 corner1 = center - glm::ivec2(radius, radius);
+    glm::ivec2 corner2 = center + glm::ivec2(radius, radius);
     for(int y = corner1.y; y <= corner2.y; ++y)
       for(int x = corner1.x; x <= corner2.x; ++x)
       {
         const ChunkInfo& neighbour_chunk_info  = m_chunk_infos.at(glm::ivec2(x, y));
         for(const Worm& worm : neighbour_chunk_info.worms)
           for(const Worm::Node& node : worm.nodes)
-            chunk.explode(global_to_local(node.center, chunk_index), node.radius);
+          {
+            glm::vec3  center  = global_to_local(node.center, chunk_index);
+            float      radius  = node.radius;
+            glm::ivec3 corner1 = glm::floor(glm::vec3(center) - glm::vec3(radius, radius, radius));
+            glm::ivec3 corner2 = glm::ceil (glm::vec3(center) + glm::vec3(radius, radius, radius));
+            for(int z = corner1.z; z<=corner2.z; ++z)
+              for(int y = corner1.y; y<=corner2.y; ++y)
+                for(int x = corner1.x; x<=corner2.x; ++x)
+                {
+                  glm::ivec3 position(x, y, z);
+                  if(glm::length2(glm::vec3(position) - center) < radius * radius)
+                    if(Block* block = chunk.get_block(position))
+                    {
+                      block->id          = Block::ID_NONE;
+                      block->light_level = 0;
+                      block->sky         = false;
+                      chunk.pending_lighting_updates.insert(position);
+                    }
+                }
+          }
       }
 
     chunk.mesh_invalidated_major = true;
     chunk.mesh_invalidated_minor = false;
     chunk.last_remash_tick       = SDL_GetTicks();
-    return chunk;
-  }
 
-  void commit_generate_chunk(World& world, glm::ivec2 chunk_index)
-  {
-    for(int z=0; z<Chunk::HEIGHT; ++z)
-      for(int y=0; y<Chunk::WIDTH; ++y)
-        for(int x=0; x<Chunk::WIDTH; ++x)
-          world.invalidate_light(local_to_global(glm::ivec3(x, y, z), chunk_index));
+    return chunk;
   }
 
   void load(World& world, glm::ivec2 chunk_index)
@@ -258,10 +271,8 @@ private:
       {
         Chunk chunk = do_generate_chunk(world.seed, chunk_index);
 
-        auto [_, success] = world.dimension.chunks.emplace(chunk_index, chunk);
+        auto [_, success] = world.dimension.chunks.emplace(chunk_index, std::move(chunk));
         assert(success);
-
-        commit_generate_chunk(world, chunk_index);
 
         spdlog::info("End generating chunk data at {}, {}", chunk_index.x, chunk_index.y);
       }
