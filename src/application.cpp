@@ -78,10 +78,15 @@ void Application::run()
     }
 
     Uint32 ticks = SDL_GetTicks();
-    float dt = (ticks - m_previous_ticks) / 1000.0f;
+    m_accumulated_dt += (ticks - m_previous_ticks) / 1000.0f;
     m_previous_ticks = ticks;
 
-    this->on_update(dt);
+    if(m_accumulated_dt >= FIXED_DT)
+    {
+      m_accumulated_dt -= FIXED_DT;
+      this->on_update(FIXED_DT);
+    }
+
     this->on_render();
     SDL_GL_SwapWindow(m_window);
   }

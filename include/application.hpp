@@ -6,6 +6,9 @@
 class Application
 {
 public:
+  static constexpr float FIXED_DT = 1.0f / 20.0f;
+
+public:
   Application();
   virtual ~Application();
 
@@ -20,7 +23,9 @@ public:
 private:
   SDL_Window*   m_window;
   SDL_GLContext m_gl_context;
-  Uint32        m_previous_ticks;
+
+  Uint32  m_previous_ticks;
+  float   m_accumulated_dt;
 };
 
 #endif // APPLICATION_HPP
