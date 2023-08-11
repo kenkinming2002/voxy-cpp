@@ -52,18 +52,7 @@ Voxy::Voxy() :
       .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
       .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
     },
-    .dimension = {
-      .blocks_texture_array = graphics::TextureArray({
-          "assets/stone.png",
-          "assets/grass_bottom.png",
-          "assets/grass_side.png",
-          "assets/grass_top.png",
-          }),
-      .block_datas = {
-        { .texture_indices = {0, 0, 0, 0, 0, 0} },
-        { .texture_indices = {2, 2, 2, 2, 1, 3} },
-      },
-    },
+    .dimension = {},
   }
 {
   m_systems.push_back(create_chunk_generator_system());

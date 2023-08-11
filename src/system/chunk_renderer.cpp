@@ -15,10 +15,22 @@ private:
   static constexpr float REMASH_THROTTLE = 5.0f;
 
 public:
-  ChunkRendererSystem() : m_shader_program("assets/chunk.vert", "assets/chunk.frag") {}
+  ChunkRendererSystem() :
+    m_shader_program("assets/chunk.vert", "assets/chunk.frag"),
+    m_blocks_texture_array({
+      "assets/stone.png",
+      "assets/grass_bottom.png",
+      "assets/grass_side.png",
+      "assets/grass_top.png",
+    }),
+    m_block_datas{
+      { .texture_indices = {0, 0, 0, 0, 0, 0} },
+      { .texture_indices = {2, 2, 2, 2, 1, 3} },
+    }
+  {}
 
 private:
-  static graphics::Mesh generate_chunk_mesh(const World& world, glm::ivec2 chunk_index, const Chunk& chunk)
+  graphics::Mesh generate_chunk_mesh(const World& world, glm::ivec2 chunk_index, const Chunk& chunk) const
   {
     struct Vertex
     {
@@ -61,7 +73,7 @@ private:
             glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
             glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-            const BlockData& block_data = world.dimension.block_datas.at(block->id);
+            const BlockData& block_data = m_block_datas.at(block->id);
             uint32_t texture_index = block_data.texture_indices[i];
             float    light_level   = (neighbour_block ? neighbour_block->light_level : 15) / 16.0f;
 
@@ -117,7 +129,7 @@ private:
     glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, world.dimension.blocks_texture_array.id());
+    glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
     glUniform1i(glGetUniformLocation(m_shader_program.id(), "blocksTextureArray"), 0);
     for(const auto& [chunk_index, mesh] : m_chunk_meshes)
         mesh.draw_triangles();
@@ -126,6 +138,9 @@ private:
 
 private:
   graphics::ShaderProgram m_shader_program;
+  graphics::TextureArray  m_blocks_texture_array;
+  std::vector<BlockData>  m_block_datas;
+
   std::unordered_map<glm::ivec2, graphics::Mesh> m_chunk_meshes;
 };
 

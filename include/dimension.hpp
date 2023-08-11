@@ -19,9 +19,6 @@ struct BlockData
 struct Dimension
 {
 public:
-  graphics::TextureArray blocks_texture_array;
-  std::vector<BlockData> block_datas;
-
   std::unordered_map<glm::ivec2, Chunk> chunks;
 
 public:
