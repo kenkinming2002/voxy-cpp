@@ -18,6 +18,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <cxxabi.h>
+
 static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
 
 class Voxy : public Application
@@ -83,7 +85,25 @@ void Voxy::on_event(SDL_Event event)
 void Voxy::on_update(float dt)
 {
   for(auto& system : m_systems)
+  {
+    Uint32 ticks_begin = SDL_GetTicks();
     system->on_update(m_world, dt);
+    Uint32 ticks_end = SDL_GetTicks();
+    Uint32 time = ticks_end - ticks_begin;
+
+    const std::type_info& type_info = typeid(*system);
+
+    int status;
+    const char* type_name = abi::__cxa_demangle(type_info.name(), NULL, NULL, &status);
+    if(time <= 25)
+      spdlog::trace("Updating {} takes {} ms", type_name, time);
+    else if(time <= 50)
+      spdlog::info("Updating {} takes {} ms", type_name, time);
+    else
+      spdlog::warn("Updating {} takes {} ms", type_name, time);
+
+    std::free((void*)type_name);
+  }
 }
 
 void Voxy::on_render()
