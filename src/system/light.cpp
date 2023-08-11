@@ -2,6 +2,8 @@
 
 #include <world.hpp>
 
+#include <spdlog/spdlog.h>
+
 #include <unordered_set>
 
 class LightSystem : public System
@@ -41,34 +43,57 @@ private:
 
   void on_update(World& world, float dt) override
   {
+    struct Item
+    {
+      glm::ivec3   position;
+      Block*       block;
+      std::uint8_t new_sky;
+      std::uint8_t new_light_level;
+    };
+
     while(!world.dimension.pending_lighting_updates.empty())
     {
-      glm::ivec3 position = *world.dimension.pending_lighting_updates.begin();
-      world.dimension.pending_lighting_updates.erase(world.dimension.pending_lighting_updates.begin());
+      // 1: Prepare items
+      std::vector<Item> items;
+      items.reserve(world.dimension.pending_lighting_updates.size());
+      for(glm::vec3 position : world.dimension.pending_lighting_updates)
+        items.push_back(Item{.position = position});
+      world.dimension.pending_lighting_updates.clear();
 
-      Block* block = world.dimension.get_block(position);
-      if(!block)
-        continue;
-
-      auto [new_sky, new_light_level] = compute_block_sky_and_light_level(world, position, block);
-      if(block->sky != new_sky)
+      // 2: Update
+#pragma omp parallel for
+      for(Item& item : items)
       {
-        block->sky = new_sky;
+        item.block = world.dimension.get_block(item.position);
+        if(!item.block)
+          continue;
 
-        glm::ivec3 neighbour_position = position + glm::ivec3(0, 0, -1);
-        world.dimension.lighting_invalidate(neighbour_position);
+        std::tie(item.new_sky, item.new_light_level) = compute_block_sky_and_light_level(world, item.position, item.block);
       }
 
-      if(block->light_level != new_light_level)
-      {
-        block->light_level = new_light_level;
-        for(glm::ivec3 direction : DIRECTIONS)
+      // 3: Commit
+      for(Item& item : items)
+        if(item.block)
         {
-          glm::ivec3 neighbour_position = position + direction;
-          world.dimension.minor_invalidate_mesh(neighbour_position);
-          world.dimension.lighting_invalidate(neighbour_position);
+          if(item.block->sky != item.new_sky)
+          {
+            item.block->sky = item.new_sky;
+
+            glm::ivec3 neighbour_position = item.position + glm::ivec3(0, 0, -1);
+            world.dimension.lighting_invalidate(neighbour_position);
+          }
+
+          if(item.block->light_level != item.new_light_level)
+          {
+            item.block->light_level = item.new_light_level;
+            for(glm::ivec3 direction : DIRECTIONS)
+            {
+              glm::ivec3 neighbour_position = item.position + direction;
+              world.dimension.minor_invalidate_mesh(neighbour_position);
+              world.dimension.lighting_invalidate(neighbour_position);
+            }
+          }
         }
-      }
     }
   }
 };

@@ -17,6 +17,7 @@ freetype2_dep = dependency('freetype2')
 glm_dep = dependency('glm')
 fmt_dep = dependency('fmt')
 spdlog_dep = dependency('spdlog')
+openmp_dep = dependency('openmp')
 
 voxy_exe = executable('voxy', [
     'src/camera.cpp',
@@ -39,5 +40,5 @@ voxy_exe = executable('voxy', [
     'src/system/debug.cpp',
   ],
   include_directories : 'include',
-  dependencies : [external_dep, sdl2_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep]
+  dependencies : [external_dep, sdl2_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep, openmp_dep]
 )
