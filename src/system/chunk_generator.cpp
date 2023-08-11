@@ -27,17 +27,6 @@ class ChunkGeneratorSystem : public System
 private:
   static constexpr int CHUNK_LOAD_RADIUS = 2;
 
-  static constexpr int CAVE_WORM_MAX = 2;
-  static constexpr int CAVE_WORM_SEGMENT_MAX = 10;
-
-  static constexpr float CAVE_WORM_MIN_HEIGHT = 10.0;
-  static constexpr float CAVE_WORM_MAX_HEIGHT = 30.0;
-
-  static constexpr float CAVE_WORM_MIN_RADIUS = 2.0;
-  static constexpr float CAVE_WORM_MAX_RADIUS = 5.0;
-
-  static constexpr float CAVE_WORM_STEP = 5.0f;
-
 private:
   struct HeightMap
   {
@@ -56,30 +45,36 @@ private:
 
   struct ChunkInfo
   {
-    HeightMap         stone_height_map;
-    HeightMap         grass_height_map;
-    std::vector<Worm> worms;
+    std::vector<HeightMap> height_maps;
+    std::vector<Worm>      worms;
   };
 
 private:
   template<typename Prng>
-  static HeightMap generate_height_map(Prng& prng, glm::ivec2 chunk_index, float frequency, float amplitude, float lacunarity, float presistence, unsigned count)
+  static std::vector<HeightMap> generate_height_maps(Prng& prng, const TerrainConfig& config, glm::ivec2 chunk_index)
   {
     size_t seed = prng();
 
-    HeightMap height_map;
-    for(int ly=0; ly<Chunk::WIDTH; ++ly)
-      for(int lx=0; lx<Chunk::WIDTH; ++lx)
-      {
-        glm::ivec2 position = coordinates::local_to_global(glm::ivec2(lx, ly), chunk_index);
-        height_map.heights[ly][lx] = perlin(seed, glm::vec2(position), frequency, amplitude, lacunarity, presistence, count);
-      }
-
-    return height_map;
+    std::vector<HeightMap> height_maps;
+    for(const TerrainLayerConfig& terrain_layer_config : config.layers)
+    {
+      HeightMap height_map;
+      for(int y=0; y<Chunk::WIDTH; ++y)
+        for(int x=0; x<Chunk::WIDTH; ++x)
+          height_map.heights[y][x] = perlin(seed, coordinates::local_to_global(glm::vec2(x, y), chunk_index),
+              terrain_layer_config.frequency,
+              terrain_layer_config.amplitude,
+              terrain_layer_config.lacunarity,
+              terrain_layer_config.persistence,
+              terrain_layer_config.octaves
+          );
+      height_maps.push_back(height_map);
+    }
+    return height_maps;
   }
 
   template<typename Prng>
-  static std::vector<Worm> generate_worms(Prng& prng, glm::ivec2 chunk_index)
+  static std::vector<Worm> generate_worms(Prng& prng, const CavesConfig& config, glm::ivec2 chunk_index)
   {
     size_t seed_x      = prng();
     size_t seed_y      = prng() ;
@@ -88,7 +83,7 @@ private:
 
     std::vector<Worm> worms;
 
-    int worm_count = std::uniform_int_distribution<int>(0, CAVE_WORM_MAX)(prng);
+    int worm_count = std::uniform_int_distribution<int>(0, config.max_per_chunk)(prng);
     for(int i=0; i<worm_count; ++i)
     {
       Worm worm;
@@ -96,29 +91,33 @@ private:
       glm::vec3 local_origin;
       local_origin.x = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
       local_origin.y = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
-      local_origin.z = std::uniform_real_distribution<float>(CAVE_WORM_MIN_HEIGHT, CAVE_WORM_MAX_HEIGHT)(prng);
+      local_origin.z = std::uniform_real_distribution<float>(config.min_height, config.max_height)(prng);
       glm::vec3 origin = coordinates::local_to_global(local_origin, chunk_index);
 
       glm::vec3 position = origin;
-      for(unsigned i=0; i<CAVE_WORM_SEGMENT_MAX; ++i)
+      for(unsigned i=0; i<config.max_segment; ++i)
       {
-        // TODO: Consider implementing overloads of perlin noise that allow specifying min/max
-
         // 1: Record the node
         Worm::Node node;
         node.center = position;
-        node.radius = CAVE_WORM_MIN_RADIUS + perlin(seed_radius, position, 0.1f, CAVE_WORM_MAX_RADIUS-CAVE_WORM_MIN_RADIUS, 2.0f, 0.5f, 1);
+        node.radius = config.radius + perlin(seed_radius, position,
+          config.radius_frequency,
+          config.radius_amplitude,
+          config.radius_lacunarity,
+          config.radius_persistence,
+          config.radius_octaves
+        );
         worm.nodes.push_back(node);
 
         // 2: Advance the worm
         glm::vec3 direction;
-        direction.x = perlin(seed_x, position, 0.1f, 1.0f, 2.0f, 0.5f, 4) - 1.0f;
-        direction.y = perlin(seed_y, position, 0.1f, 1.0f, 2.0f, 0.5f, 4) - 1.0f;
-        direction.z = perlin(seed_z, position, 0.1f, 1.0f, 2.0f, 0.5f, 4) - 1.0f;
+        direction.x = perlin(seed_x, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves) - 1.0f;
+        direction.y = perlin(seed_y, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves) - 1.0f;
+        direction.z = perlin(seed_z, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves) - 1.0f;
         if(glm::length2(direction) < 1e-4)
           direction = glm::vec3(0.0f, 0.0f, 1.0f);
 
-        position += CAVE_WORM_STEP * glm::normalize(direction);
+        position += config.step * glm::normalize(direction);
       }
 
       worms.push_back(std::move(worm));
@@ -128,20 +127,18 @@ private:
   }
 
   template<typename Prng>
-  static ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, glm::ivec2 chunk_index)
+  static ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, const WorldConfig& config, glm::ivec2 chunk_index)
   {
-    HeightMap         stone_height_map = generate_height_map(prng_global, chunk_index, 0.03f, 40.0f, 2.0f, 0.5f, 4);
-    HeightMap         grass_height_map = generate_height_map(prng_global, chunk_index, 0.01f, 5.0f,  2.0f, 0.5f, 2);
-    std::vector<Worm> worms            = generate_worms     (prng_local, chunk_index);
+    std::vector<HeightMap> height_maps = generate_height_maps(prng_global, config.terrain, chunk_index);
+    std::vector<Worm>      worms       = generate_worms(prng_local, config.caves, chunk_index);
 
     return ChunkInfo {
-      .stone_height_map = std::move(stone_height_map),
-      .grass_height_map = std::move(grass_height_map),
-      .worms            = std::move(worms),
+      .height_maps = std::move(height_maps),
+      .worms       = std::move(worms),
     };
   }
 
-  const ChunkInfo *try_generate_chunk_info(std::size_t seed, glm::ivec2 chunk_index)
+  const ChunkInfo *try_generate_chunk_info(const WorldConfig& config, glm::ivec2 chunk_index)
   {
     if(auto it = m_chunk_infos.find(chunk_index); it != m_chunk_infos.end())
       return &it->second;
@@ -162,9 +159,9 @@ private:
     }
 
     std::future<ChunkInfo> chunk_info_future = std::async(std::launch::async, [=]() {
-      std::mt19937 prng_global(seed);
-      std::mt19937 prng_local(hash_combine(seed, chunk_index));
-      return generate_chunk_info(prng_global, prng_local, chunk_index);
+      std::mt19937 prng_global(config.seed);
+      std::mt19937 prng_local(hash_combine(config.seed, chunk_index));
+      return generate_chunk_info(prng_global, prng_local, config, chunk_index);
     });
 
     auto [it, success] = m_chunk_info_futures.emplace(chunk_index, std::move(chunk_info_future));
@@ -172,22 +169,22 @@ private:
     return nullptr;
   }
 
-  bool prepare_generate_chunk(std::size_t seed, glm::ivec2 chunk_index)
+  bool prepare_generate_chunk(const WorldConfig& config, glm::ivec2 chunk_index)
   {
     bool success = true;
 
-    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
+    int        radius  = std::ceil(config.caves.max_segment * config.caves.step / Chunk::WIDTH);
     glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
     glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
     for(int y = corner1.y; y <= corner2.y; ++y)
       for(int x = corner1.x; x <= corner2.x; ++x)
-        if(glm::ivec2 chunk_index = glm::ivec2(x, y); !try_generate_chunk_info(seed, chunk_index))
+        if(glm::ivec2 chunk_index = glm::ivec2(x, y); !try_generate_chunk_info(config, chunk_index))
           success = false;
 
     return success;
   }
 
-  Chunk do_generate_chunk(std::size_t seed, glm::ivec2 chunk_index)
+  Chunk do_generate_chunk(const WorldConfig& config, glm::ivec2 chunk_index)
   {
     Chunk chunk = {};
 
@@ -198,35 +195,34 @@ private:
       for(int y=0; y<Chunk::WIDTH; ++y)
         for(int x=0; x<Chunk::WIDTH; ++x)
         {
-          int height1 = chunk_info.stone_height_map.heights[y][x];
-          int height2 = chunk_info.grass_height_map.heights[y][x];
           Block *block = chunk.get_block(glm::ivec3(x, y, z));
-          if(block) [[likely]]
+          if(!block) [[unlikely]]
+            continue;
+
+          float height = 0.0f;
+          for(size_t i=0; i<chunk_info.height_maps.size(); ++i)
           {
-            if(z < height1)
+            const HeightMap& height_map = chunk_info.height_maps[i];
+
+            height += height_map.heights[y][x];
+            if(z < height)
             {
-              block->id          = Block::ID_STONE;
+              block->id          = config.terrain.layers[i].block_id;
               block->light_level = 0;
               block->sky         = false;
-            }
-            else if(z < height1 + height2)
-            {
-              block->id          = Block::ID_GRASS;
-              block->light_level = 0;
-              block->sky         = false;
-            }
-            else
-            {
-              block->id          = Block::ID_NONE;
-              block->light_level = 15;
-              block->sky         = true;
+              goto done;
             }
           }
+
+          block->id          = Block::ID_NONE;
+          block->light_level = 15;
+          block->sky         = true;
+done:;
         }
 
     // 2: Carve out caves based off worms
     glm::ivec2 center  = chunk_index;
-    int        radius  = std::ceil(CAVE_WORM_SEGMENT_MAX * CAVE_WORM_STEP / Chunk::WIDTH);
+    int        radius  = std::ceil(config.caves.max_segment * config.caves.step / Chunk::WIDTH);
     glm::ivec2 corner1 = center - glm::ivec2(radius, radius);
     glm::ivec2 corner2 = center + glm::ivec2(radius, radius);
     for(int y = corner1.y; y <= corner2.y; ++y)
@@ -267,9 +263,9 @@ private:
   void load(World& world, glm::ivec2 chunk_index)
   {
     if(!world.dimension.chunks.contains(chunk_index))
-      if(prepare_generate_chunk(world.seed, chunk_index))
+      if(prepare_generate_chunk(world.config, chunk_index))
       {
-        Chunk chunk = do_generate_chunk(world.seed, chunk_index);
+        Chunk chunk = do_generate_chunk(world.config, chunk_index);
 
         auto [_, success] = world.dimension.chunks.emplace(chunk_index, std::move(chunk));
         assert(success);

@@ -14,10 +14,56 @@
 
 #include <cstddef>
 
+struct TerrainLayerConfig
+{
+  uint32_t block_id;
+
+  float    frequency;
+  float    amplitude;
+  float    lacunarity;
+  float    persistence;
+  unsigned octaves;
+};
+
+struct TerrainConfig
+{
+  std::vector<TerrainLayerConfig> layers;
+};
+
+struct CavesConfig
+{
+  unsigned max_per_chunk;
+  unsigned max_segment;
+  float    step;
+
+  float min_height;
+  float max_height;
+
+  float dig_frequency;
+  float dig_amplitude;
+  float dig_lacunarity;
+  float dig_persistence;
+  float dig_octaves;
+
+  float radius;
+  float radius_frequency;
+  float radius_amplitude;
+  float radius_lacunarity;
+  float radius_persistence;
+  float radius_octaves;
+};
+
+struct WorldConfig
+{
+  std::size_t   seed;
+  TerrainConfig terrain;
+  CavesConfig   caves;
+};
+
 struct World
 {
 public:
-  std::size_t seed;
+  WorldConfig config;
 
   Camera    camera;
   Entity    player;
