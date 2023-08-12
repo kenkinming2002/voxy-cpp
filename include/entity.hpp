@@ -11,12 +11,19 @@ public:
 
   glm::vec3 velocity;
   glm::vec3 bounding_box;
-  bool      collided;
+
+  bool collided;
+  bool grounded;
 
 public:
   void apply_force(glm::vec3 force, float dt)
   {
     velocity += dt * force;
+  }
+
+  void apply_impulse(glm::vec3 force)
+  {
+    velocity += force;
   }
 };
 

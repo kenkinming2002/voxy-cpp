@@ -59,6 +59,11 @@ private:
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
+    line = fmt::format("grounded = {}", world.player.grounded);
+    m_text_renderer.render(cursor, line.c_str());
+    cursor.x = DEBUG_MARGIN.x;
+    cursor.y += DEBUG_FONT_HEIGHT;
+
     line = fmt::format("average frame time = {}", average);
     m_text_renderer.render(cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;

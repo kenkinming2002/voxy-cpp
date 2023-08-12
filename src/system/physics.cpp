@@ -12,8 +12,9 @@
 class PhysicsSystem : public System
 {
 private:
-  static constexpr float FRICTION = 0.5f;
-  static constexpr float GRAVITY  = 5.0f;
+  static constexpr float FRICTION_AIR      = 0.5f;
+  static constexpr float FRICTION_GROUNDED = 3.0f;
+  static constexpr float GRAVITY  = 20.0f;
   static constexpr int MAX_COLLISION_ITERATION = 5;
 
 private:
@@ -89,7 +90,8 @@ private:
 private:
   static void entity_update_physics(Entity& entity, float dt)
   {
-    entity.apply_force(-FRICTION * entity.velocity,             dt);
+    float friction = entity.grounded ? FRICTION_GROUNDED : FRICTION_AIR;
+    entity.apply_force(-friction * entity.velocity,             dt);
     entity.apply_force(-GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
     entity.transform.position += dt * entity.velocity;
   }
@@ -98,8 +100,7 @@ private:
   {
     entity.collided = false;
 
-    glm::vec3 original_position = entity.transform.position;
-    glm::vec3 original_velocity = entity.velocity;
+    Entity original_entity = entity;
 
     for(int i=0; i<MAX_COLLISION_ITERATION; ++i)
     {
@@ -124,17 +125,18 @@ private:
 
       if(result && result->t_in < result->t_out && result->t_in * result->t_out < 0.0f)
       {
-        entity.collided = true;
         entity.transform.position += glm::dot(entity.velocity, result->normal_in) * result->normal_in * result->t_in; // Backtrack in normal direction
         entity.velocity           -= glm::dot(entity.velocity, result->normal_in) * result->normal_in;                // Cancel velocity in normal direction
+        entity.collided = true;
+        if(result->normal_in.z > 0.0f)
+          entity.grounded = true;
       }
       else
         return;
     }
 
     spdlog::warn("Collision resolution failed");
-    entity.transform.position = original_position;
-    entity.velocity           = original_velocity;
+    entity = original_entity;
   }
 
   void on_update(World& world, float dt) override

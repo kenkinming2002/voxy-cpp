@@ -81,22 +81,25 @@ private:
 
   void on_update(World& world, float dt) override
   {
-    glm::vec3 translation = glm::vec3(0.0f);
-
     const Uint8 *keys = SDL_GetKeyboardState(nullptr);
-    if(keys[SDL_SCANCODE_SPACE])  translation.z += 1.0f;
-    if(keys[SDL_SCANCODE_LSHIFT]) translation.z -= 1.0f;
-    if(keys[SDL_SCANCODE_W])      translation.y += 1.0f;
-    if(keys[SDL_SCANCODE_S])      translation.y -= 1.0f;
-    if(keys[SDL_SCANCODE_D])      translation.x += 1.0f;
-    if(keys[SDL_SCANCODE_A])      translation.x -= 1.0f;
+
+    // 1: Jump
+    if(keys[SDL_SCANCODE_SPACE])
+      if(world.player.grounded)
+      {
+        world.player.grounded = false;
+        world.player.apply_impulse(glm::vec3(0.0f, 0.0f, 8.0f));
+      }
+
+    // 2: Movement
+    glm::vec3 translation = glm::vec3(0.0f);
+    if(keys[SDL_SCANCODE_D]) translation += world.player.transform.local_right();
+    if(keys[SDL_SCANCODE_A]) translation -= world.player.transform.local_right();
+    if(keys[SDL_SCANCODE_W]) translation += world.player.transform.local_forward();
+    if(keys[SDL_SCANCODE_S]) translation -= world.player.transform.local_forward();
+    translation.z = 0.0f;
     if(glm::length(translation) != 0.0f)
-    {
-      translation = world.player.transform.gocal_to_global(translation);
-      translation = glm::normalize(translation);
-      translation *= dt;
-      world.player.velocity += translation * 10.0f;
-    }
+      world.player.apply_force(5.0f * glm::normalize(translation), dt);
 
     world.selection.reset();
     world.placement.reset();
