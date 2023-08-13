@@ -27,7 +27,7 @@ static size_t hash_combine(std::size_t seed, const T& v)
 class ChunkGeneratorSystem : public System
 {
 private:
-  static constexpr int CHUNK_LOAD_RADIUS = 2;
+  static constexpr int CHUNK_LOAD_RADIUS = 8;
 
 private:
   struct HeightMap

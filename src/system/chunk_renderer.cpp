@@ -130,8 +130,12 @@ private:
     glm::mat4 view       = world.camera.view();
     glm::mat4 projection = world.camera.projection();
     glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 MVP   = projection * view * model;
+
+    glm::mat4 MVP = projection * view * model;
+    glm::mat4 MV  =              view * model;
+
     glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
