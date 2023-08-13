@@ -92,7 +92,11 @@ private:
           if(Block *block = world.get_block(*world.selection))
             if(block->id != Block::ID_NONE)
             {
-              block->id = Block::ID_NONE;
+              if(block->destroy_level != 15)
+                ++block->destroy_level;
+              else
+                block->id = Block::ID_NONE;
+
               world.invalidate_mesh_major(*world.selection);
               world.invalidate_light(*world.selection);
               for(glm::ivec3 direction : DIRECTIONS)

@@ -40,6 +40,7 @@ private:
       glm::vec2 texture_coords;
       uint32_t  texture_index;
       float     light_level;
+      float     destroy_level;
     };
 
     std::vector<uint32_t> indices;
@@ -78,11 +79,12 @@ private:
             const BlockData& block_data = m_block_datas.at(block->id);
             uint32_t texture_index = block_data.texture_indices[i];
             float    light_level   = (neighbour_block ? neighbour_block->light_level : 15) / 16.0f;
+            float    destroy_level = block->destroy_level / 16.0f;
 
-            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 0.0f}, .texture_index = texture_index, .light_level = light_level, });
-            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 0.0f}, .texture_index = texture_index, .light_level = light_level, });
-            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 1.0f}, .texture_index = texture_index, .light_level = light_level, });
-            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 1.0f}, .texture_index = texture_index, .light_level = light_level, });
+            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 0.0f}, .texture_index = texture_index, .light_level = light_level, .destroy_level = destroy_level, });
+            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) - 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 0.0f}, .texture_index = texture_index, .light_level = light_level, .destroy_level = destroy_level, });
+            vertices.push_back(Vertex{ .position = center + ( - 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {0.0f, 1.0f}, .texture_index = texture_index, .light_level = light_level, .destroy_level = destroy_level, });
+            vertices.push_back(Vertex{ .position = center + ( + 0.5f * glm::vec3(right) + 0.5f * glm::vec3(up)), .texture_coords = {1.0f, 1.0f}, .texture_index = texture_index, .light_level = light_level, .destroy_level = destroy_level, });
             // NOTE: Brackets added so that it is possible for the compiler to do constant folding if loop is unrolled, not that it would actually do it.
           }
         }
@@ -95,6 +97,7 @@ private:
           { .type = graphics::AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
           { .type = graphics::AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index),  },
           { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_level),    },
+          { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, destroy_level),  },
         },
     };
 
