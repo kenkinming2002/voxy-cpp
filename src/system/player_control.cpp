@@ -10,6 +10,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+
 static constexpr float ROTATION_SPEED = 0.1f;
 static constexpr float RAY_CAST_LENGTH = 20.0f;
 
@@ -25,6 +27,9 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
 
 class PlayerControlSystem : public System
 {
+private:
+  static constexpr float ACTION_COOLDOWN = 0.1f;
+
 private:
   void on_update(Application& application, World& world, float dt) override
   {
@@ -64,6 +69,8 @@ private:
     m_cursor_ypos = new_cursor_ypos;
 
     // 4: Block placement/destruction
+    m_cooldown = std::max(m_cooldown - dt, 0.0f);
+
     world.selection.reset();
     world.placement.reset();
     ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
@@ -79,43 +86,48 @@ private:
     if(!world.selection)
       world.placement.reset();
 
-    if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-      if(world.selection)
-        if(Block *block = world.get_block(*world.selection))
-          if(block->id != Block::ID_NONE)
-          {
-            block->id = Block::ID_NONE;
-            world.invalidate_mesh_major(*world.selection);
-            world.invalidate_light(*world.selection);
-            for(glm::ivec3 direction : DIRECTIONS)
+    if(m_cooldown == 0.0f)
+      if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        if(world.selection)
+          if(Block *block = world.get_block(*world.selection))
+            if(block->id != Block::ID_NONE)
             {
-              glm::ivec3 neighbour_position = *world.selection + direction;
-              world.invalidate_mesh_major(neighbour_position);
-            }
-          }
-
-    if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-      if(world.placement)
-        if(Block *block = world.get_block(*world.placement))
-          if(block->id == Block::ID_NONE)
-            if(!aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
-            {
-
-              block->id = Block::ID_STONE;
-              world.invalidate_mesh_major(*world.placement);
-              world.invalidate_light(*world.placement);
+              block->id = Block::ID_NONE;
+              world.invalidate_mesh_major(*world.selection);
+              world.invalidate_light(*world.selection);
               for(glm::ivec3 direction : DIRECTIONS)
               {
-                glm::ivec3 neighbour_position = *world.placement + direction;
+                glm::ivec3 neighbour_position = *world.selection + direction;
                 world.invalidate_mesh_major(neighbour_position);
               }
+              m_cooldown = ACTION_COOLDOWN;
             }
+
+    if(m_cooldown == 0.0f)
+      if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        if(world.placement)
+          if(Block *block = world.get_block(*world.placement))
+            if(block->id == Block::ID_NONE)
+              if(!aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+              {
+                block->id = Block::ID_STONE;
+                world.invalidate_mesh_major(*world.placement);
+                world.invalidate_light(*world.placement);
+                for(glm::ivec3 direction : DIRECTIONS)
+                {
+                  glm::ivec3 neighbour_position = *world.placement + direction;
+                  world.invalidate_mesh_major(neighbour_position);
+                }
+                m_cooldown = ACTION_COOLDOWN;
+              }
   }
 
 private:
   bool   m_first = true;
   double m_cursor_xpos;
   double m_cursor_ypos;
+
+  float m_cooldown = 0.0f;
 };
 
 std::unique_ptr<System> create_player_control_system()
