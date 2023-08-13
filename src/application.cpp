@@ -86,6 +86,11 @@ void Application::run()
   }
 }
 
+void Application::glfw_get_framebuffer_size(int& width, int& height)
+{
+  glfwGetFramebufferSize(m_window, &width, &height);
+}
+
 int Application::glfw_get_key(int key)
 {
   return glfwGetKey(m_window, key);

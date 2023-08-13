@@ -1,5 +1,6 @@
 #include <system/camera_follow.hpp>
 
+#include <application.hpp>
 #include <world.hpp>
 
 class CameraFollowSystem : public System
@@ -9,6 +10,11 @@ private:
   {
     world.camera.transform           = world.player.transform;
     world.camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
+
+    int width, height;
+    application.glfw_get_framebuffer_size(width, height);
+    glViewport(0, 0, width, height);
+    world.camera.aspect = (double)width / (double)height;
   }
 };
 

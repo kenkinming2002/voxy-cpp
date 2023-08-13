@@ -19,7 +19,7 @@ public:
   TextRenderer(const char *font, unsigned height);
 
 public:
-  void render(glm::vec2& cursor, const char *str);
+  void render(int window_width, int window_height, glm::vec2& cursor, const char *str);
 
 private:
   graphics::ShaderProgram m_shader_program;

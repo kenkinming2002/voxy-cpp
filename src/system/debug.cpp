@@ -1,5 +1,6 @@
 #include <system/debug.hpp>
 
+#include <application.hpp>
 #include <world.hpp>
 
 #include <text_renderer.hpp>
@@ -31,6 +32,9 @@ private:
 
   void on_render(Application& application, const World& world) override
   {
+    int width, height;
+    application.glfw_get_framebuffer_size(width, height);
+
     // 1: Frame time
     float average = 0.0f;
     for(size_t i=0; i<DT_AVERAGE_COUNT; ++i)
@@ -45,41 +49,41 @@ private:
     glm::vec2   cursor = DEBUG_MARGIN;
 
     line = fmt::format("position: x = {}, y = {}, z = {}", world.player.transform.position.x, world.player.transform.position.y, world.player.transform.position.z);
-    m_text_renderer.render(cursor, line.c_str());
+    m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("velocity: x = {}, y = {}, z = {}", world.player.velocity.x, world.player.velocity.y, world.player.velocity.z);
-    m_text_renderer.render(cursor, line.c_str());
+    m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("collided = {}", world.player.collided);
-    m_text_renderer.render(cursor, line.c_str());
+    m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("grounded = {}", world.player.grounded);
-    m_text_renderer.render(cursor, line.c_str());
+    m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("average frame time = {}", average);
-    m_text_renderer.render(cursor, line.c_str());
+    m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     if(block)
     {
       line = fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level);
-      m_text_renderer.render(cursor, line.c_str());
+      m_text_renderer.render(width, height, cursor, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
     else
     {
       line = fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z);
-      m_text_renderer.render(cursor, line.c_str());
+      m_text_renderer.render(width, height, cursor, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
@@ -87,14 +91,14 @@ private:
     if(world.selection)
     {
       line = fmt::format("selection: position = {}, {}, {}", world.selection->x, world.selection->y, world.selection->z);
-      m_text_renderer.render(cursor, line.c_str());
+      m_text_renderer.render(width, height, cursor, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
     else
     {
       line = "selection: none";
-      m_text_renderer.render(cursor, line.c_str());
+      m_text_renderer.render(width, height, cursor, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }

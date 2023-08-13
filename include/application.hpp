@@ -17,6 +17,9 @@ public:
   void run();
 
 public:
+  void glfw_get_framebuffer_size(int& width, int& height);
+
+public:
   int glfw_get_key(int key);
   int glfw_get_mouse_button(int button);
   void glfw_get_cursor_pos(double& xpos, double& ypos);

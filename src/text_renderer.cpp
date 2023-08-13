@@ -64,7 +64,7 @@ TextRenderer::TextRenderer(const char *font, unsigned height) :
   FT_Done_FreeType(library);
 }
 
-void TextRenderer::render(glm::vec2& cursor, const char *str)
+void TextRenderer::render(int window_width, int window_height, glm::vec2& cursor, const char *str)
 {
   glDisable(GL_DEPTH_TEST);
 
@@ -82,7 +82,7 @@ void TextRenderer::render(glm::vec2& cursor, const char *str)
     glm::vec2 position  = cursor + m_glyphs[c].bearing;
     glm::vec2 dimension = m_glyphs[c].dimenson;
 
-    glm::mat4 projection = glm::ortho(0.0f, 1024.0f, 0.0f, 720.0f);
+    glm::mat4 projection = glm::ortho(0.0f, (float)window_width, 0.0f, (float)window_height);
     glm::mat4 view       = glm::mat4(1.0f);
 
     glm::mat4 model  = glm::mat4(1.0f);
