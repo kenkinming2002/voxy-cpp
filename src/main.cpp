@@ -81,13 +81,16 @@ Voxy::Voxy() :
     .dimension = {},
   }
 {
-  m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_renderer_system());
-  m_systems.push_back(create_light_system());
-  m_systems.push_back(create_physics_system());
   m_systems.push_back(create_player_control_system());
   m_systems.push_back(create_player_ui_system());
   m_systems.push_back(create_camera_follow_system());
+
+  m_systems.push_back(create_light_system());
+  m_systems.push_back(create_physics_system());
+
+  m_systems.push_back(create_chunk_generator_system());
+  m_systems.push_back(create_chunk_renderer_system());
+
   m_systems.push_back(create_debug_system());
 }
 

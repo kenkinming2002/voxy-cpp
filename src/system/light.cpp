@@ -95,7 +95,7 @@ private:
             for(glm::ivec3 direction : DIRECTIONS)
             {
               glm::ivec3 neighbour_position = item.position + direction;
-              world.dimension.minor_invalidate_mesh(neighbour_position);
+              world.dimension.major_invalidate_mesh(neighbour_position);
               world.dimension.lighting_invalidate(neighbour_position);
             }
           }
