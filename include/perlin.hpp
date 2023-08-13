@@ -67,7 +67,7 @@ template<glm::length_t L>
 float perlin(size_t seed, glm::vec<L, float> position)
 {
   glm::vec<L, int> node = glm::floor(position);
-  return (details::perlin_impl<L, 0>(seed, position, node) + 1.0f) * 0.5f;
+  return details::perlin_impl<L, 0>(seed, position, node);
 }
 
 template<glm::length_t L>

@@ -42,8 +42,8 @@ Voxy::Voxy() :
       .seed = SEED,
       .terrain = {
         .layers = {
-          { .block_id = Block::ID_STONE, .frequency = 0.03f, .amplitude = 40.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
-          { .block_id = Block::ID_GRASS, .frequency = 0.01f, .amplitude = 5.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
+          { .block_id = Block::ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
+          { .block_id = Block::ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
         },
       },
       .caves = {

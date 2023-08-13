@@ -63,13 +63,13 @@ private:
       HeightMap height_map;
       for(int y=0; y<Chunk::WIDTH; ++y)
         for(int x=0; x<Chunk::WIDTH; ++x)
-          height_map.heights[y][x] = perlin(seed, coordinates::local_to_global(glm::vec2(x, y), chunk_index),
+          height_map.heights[y][x] = std::max(terrain_layer_config.base + perlin(seed, coordinates::local_to_global(glm::vec2(x, y), chunk_index),
               terrain_layer_config.frequency,
               terrain_layer_config.amplitude,
               terrain_layer_config.lacunarity,
               terrain_layer_config.persistence,
               terrain_layer_config.octaves
-          );
+          ), 0.0f);
       height_maps.push_back(height_map);
     }
     return height_maps;
@@ -113,9 +113,9 @@ private:
 
         // 2: Advance the worm
         glm::vec3 direction;
-        direction.x = perlin(seed_x, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves) - 1.0f;
-        direction.y = perlin(seed_y, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves) - 1.0f;
-        direction.z = perlin(seed_z, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves) - 1.0f;
+        direction.x = perlin(seed_x, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves);
+        direction.y = perlin(seed_y, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves);
+        direction.z = perlin(seed_z, position, config.dig_frequency, config.dig_amplitude, config.dig_lacunarity, config.dig_frequency, config.dig_octaves);
         if(glm::length2(direction) < 1e-4)
           direction = glm::vec3(0.0f, 0.0f, 1.0f);
 

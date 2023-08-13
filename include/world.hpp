@@ -18,6 +18,7 @@ struct TerrainLayerConfig
 {
   uint32_t block_id;
 
+  float    base;
   float    frequency;
   float    amplitude;
   float    lacunarity;
