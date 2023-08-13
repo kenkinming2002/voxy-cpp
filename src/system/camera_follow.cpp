@@ -5,7 +5,7 @@
 class CameraFollowSystem : public System
 {
 private:
-  void on_update(World& world, float dt) override
+  void on_update(Application& application, World& world, float dt) override
   {
     world.camera.transform           = world.player.transform;
     world.camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);

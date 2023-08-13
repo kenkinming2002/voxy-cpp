@@ -7,12 +7,14 @@
 #include <graphics/shader_program.hpp>
 #include <graphics/mesh.hpp>
 
+#include <GLFW/glfw3.h>
+
 #include <glm/gtc/type_ptr.hpp>
 
 class ChunkRendererSystem : public System
 {
 private:
-  static constexpr float REMASH_THROTTLE = 5.0f;
+  static constexpr double REMASH_THROTTLE = 5.0f;
 
 public:
   ChunkRendererSystem() :
@@ -103,22 +105,22 @@ private:
     );
   }
 
-  void on_update(World& world, float dt) override
+  void on_update(Application& application, World& world, float dt) override
   {
     for(auto& [chunk_index, chunk] : world.dimension.chunks)
     {
-      uint32_t tick = SDL_GetTicks();
-      if(chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (tick - chunk.last_remash_tick) / 1000.0f >= REMASH_THROTTLE))
+      double time = glfwGetTime();
+      if(chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (time - chunk.last_remash_time) >= REMASH_THROTTLE))
       {
         chunk.mesh_invalidated_major = false;
         chunk.mesh_invalidated_minor = false;
-        chunk.last_remash_tick = tick;
+        chunk.last_remash_time = time;
         m_chunk_meshes.insert_or_assign(chunk_index, generate_chunk_mesh(world, chunk_index, chunk));
       }
     }
   }
 
-  void on_render(const World& world) override
+  void on_render(Application& application, const World& world) override
   {
     glUseProgram(m_shader_program.id());
 

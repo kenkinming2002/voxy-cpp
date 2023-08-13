@@ -28,9 +28,8 @@ public:
   Voxy();
 
 private:
-  void on_event(SDL_Event event) override;
-  void on_update(float dt)       override;
-  void on_render()               override;
+  void on_update(float dt) override;
+  void on_render()         override;
 
 private:
   World                                m_world;
@@ -92,20 +91,14 @@ Voxy::Voxy() :
   m_systems.push_back(create_debug_system());
 }
 
-void Voxy::on_event(SDL_Event event)
-{
-  for(auto& system : m_systems)
-    system->on_event(m_world, event);
-}
-
 void Voxy::on_update(float dt)
 {
   for(auto& system : m_systems)
   {
-    Uint32 ticks_begin = SDL_GetTicks();
-    system->on_update(m_world, dt);
-    Uint32 ticks_end = SDL_GetTicks();
-    Uint32 time = ticks_end - ticks_begin;
+    double time_begin = glfwGetTime();
+    system->on_update(*this, m_world, dt);
+    double time_end = glfwGetTime();
+    double time = time_end - time_begin;
 
     const std::type_info& type_info = typeid(*system);
 
@@ -127,7 +120,7 @@ void Voxy::on_render()
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   for(auto& system : m_systems)
-    system->on_render(m_world);
+    system->on_render(*this, m_world);
 }
 
 int main()

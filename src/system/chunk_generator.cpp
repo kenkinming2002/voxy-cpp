@@ -4,6 +4,8 @@
 #include <perlin.hpp>
 #include <world.hpp>
 
+#include <GLFW/glfw3.h>
+
 #include <spdlog/spdlog.h>
 
 #include <glm/glm.hpp>
@@ -255,7 +257,7 @@ done:;
 
     chunk.mesh_invalidated_major = true;
     chunk.mesh_invalidated_minor = false;
-    chunk.last_remash_tick       = SDL_GetTicks();
+    chunk.last_remash_time       = glfwGetTime();
 
     return chunk;
   }
@@ -284,7 +286,7 @@ done:;
       }
   }
 
-  void on_update(World& world, float dt) override
+  void on_update(Application& application, World& world, float dt) override
   {
     glm::ivec2 center = {
       std::floor(world.player.transform.position.x / Chunk::WIDTH),

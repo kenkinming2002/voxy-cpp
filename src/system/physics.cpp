@@ -134,7 +134,7 @@ private:
     entity.transform.position += direction;
   }
 
-  void on_update(World& world, float dt) override
+  void on_update(Application& application, World& world, float dt) override
   {
     entity_update_physics(world.dimension, world.player, dt);
   }

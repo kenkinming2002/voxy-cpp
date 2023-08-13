@@ -1,7 +1,8 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include <SDL.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 class Application
 {
@@ -16,16 +17,19 @@ public:
   void run();
 
 public:
-  virtual void on_event(SDL_Event event) = 0;
-  virtual void on_update(float dt)       = 0;
-  virtual void on_render()               = 0;
+  int glfw_get_key(int key);
+  int glfw_get_mouse_button(int button);
+  void glfw_get_cursor_pos(double& xpos, double& ypos);
+
+public:
+  virtual void on_update(float dt) = 0;
+  virtual void on_render()         = 0;
 
 private:
-  SDL_Window*   m_window;
-  SDL_GLContext m_gl_context;
+  GLFWwindow* m_window;
 
-  Uint32  m_previous_ticks;
-  float   m_accumulated_dt;
+  double  m_previous_time;
+  double  m_accumulated_dt;
 };
 
 #endif // APPLICATION_HPP

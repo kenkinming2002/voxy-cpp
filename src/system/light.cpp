@@ -43,7 +43,7 @@ private:
     return std::make_pair(false, std::max(light_level-1, 0));
   }
 
-  void on_update(World& world, float dt) override
+  void on_update(Application& application, World& world, float dt) override
   {
     struct Item
     {

@@ -1,7 +1,6 @@
 #include <application.hpp>
 
 #include <spdlog/spdlog.h>
-#include <glad/glad.h>
 #include <cstdlib>
 
 static constexpr const char* WINDOW_NAME   = "voxy";
@@ -15,31 +14,30 @@ static void GLAPIENTRY message_callback(GLenum source, GLenum type, GLuint id, G
 
 Application::Application()
 {
-  if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
+  if(!glfwInit())
   {
-    spdlog::error("Failed to initialize SDL2 {}", SDL_GetError());
+    const char *description;
+    glfwGetError(&description);
+    spdlog::error("Failed to initialize GLFW {}", description);
     std::exit(-1);
   }
 
-  m_window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  m_window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME, nullptr, nullptr);
   if(!m_window)
   {
-    spdlog::error("Failed to create window {}", SDL_GetError());
-    std::exit(-1);
-  }
-  SDL_SetRelativeMouseMode(SDL_TRUE);
-
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
-  m_gl_context = SDL_GL_CreateContext(m_window);
-  if(!m_gl_context)
-  {
-    spdlog::error("Failed to create OpenGL Context {}", SDL_GetError());
+    const char *description;
+    glfwGetError(&description);
+    spdlog::error("Failed to initialize GLFW {}", description);
     std::exit(-1);
   }
 
-  if(!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+  glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  glfwMakeContextCurrent(m_window);
+  if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
   {
     spdlog::error("Failed to create Load OpenGL functions");
     std::exit(-1);
@@ -57,29 +55,25 @@ Application::Application()
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glPixelStorei(GL_PACK_ALIGNMENT,   1);
 
-  m_previous_ticks = SDL_GetTicks();
+  m_previous_time = glfwGetTime();
 }
 
 Application::~Application()
 {
-  SDL_GL_DeleteContext(m_gl_context);
-  SDL_DestroyWindow(m_window);
+  glfwDestroyWindow(m_window);
 }
 
 void Application::run()
 {
   for(;;)
   {
-    SDL_Event event;
-    while(SDL_PollEvent(&event)) {
-      if(event.type == SDL_QUIT)
-        return;
-      this->on_event(event);
-    }
+    glfwPollEvents();
+    if(glfwWindowShouldClose(m_window))
+      return;
 
-    Uint32 ticks = SDL_GetTicks();
-    m_accumulated_dt += (ticks - m_previous_ticks) / 1000.0f;
-    m_previous_ticks = ticks;
+    double time = glfwGetTime();
+    m_accumulated_dt += time - m_previous_time;
+    m_previous_time = time;
 
     if(m_accumulated_dt >= FIXED_DT)
     {
@@ -88,7 +82,22 @@ void Application::run()
     }
 
     this->on_render();
-    SDL_GL_SwapWindow(m_window);
+    glfwSwapBuffers(m_window);
   }
+}
+
+int Application::glfw_get_key(int key)
+{
+  return glfwGetKey(m_window, key);
+}
+
+int Application::glfw_get_mouse_button(int button)
+{
+  return glfwGetMouseButton(m_window, button);
+}
+
+void Application::glfw_get_cursor_pos(double& xpos, double& ypos)
+{
+  glfwGetCursorPos(m_window, &xpos, &ypos);
 }
 

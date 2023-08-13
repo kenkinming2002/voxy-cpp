@@ -12,7 +12,7 @@ external_dep = declare_dependency(
   include_directories : 'external/include',
 )
 
-sdl2_dep = dependency('sdl2')
+glfw3_dep = dependency('glfw3')
 freetype2_dep = dependency('freetype2')
 glm_dep = dependency('glm')
 fmt_dep = dependency('fmt')
@@ -41,5 +41,5 @@ voxy_exe = executable('voxy', [
     'src/system/debug.cpp',
   ],
   include_directories : 'include',
-  dependencies : [external_dep, sdl2_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep, openmp_dep]
+  dependencies : [external_dep, glfw3_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep, openmp_dep]
 )

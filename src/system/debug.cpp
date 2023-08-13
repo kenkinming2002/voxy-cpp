@@ -22,14 +22,14 @@ public:
   }
 
 private:
-  void on_update(World& world, float dt) override
+  void on_update(Application& application, World& world, float dt) override
   {
     for(size_t i=0; i<DT_AVERAGE_COUNT-1; ++i)
       m_dts[i] = m_dts[i+1];
     m_dts[DT_AVERAGE_COUNT-1] = dt;
   }
 
-  void on_render(const World& world) override
+  void on_render(Application& application, const World& world) override
   {
     // 1: Frame time
     float average = 0.0f;

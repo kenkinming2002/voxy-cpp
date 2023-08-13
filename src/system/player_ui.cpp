@@ -57,7 +57,7 @@ public:
       m_mesh(build_unit_cube_mesh()) {}
 
 private:
-  void on_render(const World& world) override
+  void on_render(Application& application, const World& world) override
   {
     // 1: Selection
     if(world.selection)
