@@ -26,61 +26,6 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
 class PlayerControlSystem : public System
 {
 private:
-  //void on_event(World& world, SDL_Event event) override
-  //{
-  //  switch(event.type)
-  //  {
-  //    case SDL_MOUSEBUTTONDOWN:
-  //      switch(event.button.button)
-  //      {
-  //        case SDL_BUTTON_LEFT:
-  //          if(world.selection)
-  //            if(Block *block = world.get_block(*world.selection))
-  //              if(block->id != Block::ID_NONE)
-  //              {
-  //                block->id = Block::ID_NONE;
-  //                world.invalidate_mesh_major(*world.selection);
-  //                world.invalidate_light(*world.selection);
-  //                for(glm::ivec3 direction : DIRECTIONS)
-  //                {
-  //                  glm::ivec3 neighbour_position = *world.selection + direction;
-  //                  world.invalidate_mesh_major(neighbour_position);
-  //                }
-  //              }
-  //          break;
-  //        case SDL_BUTTON_RIGHT:
-  //          if(world.placement)
-  //            if(Block *block = world.get_block(*world.placement))
-  //              if(block->id == Block::ID_NONE)
-  //              {
-  //                // Cannot place a block that collide with the player
-  //                if(aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f)))
-  //                  break;
-
-  //                block->id = Block::ID_STONE;
-  //                world.invalidate_mesh_major(*world.placement);
-  //                world.invalidate_light(*world.placement);
-  //                for(glm::ivec3 direction : DIRECTIONS)
-  //                {
-  //                  glm::ivec3 neighbour_position = *world.placement + direction;
-  //                  world.invalidate_mesh_major(neighbour_position);
-  //                }
-  //              }
-  //          break;
-  //      }
-  //      break;
-  //    case SDL_MOUSEMOTION:
-  //      world.player.transform = world.player.transform.rotate(glm::vec3(0.0f,
-  //        -event.motion.yrel * ROTATION_SPEED,
-  //        -event.motion.xrel * ROTATION_SPEED
-  //      ));
-  //      break;
-  //    case SDL_MOUSEWHEEL:
-  //      world.camera.zoom(-event.wheel.y);
-  //      break;
-  //  }
-  //}
-
   void on_update(Application& application, World& world, float dt) override
   {
     // 1: Jump
