@@ -1,9 +1,70 @@
 #include <graphics/mesh.hpp>
 
+#include <tiny_obj_loader.h>
+
 #include <spdlog/spdlog.h>
 
 namespace graphics
 {
+  Mesh::Mesh(const std::string& filename)
+  {
+    struct Vertex
+    {
+      glm::vec3 position;
+      glm::vec3 normal;
+      glm::vec2 texture_coords;
+    };
+
+    m_layout = {
+      .index_type = graphics::IndexType::UNSIGNED_INT,
+      .stride = sizeof(Vertex),
+      .attributes = {
+        { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
+        { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, normal),         },
+        { .type = graphics::AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
+      },
+    };
+
+    tinyobj::ObjReader reader;
+    reader.ParseFromFile(filename);
+
+    const auto& attrib = reader.GetAttrib();
+
+    std::vector<Vertex>   vertices;
+    std::vector<unsigned> indices;
+
+    const auto& shapes = reader.GetShapes();
+    for(const auto& shape : shapes)
+      for(const auto& index : shape.mesh.indices)
+      {
+        vertices.push_back(Vertex{
+          .position = glm::vec3(
+              attrib.vertices[index.vertex_index*3+0],
+              attrib.vertices[index.vertex_index*3+1],
+              attrib.vertices[index.vertex_index*3+2]
+          ),
+          .normal = glm::vec3(
+              attrib.normals[index.normal_index*3+0],
+              attrib.normals[index.normal_index*3+1],
+              attrib.normals[index.normal_index*3+2]
+          ),
+          .texture_coords = glm::vec2(
+              attrib.texcoords[index.texcoord_index*2+0],
+              attrib.texcoords[index.texcoord_index*2+1]
+          ),
+        });
+        indices.push_back(indices.size());
+      }
+
+    m_vertices = as_bytes(vertices);
+    m_indices  = as_bytes(indices);
+
+    m_generated = false;
+    m_vao = 0;
+    m_ebo = 0;
+    m_vbo = 0;
+  }
+
   Mesh::Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices) :
     m_layout(std::move(layout)),
     m_indices(std::move(indices)),

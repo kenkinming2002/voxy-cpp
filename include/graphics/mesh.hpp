@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 
+#include <string>
 #include <vector>
 #include <span>
 
@@ -46,6 +47,7 @@ namespace graphics
   struct Mesh
   {
   public:
+    Mesh(const std::string& filename);
     Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices);
     ~Mesh();
 

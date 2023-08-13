@@ -30,7 +30,7 @@ namespace graphics
 
   Texture::Texture(const std::string& filename)
   {
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(false);
 
     int width, height, channels;
     stbi_uc *bytes = stbi_load(filename.c_str(), &width, &height, &channels, 0);

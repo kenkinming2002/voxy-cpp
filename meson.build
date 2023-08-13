@@ -3,6 +3,7 @@ project('voxy', ['c', 'cpp'], default_options : ['cpp_std=c++20'])
 external_lib = static_library('external', [
     'external/src/glad.c',
     'external/src/stb_image.cpp',
+    'external/src/tiny_obj_loader.cpp',
   ],
   include_directories : 'external/include',
 )

@@ -20,6 +20,12 @@
 
 #include <cxxabi.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
+#include <graphics/shader_program.hpp>
+#include <graphics/mesh.hpp>
+#include <graphics/texture.hpp>
+
 static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
 
 class Voxy : public Application
@@ -34,6 +40,10 @@ private:
 private:
   World                                m_world;
   std::vector<std::unique_ptr<System>> m_systems;
+
+  graphics::ShaderProgram entity_shader_program = graphics::ShaderProgram("assets/entity.vert", "assets/entity.frag");
+  graphics::Mesh          entity_mesh           = graphics::Mesh("assets/character/model.obj");
+  graphics::Texture       entity_texture        = graphics::Texture("assets/character/steve.png");
 };
 
 Voxy::Voxy() :
@@ -122,6 +132,24 @@ void Voxy::on_render()
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glUseProgram(entity_shader_program.id());
+
+  glm::mat4 view       = m_world.camera.view();
+  glm::mat4 projection = m_world.camera.projection();
+  glm::mat4 model      = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 60.0f));
+
+  glm::mat4 MVP = projection * view * model;
+  glm::mat4 MV  =              view * model;
+
+  glUniformMatrix4fv(glGetUniformLocation(entity_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+  glUniformMatrix4fv(glGetUniformLocation(entity_shader_program.id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, entity_texture.id());
+  glUniform1i(glGetUniformLocation(entity_shader_program.id(), "ourTexture"), 0);
+  entity_mesh.draw_triangles();
+
   for(auto& system : m_systems)
     system->on_render(*this, m_world);
 }
