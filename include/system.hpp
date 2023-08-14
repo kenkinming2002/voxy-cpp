@@ -7,8 +7,9 @@ struct WorldData;
 class System
 {
 public:
-  virtual void on_update(Application& application, const WorldConfig& config, WorldData& world, float dt)        {};
-  virtual void on_render(Application& application, const WorldConfig& config, const WorldData& world)            {};
+  virtual void on_start (Application& application, const WorldConfig& world_config, WorldData& world_data)           {};
+  virtual void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) {};
+  virtual void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data)     {};
   virtual ~System() = default;
 };
 

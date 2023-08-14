@@ -17,13 +17,7 @@ private:
   static constexpr double REMASH_THROTTLE = 5.0f;
 
 private:
-  struct BlockTexture
-  {
-    std::uint32_t texture_indices[6];
-  };
-
-public:
-  ChunkRendererSystem(const WorldConfig& world_config)
+  void on_start (Application& application, const WorldConfig& world_config, WorldData& world_data) override
   {
     // 1: ShaderProgram
     m_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
@@ -52,9 +46,9 @@ public:
         block_texture.texture_indices[i] = texture_indices_map.at(block_config.textures[i]);
       m_block_textures.push_back(block_texture);
     }
+
   }
 
-private:
   graphics::Mesh generate_chunk_mesh(const WorldData& world, glm::ivec2 chunk_index, const ChunkData& chunk) const
   {
     struct Vertex
@@ -167,6 +161,11 @@ private:
         mesh.draw_triangles();
   }
 
+private:
+  struct BlockTexture
+  {
+    std::uint32_t texture_indices[6];
+  };
 
 private:
   std::unique_ptr<graphics::ShaderProgram> m_shader_program;
@@ -176,8 +175,8 @@ private:
   std::unordered_map<glm::ivec2, graphics::Mesh> m_chunk_meshes;
 };
 
-std::unique_ptr<System> create_chunk_renderer_system(const WorldConfig& world_config)
+std::unique_ptr<System> create_chunk_renderer_system()
 {
-  return std::make_unique<ChunkRendererSystem>(world_config);
+  return std::make_unique<ChunkRendererSystem>();
 }
 

@@ -38,10 +38,10 @@ private:
   void on_render()         override;
 
 private:
+  std::vector<std::unique_ptr<System>> m_systems;
+
   WorldConfig m_world_config;
   WorldData   m_world_data;
-
-  std::vector<std::unique_ptr<System>> m_systems;
 
   graphics::ShaderProgram entity_shader_program = graphics::ShaderProgram("assets/entity.vert", "assets/entity.frag");
   graphics::Mesh          entity_mesh           = graphics::Mesh("assets/character/idk.obj");
@@ -50,6 +50,18 @@ private:
 
 Voxy::Voxy()
 {
+  m_systems.push_back(create_player_control_system());
+  m_systems.push_back(create_player_ui_system());
+  m_systems.push_back(create_camera_follow_system());
+
+  m_systems.push_back(create_light_system());
+  m_systems.push_back(create_physics_system());
+
+  m_systems.push_back(create_chunk_generator_system());
+  m_systems.push_back(create_chunk_renderer_system());
+
+  m_systems.push_back(create_debug_system());
+
   m_world_config = {
     .generation = {
       .seed = SEED,
@@ -118,17 +130,8 @@ Voxy::Voxy()
     .dimension = {},
   };
 
-  m_systems.push_back(create_player_control_system());
-  m_systems.push_back(create_player_ui_system());
-  m_systems.push_back(create_camera_follow_system());
-
-  m_systems.push_back(create_light_system());
-  m_systems.push_back(create_physics_system());
-
-  m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_renderer_system(m_world_config));
-
-  m_systems.push_back(create_debug_system());
+  for(auto& system : m_systems)
+    system->on_start(*this, m_world_config, m_world_data);
 }
 
 void Voxy::on_update(float dt)
