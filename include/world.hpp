@@ -75,7 +75,6 @@ struct WorldConfig
 struct WorldData
 {
 public:
-  Camera        camera;
   EntityData    player;
   DimensionData dimension;
 

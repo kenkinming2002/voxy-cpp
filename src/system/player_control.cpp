@@ -73,7 +73,7 @@ private:
 
     world_data.selection.reset();
     world_data.placement.reset();
-    ray_cast(world_data.camera.transform.position, world_data.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+    ray_cast(world_data.player.transform.position + world_data.player.eye_offset, world_data.player.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
         const Block *block = world_data.get_block(block_position);
         if(block && block->id != Block::ID_NONE)
           world_data.selection = block_position;

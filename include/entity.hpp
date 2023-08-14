@@ -12,6 +12,8 @@ public:
   glm::vec3 velocity;
   glm::vec3 bounding_box;
 
+  glm::vec3 eye_offset;
+
   bool collided;
   bool grounded;
 

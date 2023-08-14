@@ -39,7 +39,6 @@ voxy_exe = executable('voxy', [
     'src/system/physics.cpp',
     'src/system/player_control.cpp',
     'src/system/player_ui.cpp',
-    'src/system/camera_follow.cpp',
     'src/system/debug.cpp',
   ],
   include_directories : 'include',

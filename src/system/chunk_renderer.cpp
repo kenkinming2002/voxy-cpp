@@ -140,12 +140,12 @@ private:
     }
   }
 
-  void on_render(Application& application, const WorldConfig& config, const WorldData& world) override
+  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data, const Camera& camera) override
   {
     glUseProgram(m_shader_program->id());
 
-    glm::mat4 view       = world.camera.view();
-    glm::mat4 projection = world.camera.projection();
+    glm::mat4 view       = camera.view();
+    glm::mat4 projection = camera.projection();
     glm::mat4 model = glm::mat4(1.0f);
 
     glm::mat4 MVP = projection * view * model;

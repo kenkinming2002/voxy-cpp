@@ -12,8 +12,6 @@
 #include <system/player_control.hpp>
 #include <system/player_ui.hpp>
 
-#include <system/camera_follow.hpp>
-
 #include <system/debug.hpp>
 
 #include <spdlog/spdlog.h>
@@ -43,6 +41,8 @@ private:
   WorldConfig m_world_config;
   WorldData   m_world_data;
 
+  Camera m_camera;
+
   graphics::ShaderProgram entity_shader_program = graphics::ShaderProgram("assets/entity.vert", "assets/entity.frag");
   graphics::Mesh          entity_mesh           = graphics::Mesh("assets/character/idk.obj");
   graphics::Texture       entity_texture        = graphics::Texture("assets/character/idk.png");
@@ -52,7 +52,6 @@ Voxy::Voxy()
 {
   m_systems.push_back(create_player_control_system());
   m_systems.push_back(create_player_ui_system());
-  m_systems.push_back(create_camera_follow_system());
 
   m_systems.push_back(create_light_system());
   m_systems.push_back(create_physics_system());
@@ -115,10 +114,6 @@ Voxy::Voxy()
   };
 
   m_world_data = {
-    .camera = {
-      .aspect = 1024.0f / 720.0f,
-      .fovy   = 45.0f,
-    },
     .player = {
       .transform = {
         .position = glm::vec3(0.0f, 0.0f, 50.0f),
@@ -126,8 +121,14 @@ Voxy::Voxy()
       },
       .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
       .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+      .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
     },
     .dimension = {},
+  };
+
+  m_camera = {
+    .aspect = 1024.0f / 720.0f,
+    .fovy   = 45.0f,
   };
 
   for(auto& system : m_systems)
@@ -156,6 +157,14 @@ void Voxy::on_update(float dt)
 
     std::free((void*)type_name);
   }
+
+  m_camera.transform           = m_world_data.player.transform;
+  m_camera.transform.position += m_world_data.player.eye_offset;
+
+  int width, height;
+  glfw_get_framebuffer_size(width, height);
+  glViewport(0, 0, width, height);
+  m_camera.aspect = (double)width / (double)height;
 }
 
 void Voxy::on_render()
@@ -165,8 +174,8 @@ void Voxy::on_render()
 
   glUseProgram(entity_shader_program.id());
 
-  glm::mat4 view       = m_world_data.camera.view();
-  glm::mat4 projection = m_world_data.camera.projection();
+  glm::mat4 view       = m_camera.view();
+  glm::mat4 projection = m_camera.projection();
   glm::mat4 model      = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 50.0f));
 
   glm::mat4 MVP = projection * view * model;
@@ -181,7 +190,7 @@ void Voxy::on_render()
   entity_mesh.draw_triangles();
 
   for(auto& system : m_systems)
-    system->on_render(*this, m_world_config, m_world_data);
+    system->on_render(*this, m_world_config, m_world_data, m_camera);
 }
 
 int main()

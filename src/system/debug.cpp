@@ -38,7 +38,7 @@ private:
     m_font->render(m_ui_renderer, viewport, position, line.c_str());
   }
 
-  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data) override
+  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data, const Camera& camera) override
   {
     // 1: Frame time
     float average = 0.0f;
