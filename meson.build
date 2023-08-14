@@ -22,7 +22,6 @@ openmp_dep = dependency('openmp')
 
 voxy_exe = executable('voxy', [
     'src/camera.cpp',
-    'src/text_renderer.cpp',
     'src/main.cpp',
     'src/application.cpp',
     'src/world.cpp',
@@ -32,6 +31,8 @@ voxy_exe = executable('voxy', [
     'src/graphics/texture.cpp',
     'src/graphics/texture_array.cpp',
     'src/graphics/shader_program.cpp',
+    'src/graphics/ui_renderer.cpp',
+    'src/graphics/font.cpp',
     'src/system/chunk_generator.cpp',
     'src/system/chunk_renderer.cpp',
     'src/system/light.cpp',
