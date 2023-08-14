@@ -5,31 +5,7 @@
 
 #include <stdexcept>
 
-struct Vertex
-{
-  glm::vec2 position;
-  glm::vec2 tex_coords;
-};
-
-TextRenderer::TextRenderer(const char *font, unsigned height) :
-  m_shader_program("./assets/ui.vert", "./assets/ui.frag"),
-  m_quad_mesh(
-    graphics::MeshLayout{
-      .index_type = graphics::IndexType::UNSIGNED_BYTE,
-      .stride     = sizeof(Vertex),
-      .attributes = {
-        { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, position),   },
-        { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, tex_coords), },
-      }
-    },
-    graphics::as_bytes(std::vector<uint8_t>{0, 1, 2, 2, 1, 3}),
-    graphics::as_bytes(std::vector<Vertex>{
-      { .position = glm::vec2(0.0f, 0.0f), .tex_coords = glm::vec2(0.0f, 1.0f), },
-      { .position = glm::vec2(1.0f, 0.0f), .tex_coords = glm::vec2(1.0f, 1.0f), },
-      { .position = glm::vec2(0.0f, 1.0f), .tex_coords = glm::vec2(0.0f, 0.0f), },
-      { .position = glm::vec2(1.0f, 1.0f), .tex_coords = glm::vec2(1.0f, 0.0f), },
-    })
-  )
+Font::Font(const char *font, unsigned height)
 {
   FT_Library library;
   FT_Face    face;
@@ -64,11 +40,39 @@ TextRenderer::TextRenderer(const char *font, unsigned height) :
   FT_Done_FreeType(library);
 }
 
-void TextRenderer::render(int window_width, int window_height, glm::vec2& cursor, const char *str)
+TextRenderer::TextRenderer()
+{
+  struct Vertex
+  {
+    glm::vec2 position;
+    glm::vec2 tex_coords;
+  };
+
+  m_shader_program = std::make_unique<graphics::ShaderProgram>("./assets/ui.vert", "./assets/ui.frag");
+  m_quad_mesh = std::make_unique<graphics::Mesh>(
+    graphics::MeshLayout{
+      .index_type = graphics::IndexType::UNSIGNED_BYTE,
+      .stride     = sizeof(Vertex),
+      .attributes = {
+        { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, position),   },
+        { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, tex_coords), },
+      }
+    },
+    graphics::as_bytes(std::vector<uint8_t>{0, 1, 2, 2, 1, 3}),
+    graphics::as_bytes(std::vector<Vertex>{
+      { .position = glm::vec2(0.0f, 0.0f), .tex_coords = glm::vec2(0.0f, 1.0f), },
+      { .position = glm::vec2(1.0f, 0.0f), .tex_coords = glm::vec2(1.0f, 1.0f), },
+      { .position = glm::vec2(0.0f, 1.0f), .tex_coords = glm::vec2(0.0f, 0.0f), },
+      { .position = glm::vec2(1.0f, 1.0f), .tex_coords = glm::vec2(1.0f, 0.0f), },
+    })
+  );
+}
+
+void TextRenderer::render(glm::vec2 dimension, glm::vec2 position, const Font& font, const char* str)
 {
   glDisable(GL_DEPTH_TEST);
 
-  glUseProgram(m_shader_program.id());
+  glUseProgram(m_shader_program->id());
 
   for(const char *it = str; *it; ++it)
   {
@@ -76,27 +80,26 @@ void TextRenderer::render(int window_width, int window_height, glm::vec2& cursor
     assert(c >= 0 && c < 128);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_glyphs[c].texture->id());
-    glUniform1i(glGetUniformLocation(m_shader_program.id(), "ourTexture"), 0);
+    glBindTexture(GL_TEXTURE_2D, font.m_glyphs[c].texture->id());
+    glUniform1i(glGetUniformLocation(m_shader_program->id(), "ourTexture"), 0);
 
-    glm::vec2 position  = cursor + m_glyphs[c].bearing;
-    glm::vec2 dimension = m_glyphs[c].dimenson;
+    glm::vec2 glyph_position  = position + font.m_glyphs[c].bearing;
+    glm::vec2 glyph_dimension = font.m_glyphs[c].dimenson;
 
-    glm::mat4 projection = glm::ortho(0.0f, (float)window_width, 0.0f, (float)window_height);
+    glm::mat4 projection = glm::ortho(0.0f, (float)dimension.x, 0.0f, (float)dimension.y);
     glm::mat4 view       = glm::mat4(1.0f);
 
     glm::mat4 model  = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(position.x, position.y, 0.0f));
-    model = glm::scale    (model, glm::vec3(dimension.x, dimension.y, 0.0f));
+    model = glm::translate(model, glm::vec3(glyph_position .x, glyph_position .y, 0.0f));
+    model = glm::scale    (model, glm::vec3(glyph_dimension.x, glyph_dimension.y, 0.0f));
 
     glm::mat4 MVP = projection * view * model;
-    glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
 
-    m_quad_mesh.draw_triangles();
+    m_quad_mesh->draw_triangles();
 
-    cursor += m_glyphs[c].advance;
+    position += font.m_glyphs[c].advance;
   }
 
   glEnable(GL_DEPTH_TEST);
 }
-

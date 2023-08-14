@@ -13,18 +13,15 @@
 
 #include <memory>
 
-class TextRenderer
+struct Font
 {
 public:
-  TextRenderer(const char *font, unsigned height);
-
-public:
-  void render(int window_width, int window_height, glm::vec2& cursor, const char *str);
+  Font(const char *font, unsigned height);
 
 private:
-  graphics::ShaderProgram m_shader_program;
-  graphics::Mesh          m_quad_mesh;
+  friend class TextRenderer;
 
+private:
   struct Glyph
   {
     glm::ivec3 dimenson;
@@ -34,6 +31,19 @@ private:
     std::unique_ptr<graphics::Texture> texture;
   };
   Glyph m_glyphs[128];
+};
+
+class TextRenderer
+{
+public:
+  TextRenderer();
+
+public:
+  void render(glm::vec2 dimension, glm::vec2 position, const Font& font, const char* str);
+
+private:
+  std::unique_ptr<graphics::ShaderProgram> m_shader_program;
+  std::unique_ptr<graphics::Mesh>          m_quad_mesh;
 };
 
 #endif // TEXT_RENDERER_HPP

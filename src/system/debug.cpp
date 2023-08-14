@@ -16,8 +16,9 @@ static constexpr size_t DT_AVERAGE_COUNT = 32;
 class DebugSystem : public System
 {
 public:
-  DebugSystem() : m_text_renderer(DEBUG_FONT, DEBUG_FONT_HEIGHT)
+  DebugSystem()
   {
+    m_font = std::make_unique<Font>(DEBUG_FONT, DEBUG_FONT_HEIGHT);
     for(size_t i=0; i<DT_AVERAGE_COUNT; ++i)
       m_dts[i] = 0.0f;
   }
@@ -49,41 +50,41 @@ private:
     glm::vec2   cursor = DEBUG_MARGIN;
 
     line = fmt::format("position: x = {}, y = {}, z = {}", world_data.player.transform.position.x, world_data.player.transform.position.y, world_data.player.transform.position.z);
-    m_text_renderer.render(width, height, cursor, line.c_str());
+    m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("velocity: x = {}, y = {}, z = {}", world_data.player.velocity.x, world_data.player.velocity.y, world_data.player.velocity.z);
-    m_text_renderer.render(width, height, cursor, line.c_str());
+    m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("collided = {}", world_data.player.collided);
-    m_text_renderer.render(width, height, cursor, line.c_str());
+    m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("grounded = {}", world_data.player.grounded);
-    m_text_renderer.render(width, height, cursor, line.c_str());
+    m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     line = fmt::format("average frame time = {}", average);
-    m_text_renderer.render(width, height, cursor, line.c_str());
+    m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
     if(block)
     {
       line = fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level);
-      m_text_renderer.render(width, height, cursor, line.c_str());
+      m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
     else
     {
       line = fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z);
-      m_text_renderer.render(width, height, cursor, line.c_str());
+      m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
@@ -91,21 +92,23 @@ private:
     if(world_data.selection)
     {
       line = fmt::format("selection: position = {}, {}, {}", world_data.selection->x, world_data.selection->y, world_data.selection->z);
-      m_text_renderer.render(width, height, cursor, line.c_str());
+      m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
     else
     {
       line = "selection: none";
-      m_text_renderer.render(width, height, cursor, line.c_str());
+      m_text_renderer.render(glm::vec2(width, height), cursor, *m_font, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;
     }
   }
 
 private:
-  TextRenderer m_text_renderer;
+  TextRenderer          m_text_renderer;
+  std::unique_ptr<Font> m_font;
+
   float m_dts[DT_AVERAGE_COUNT];
 };
 
