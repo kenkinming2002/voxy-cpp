@@ -4,7 +4,7 @@
 
 #include <glm/glm.hpp>
 
-struct Entity
+struct EntityData
 {
 public:
   Transform transform;

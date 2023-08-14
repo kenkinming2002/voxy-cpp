@@ -57,15 +57,15 @@ public:
       m_mesh(build_unit_cube_mesh()) {}
 
 private:
-  void on_render(Application& application, const World& world) override
+  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data) override
   {
     // 1: Selection
-    if(world.selection)
+    if(world_data.selection)
     {
-      glm::vec3 position = *world.selection;
+      glm::vec3 position = *world_data.selection;
 
-      glm::mat4 view       = world.camera.view();
-      glm::mat4 projection = world.camera.projection();
+      glm::mat4 view       = world_data.camera.view();
+      glm::mat4 projection = world_data.camera.projection();
       glm::mat4 model      = glm::translate(glm::mat4(1.0f), position);
       glm::mat4 MVP        = projection * view * model;
 
@@ -77,12 +77,12 @@ private:
     }
 
     // 1: Selection
-    if(world.placement)
+    if(world_data.placement)
     {
-      glm::vec3 position = *world.placement;
+      glm::vec3 position = *world_data.placement;
 
-      glm::mat4 view       = world.camera.view();
-      glm::mat4 projection = world.camera.projection();
+      glm::mat4 view       = world_data.camera.view();
+      glm::mat4 projection = world_data.camera.projection();
       glm::mat4 model      = glm::translate(glm::mat4(1.0f), position);
       glm::mat4 MVP        = projection * view * model;
 

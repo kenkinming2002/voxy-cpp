@@ -32,7 +32,7 @@ private:
 private:
   struct HeightMap
   {
-    float heights[Chunk::WIDTH][Chunk::WIDTH];
+    float heights[CHUNK_WIDTH][CHUNK_WIDTH];
   };
 
   struct Worm
@@ -61,8 +61,8 @@ private:
       size_t seed = prng();
 
       HeightMap height_map;
-      for(int y=0; y<Chunk::WIDTH; ++y)
-        for(int x=0; x<Chunk::WIDTH; ++x)
+      for(int y=0; y<CHUNK_WIDTH; ++y)
+        for(int x=0; x<CHUNK_WIDTH; ++x)
           height_map.heights[y][x] = std::max(terrain_layer_config.base + perlin(seed, coordinates::local_to_global(glm::vec2(x, y), chunk_index),
               terrain_layer_config.frequency,
               terrain_layer_config.amplitude,
@@ -91,8 +91,8 @@ private:
       Worm worm;
 
       glm::vec3 local_origin;
-      local_origin.x = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
-      local_origin.y = std::uniform_real_distribution<float>(0, Chunk::WIDTH-1)(prng);
+      local_origin.x = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
+      local_origin.y = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
       local_origin.z = std::uniform_real_distribution<float>(config.min_height, config.max_height)(prng);
       glm::vec3 origin = coordinates::local_to_global(local_origin, chunk_index);
 
@@ -175,7 +175,7 @@ private:
   {
     bool success = true;
 
-    int        radius  = std::ceil(config.caves.max_segment * config.caves.step / Chunk::WIDTH);
+    int        radius  = std::ceil(config.caves.max_segment * config.caves.step / CHUNK_WIDTH);
     glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
     glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
     for(int y = corner1.y; y <= corner2.y; ++y)
@@ -186,16 +186,16 @@ private:
     return success;
   }
 
-  Chunk do_generate_chunk(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
+  ChunkData do_generate_chunk(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
   {
-    Chunk chunk = {};
+    ChunkData chunk = {};
 
     const ChunkInfo& chunk_info = m_chunk_infos.at(chunk_index);
 
     // 1: Create terrain based on height maps
-    for(int z=0; z<Chunk::HEIGHT; ++z)
-      for(int y=0; y<Chunk::WIDTH; ++y)
-        for(int x=0; x<Chunk::WIDTH; ++x)
+    for(int z=0; z<CHUNK_HEIGHT; ++z)
+      for(int y=0; y<CHUNK_WIDTH; ++y)
+        for(int x=0; x<CHUNK_WIDTH; ++x)
         {
           Block *block = chunk.get_block(glm::ivec3(x, y, z));
           if(!block) [[unlikely]]
@@ -224,7 +224,7 @@ done:;
 
     // 2: Carve out caves based off worms
     glm::ivec2 center  = chunk_index;
-    int        radius  = std::ceil(config.caves.max_segment * config.caves.step / Chunk::WIDTH);
+    int        radius  = std::ceil(config.caves.max_segment * config.caves.step / CHUNK_WIDTH);
     glm::ivec2 corner1 = center - glm::ivec2(radius, radius);
     glm::ivec2 corner2 = center + glm::ivec2(radius, radius);
     for(int y = corner1.y; y <= corner2.y; ++y)
@@ -262,37 +262,37 @@ done:;
     return chunk;
   }
 
-  void load(World& world, glm::ivec2 chunk_index)
+  void load(const WorldConfig& world_config, WorldData& world_data, glm::ivec2 chunk_index)
   {
-    if(!world.dimension.chunks.contains(chunk_index))
-      if(prepare_generate_chunk(world.config.generation, chunk_index))
+    if(!world_data.dimension.chunks.contains(chunk_index))
+      if(prepare_generate_chunk(world_config.generation, chunk_index))
       {
-        Chunk chunk = do_generate_chunk(world.config.generation, chunk_index);
+        ChunkData chunk = do_generate_chunk(world_config.generation, chunk_index);
 
-        auto [_, success] = world.dimension.chunks.emplace(chunk_index, std::move(chunk));
+        auto [_, success] = world_data.dimension.chunks.emplace(chunk_index, std::move(chunk));
         assert(success);
 
         spdlog::info("End generating chunk data at {}, {}", chunk_index.x, chunk_index.y);
       }
   }
 
-  void load(World& world, glm::ivec2 center, int radius)
+  void load(const WorldConfig& world_config, WorldData& world_data, glm::ivec2 center, int radius)
   {
     for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
       for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
       {
         glm::ivec2 chunk_index(cx, cy);
-        load(world, chunk_index);
+        load(world_config, world_data, chunk_index);
       }
   }
 
-  void on_update(Application& application, World& world, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
   {
     glm::ivec2 center = {
-      std::floor(world.player.transform.position.x / Chunk::WIDTH),
-      std::floor(world.player.transform.position.y / Chunk::WIDTH),
+      std::floor(world_data.player.transform.position.x / CHUNK_WIDTH),
+      std::floor(world_data.player.transform.position.y / CHUNK_WIDTH),
     };
-    load(world, center, CHUNK_LOAD_RADIUS);
+    load(world_config, world_data, center, CHUNK_LOAD_RADIUS);
   }
 
 private:

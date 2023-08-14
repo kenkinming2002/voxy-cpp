@@ -31,25 +31,25 @@ private:
   static constexpr float ACTION_COOLDOWN = 0.1f;
 
 private:
-  void on_update(Application& application, World& world, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
   {
     // 1: Jump
     if(application.glfw_get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
-      if(world.player.grounded)
+      if(world_data.player.grounded)
       {
-        world.player.grounded = false;
-        world.player.apply_impulse(glm::vec3(0.0f, 0.0f, 8.0f));
+        world_data.player.grounded = false;
+        world_data.player.apply_impulse(glm::vec3(0.0f, 0.0f, 8.0f));
       }
 
     // 2: Movement
     glm::vec3 translation = glm::vec3(0.0f);
-    if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += world.player.transform.local_right();
-    if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= world.player.transform.local_right();
-    if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += world.player.transform.local_forward();
-    if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world.player.transform.local_forward();
+    if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += world_data.player.transform.local_right();
+    if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= world_data.player.transform.local_right();
+    if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += world_data.player.transform.local_forward();
+    if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world_data.player.transform.local_forward();
     translation.z = 0.0f;
     if(glm::length(translation) != 0.0f)
-      world.player.apply_force(5.0f * glm::normalize(translation), dt);
+      world_data.player.apply_force(5.0f * glm::normalize(translation), dt);
 
     // 3: Rotation
     double new_cursor_xpos;
@@ -59,7 +59,7 @@ private:
     {
       double xrel = new_cursor_xpos - m_cursor_xpos;
       double yrel = new_cursor_ypos - m_cursor_ypos;
-      world.player.transform = world.player.transform.rotate(glm::vec3(0.0f,
+      world_data.player.transform = world_data.player.transform.rotate(glm::vec3(0.0f,
         -yrel * ROTATION_SPEED,
         -xrel * ROTATION_SPEED
       ));
@@ -71,25 +71,25 @@ private:
     // 4: Block placement/destruction
     m_cooldown = std::max(m_cooldown - dt, 0.0f);
 
-    world.selection.reset();
-    world.placement.reset();
-    ray_cast(world.camera.transform.position, world.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
-        const Block *block = world.get_block(block_position);
+    world_data.selection.reset();
+    world_data.placement.reset();
+    ray_cast(world_data.camera.transform.position, world_data.camera.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+        const Block *block = world_data.get_block(block_position);
         if(block && block->id != Block::ID_NONE)
-          world.selection = block_position;
+          world_data.selection = block_position;
         else
-          world.placement = block_position;
+          world_data.placement = block_position;
         return block && block->id != Block::ID_NONE;
     });
 
     // Can only place against a selected block
-    if(!world.selection)
-      world.placement.reset();
+    if(!world_data.selection)
+      world_data.placement.reset();
 
     if(m_cooldown == 0.0f)
       if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        if(world.selection)
-          if(Block *block = world.get_block(*world.selection))
+        if(world_data.selection)
+          if(Block *block = world_data.get_block(*world_data.selection))
             if(block->id != Block::ID_NONE)
             {
               if(block->destroy_level != 15)
@@ -97,30 +97,30 @@ private:
               else
                 block->id = Block::ID_NONE;
 
-              world.invalidate_mesh_major(*world.selection);
-              world.invalidate_light(*world.selection);
+              world_data.invalidate_mesh_major(*world_data.selection);
+              world_data.invalidate_light(*world_data.selection);
               for(glm::ivec3 direction : DIRECTIONS)
               {
-                glm::ivec3 neighbour_position = *world.selection + direction;
-                world.invalidate_mesh_major(neighbour_position);
+                glm::ivec3 neighbour_position = *world_data.selection + direction;
+                world_data.invalidate_mesh_major(neighbour_position);
               }
               m_cooldown = ACTION_COOLDOWN;
             }
 
     if(m_cooldown == 0.0f)
       if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        if(world.placement)
-          if(Block *block = world.get_block(*world.placement))
+        if(world_data.placement)
+          if(Block *block = world_data.get_block(*world_data.placement))
             if(block->id == Block::ID_NONE)
-              if(!aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+              if(!aabb_collide(world_data.player.transform.position, world_data.player.bounding_box, *world_data.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
               {
                 block->id = Block::ID_STONE;
-                world.invalidate_mesh_major(*world.placement);
-                world.invalidate_light(*world.placement);
+                world_data.invalidate_mesh_major(*world_data.placement);
+                world_data.invalidate_light(*world_data.placement);
                 for(glm::ivec3 direction : DIRECTIONS)
                 {
-                  glm::ivec3 neighbour_position = *world.placement + direction;
-                  world.invalidate_mesh_major(neighbour_position);
+                  glm::ivec3 neighbour_position = *world_data.placement + direction;
+                  world_data.invalidate_mesh_major(neighbour_position);
                 }
                 m_cooldown = ACTION_COOLDOWN;
               }

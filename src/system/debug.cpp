@@ -23,14 +23,14 @@ public:
   }
 
 private:
-  void on_update(Application& application, World& world, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
   {
     for(size_t i=0; i<DT_AVERAGE_COUNT-1; ++i)
       m_dts[i] = m_dts[i+1];
     m_dts[DT_AVERAGE_COUNT-1] = dt;
   }
 
-  void on_render(Application& application, const World& world) override
+  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data) override
   {
     int width, height;
     application.glfw_get_framebuffer_size(width, height);
@@ -42,28 +42,28 @@ private:
     average /= DT_AVERAGE_COUNT;
 
     // 2: Current block
-    glm::ivec3   position = glm::floor(world.player.transform.position);
-    const Block* block    = world.get_block(position);
+    glm::ivec3   position = glm::floor(world_data.player.transform.position);
+    const Block* block    = world_data.get_block(position);
 
     std::string line;
     glm::vec2   cursor = DEBUG_MARGIN;
 
-    line = fmt::format("position: x = {}, y = {}, z = {}", world.player.transform.position.x, world.player.transform.position.y, world.player.transform.position.z);
+    line = fmt::format("position: x = {}, y = {}, z = {}", world_data.player.transform.position.x, world_data.player.transform.position.y, world_data.player.transform.position.z);
     m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
-    line = fmt::format("velocity: x = {}, y = {}, z = {}", world.player.velocity.x, world.player.velocity.y, world.player.velocity.z);
+    line = fmt::format("velocity: x = {}, y = {}, z = {}", world_data.player.velocity.x, world_data.player.velocity.y, world_data.player.velocity.z);
     m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
-    line = fmt::format("collided = {}", world.player.collided);
+    line = fmt::format("collided = {}", world_data.player.collided);
     m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
 
-    line = fmt::format("grounded = {}", world.player.grounded);
+    line = fmt::format("grounded = {}", world_data.player.grounded);
     m_text_renderer.render(width, height, cursor, line.c_str());
     cursor.x = DEBUG_MARGIN.x;
     cursor.y += DEBUG_FONT_HEIGHT;
@@ -88,9 +88,9 @@ private:
       cursor.y += DEBUG_FONT_HEIGHT;
     }
 
-    if(world.selection)
+    if(world_data.selection)
     {
-      line = fmt::format("selection: position = {}, {}, {}", world.selection->x, world.selection->y, world.selection->z);
+      line = fmt::format("selection: position = {}, {}, {}", world_data.selection->x, world_data.selection->y, world_data.selection->z);
       m_text_renderer.render(width, height, cursor, line.c_str());
       cursor.x = DEBUG_MARGIN.x;
       cursor.y += DEBUG_FONT_HEIGHT;

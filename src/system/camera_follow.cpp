@@ -6,15 +6,15 @@
 class CameraFollowSystem : public System
 {
 private:
-  void on_update(Application& application, World& world, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
   {
-    world.camera.transform           = world.player.transform;
-    world.camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
+    world_data.camera.transform           = world_data.player.transform;
+    world_data.camera.transform.position += glm::vec3(0.5f, 0.5f, 1.5f);
 
     int width, height;
     application.glfw_get_framebuffer_size(width, height);
     glViewport(0, 0, width, height);
-    world.camera.aspect = (double)width / (double)height;
+    world_data.camera.aspect = (double)width / (double)height;
   }
 };
 

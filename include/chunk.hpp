@@ -7,15 +7,15 @@
 
 #include <unordered_set>
 
-struct Chunk
+static constexpr int CHUNK_WIDTH  = 16;
+static constexpr int CHUNK_HEIGHT = 256;
+
+struct ChunkData
 {
 public:
-  static constexpr int WIDTH  = 16;
-  static constexpr int HEIGHT = 256;
+  Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 
 public:
-  Block blocks[Chunk::HEIGHT][Chunk::WIDTH][Chunk::WIDTH];
-
   bool   mesh_invalidated_major;
   bool   mesh_invalidated_minor;
   double last_remash_time;

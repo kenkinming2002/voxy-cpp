@@ -72,15 +72,12 @@ struct WorldConfig
   std::vector<BlockConfig> blocks;
 };
 
-struct World
+struct WorldData
 {
 public:
-  WorldConfig config;
-
-public:
-  Camera    camera;
-  Entity    player;
-  Dimension dimension;
+  Camera        camera;
+  EntityData    player;
+  DimensionData dimension;
 
   std::optional<glm::ivec3> placement;
   std::optional<glm::ivec3> selection;

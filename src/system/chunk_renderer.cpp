@@ -17,20 +17,20 @@ private:
   static constexpr double REMASH_THROTTLE = 5.0f;
 
 private:
-  struct BlockData
+  struct BlockTexture
   {
     std::uint32_t texture_indices[6];
   };
 
 public:
-  ChunkRendererSystem(const World& world)
+  ChunkRendererSystem(const WorldConfig& world_config)
   {
     // 1: ShaderProgram
     m_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
 
     // 2: TextureArray
     std::vector<std::string> texture_filenames;
-    for(const BlockConfig& block_config : world.config.blocks)
+    for(const BlockConfig& block_config : world_config.blocks)
       for(const std::string& texture_filename : block_config.textures)
         texture_filenames.push_back(texture_filename);
 
@@ -45,17 +45,17 @@ public:
     for(size_t i=0; i<texture_filenames.size(); ++i)
       texture_indices_map.emplace(texture_filenames[i], i);
 
-    for(const BlockConfig& block_config : world.config.blocks)
+    for(const BlockConfig& block_config : world_config.blocks)
     {
-      BlockData block_data;
+      BlockTexture block_texture;
       for(size_t i=0; i<6; ++i)
-        block_data.texture_indices[i] = texture_indices_map.at(block_config.textures[i]);
-      m_block_datas.push_back(block_data);
+        block_texture.texture_indices[i] = texture_indices_map.at(block_config.textures[i]);
+      m_block_textures.push_back(block_texture);
     }
   }
 
 private:
-  graphics::Mesh generate_chunk_mesh(const World& world, glm::ivec2 chunk_index, const Chunk& chunk) const
+  graphics::Mesh generate_chunk_mesh(const WorldData& world, glm::ivec2 chunk_index, const ChunkData& chunk) const
   {
     struct Vertex
     {
@@ -68,9 +68,9 @@ private:
 
     std::vector<uint32_t> indices;
     std::vector<Vertex>   vertices;
-    for(int lz=0; lz<Chunk::HEIGHT; ++lz)
-      for(int ly=0; ly<Chunk::WIDTH; ++ly)
-        for(int lx=0; lx<Chunk::WIDTH; ++lx)
+    for(int lz=0; lz<CHUNK_HEIGHT; ++lz)
+      for(int ly=0; ly<CHUNK_WIDTH; ++ly)
+        for(int lx=0; lx<CHUNK_WIDTH; ++lx)
         {
           glm::ivec3   position = coordinates::local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
           const Block* block    = world.get_block(position);
@@ -99,8 +99,8 @@ private:
             glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
             glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-            const BlockData& block_data = m_block_datas.at(block->id);
-            uint32_t texture_index = block_data.texture_indices[i];
+            const BlockTexture& block_texture = m_block_textures.at(block->id);
+            uint32_t texture_index = block_texture.texture_indices[i];
             float    light_level   = (neighbour_block ? neighbour_block->light_level : 15) / 16.0f;
             float    destroy_level = block->destroy_level / 16.0f;
 
@@ -131,9 +131,9 @@ private:
     );
   }
 
-  void on_update(Application& application, World& world, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
   {
-    for(auto& [chunk_index, chunk] : world.dimension.chunks)
+    for(auto& [chunk_index, chunk] : world_data.dimension.chunks)
     {
       double time = glfwGetTime();
       if(chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (time - chunk.last_remash_time) >= REMASH_THROTTLE))
@@ -141,12 +141,12 @@ private:
         chunk.mesh_invalidated_major = false;
         chunk.mesh_invalidated_minor = false;
         chunk.last_remash_time = time;
-        m_chunk_meshes.insert_or_assign(chunk_index, generate_chunk_mesh(world, chunk_index, chunk));
+        m_chunk_meshes.insert_or_assign(chunk_index, generate_chunk_mesh(world_data, chunk_index, chunk));
       }
     }
   }
 
-  void on_render(Application& application, const World& world) override
+  void on_render(Application& application, const WorldConfig& config, const WorldData& world) override
   {
     glUseProgram(m_shader_program->id());
 
@@ -171,13 +171,13 @@ private:
 private:
   std::unique_ptr<graphics::ShaderProgram> m_shader_program;
   std::unique_ptr<graphics::TextureArray>  m_blocks_texture_array;
-  std::vector<BlockData>  m_block_datas;
+  std::vector<BlockTexture>                m_block_textures;
 
   std::unordered_map<glm::ivec2, graphics::Mesh> m_chunk_meshes;
 };
 
-std::unique_ptr<System> create_chunk_renderer_system(const World& world)
+std::unique_ptr<System> create_chunk_renderer_system(const WorldConfig& world_config)
 {
-  return std::make_unique<ChunkRendererSystem>(world);
+  return std::make_unique<ChunkRendererSystem>(world_config);
 }
 

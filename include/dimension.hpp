@@ -11,10 +11,10 @@
 
 #include <cstdint>
 
-struct Dimension
+struct DimensionData
 {
 public:
-  std::unordered_map<glm::ivec2, Chunk> chunks;
+  std::unordered_map<glm::ivec2, ChunkData> chunks;
 
 public:
   Block* get_block(glm::ivec3 position);

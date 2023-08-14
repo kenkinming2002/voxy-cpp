@@ -38,7 +38,9 @@ private:
   void on_render()         override;
 
 private:
-  World                                m_world;
+  WorldConfig m_world_config;
+  WorldData   m_world_data;
+
   std::vector<std::unique_ptr<System>> m_systems;
 
   graphics::ShaderProgram entity_shader_program = graphics::ShaderProgram("assets/entity.vert", "assets/entity.frag");
@@ -46,59 +48,61 @@ private:
   graphics::Texture       entity_texture        = graphics::Texture("assets/character/idk.png");
 };
 
-Voxy::Voxy() :
-  m_world{
-    .config = {
-      .generation = {
-        .seed = SEED,
-        .terrain = {
-          .layers = {
-            { .block_id = Block::ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
-            { .block_id = Block::ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
-          },
-        },
-        .caves = {
-          .max_per_chunk = 2,
-          .max_segment   = 10,
-          .step          = 5.0f,
-          .min_height    = 10.0f,
-          .max_height    = 30.0f,
-
-          .dig_frequency   = 0.1f,
-          .dig_amplitude   = 1.0f,
-          .dig_lacunarity  = 2.0f,
-          .dig_persistence = 0.5f,
-          .dig_octaves     = 4,
-
-          .radius             = 2.0f,
-          .radius_frequency   = 0.1f,
-          .radius_amplitude   = 3.0f,
-          .radius_lacunarity  = 2.0f,
-          .radius_persistence = 0.5f,
+Voxy::Voxy()
+{
+  m_world_config = {
+    .generation = {
+      .seed = SEED,
+      .terrain = {
+        .layers = {
+          { .block_id = Block::ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
+          { .block_id = Block::ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
         },
       },
-      .blocks = {
-        {
-          .textures = {
-            "assets/stone.png",
-            "assets/stone.png",
-            "assets/stone.png",
-            "assets/stone.png",
-            "assets/stone.png",
-            "assets/stone.png",
-          }
-        }, {
-          .textures = {
-            "assets/grass_side.png",
-            "assets/grass_side.png",
-            "assets/grass_side.png",
-            "assets/grass_side.png",
-            "assets/grass_bottom.png",
-            "assets/grass_top.png",
-          },
-        }
+      .caves = {
+        .max_per_chunk = 2,
+        .max_segment   = 10,
+        .step          = 5.0f,
+        .min_height    = 10.0f,
+        .max_height    = 30.0f,
+
+        .dig_frequency   = 0.1f,
+        .dig_amplitude   = 1.0f,
+        .dig_lacunarity  = 2.0f,
+        .dig_persistence = 0.5f,
+        .dig_octaves     = 4,
+
+        .radius             = 2.0f,
+        .radius_frequency   = 0.1f,
+        .radius_amplitude   = 3.0f,
+        .radius_lacunarity  = 2.0f,
+        .radius_persistence = 0.5f,
       },
     },
+    .blocks = {
+      {
+        .textures = {
+          "assets/stone.png",
+          "assets/stone.png",
+          "assets/stone.png",
+          "assets/stone.png",
+          "assets/stone.png",
+          "assets/stone.png",
+        }
+      }, {
+        .textures = {
+          "assets/grass_side.png",
+          "assets/grass_side.png",
+          "assets/grass_side.png",
+          "assets/grass_side.png",
+          "assets/grass_bottom.png",
+          "assets/grass_top.png",
+        },
+      }
+    },
+  };
+
+  m_world_data = {
     .camera = {
       .aspect = 1024.0f / 720.0f,
       .fovy   = 45.0f,
@@ -112,8 +116,8 @@ Voxy::Voxy() :
       .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
     },
     .dimension = {},
-  }
-{
+  };
+
   m_systems.push_back(create_player_control_system());
   m_systems.push_back(create_player_ui_system());
   m_systems.push_back(create_camera_follow_system());
@@ -122,7 +126,7 @@ Voxy::Voxy() :
   m_systems.push_back(create_physics_system());
 
   m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_renderer_system(m_world));
+  m_systems.push_back(create_chunk_renderer_system(m_world_config));
 
   m_systems.push_back(create_debug_system());
 }
@@ -132,7 +136,7 @@ void Voxy::on_update(float dt)
   for(auto& system : m_systems)
   {
     double time_begin = glfwGetTime();
-    system->on_update(*this, m_world, dt);
+    system->on_update(*this, m_world_config, m_world_data, dt);
     double time_end = glfwGetTime();
     double time = time_end - time_begin;
 
@@ -158,8 +162,8 @@ void Voxy::on_render()
 
   glUseProgram(entity_shader_program.id());
 
-  glm::mat4 view       = m_world.camera.view();
-  glm::mat4 projection = m_world.camera.projection();
+  glm::mat4 view       = m_world_data.camera.view();
+  glm::mat4 projection = m_world_data.camera.projection();
   glm::mat4 model      = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 50.0f));
 
   glm::mat4 MVP = projection * view * model;
@@ -174,7 +178,7 @@ void Voxy::on_render()
   entity_mesh.draw_triangles();
 
   for(auto& system : m_systems)
-    system->on_render(*this, m_world);
+    system->on_render(*this, m_world_config, m_world_data);
 }
 
 int main()
