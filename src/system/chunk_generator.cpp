@@ -53,10 +53,10 @@ private:
 
 private:
   template<typename Prng>
-  static std::vector<HeightMap> generate_height_maps(Prng& prng, const TerrainConfig& config, glm::ivec2 chunk_index)
+  static std::vector<HeightMap> generate_height_maps(Prng& prng, const TerrainGenerationConfig& config, glm::ivec2 chunk_index)
   {
     std::vector<HeightMap> height_maps;
-    for(const TerrainLayerConfig& terrain_layer_config : config.layers)
+    for(const TerrainLayerGenerationConfig& terrain_layer_config : config.layers)
     {
       size_t seed = prng();
 
@@ -76,7 +76,7 @@ private:
   }
 
   template<typename Prng>
-  static std::vector<Worm> generate_worms(Prng& prng, const CavesConfig& config, glm::ivec2 chunk_index)
+  static std::vector<Worm> generate_worms(Prng& prng, const CavesGenerationConfig& config, glm::ivec2 chunk_index)
   {
     size_t seed_x      = prng();
     size_t seed_y      = prng() ;
@@ -129,7 +129,7 @@ private:
   }
 
   template<typename Prng>
-  static ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, const WorldConfig& config, glm::ivec2 chunk_index)
+  static ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, const WorldGenerationConfig& config, glm::ivec2 chunk_index)
   {
     std::vector<HeightMap> height_maps = generate_height_maps(prng_global, config.terrain, chunk_index);
     std::vector<Worm>      worms       = generate_worms(prng_local, config.caves, chunk_index);
@@ -140,7 +140,7 @@ private:
     };
   }
 
-  const ChunkInfo *try_generate_chunk_info(const WorldConfig& config, glm::ivec2 chunk_index)
+  const ChunkInfo *try_generate_chunk_info(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
   {
     if(auto it = m_chunk_infos.find(chunk_index); it != m_chunk_infos.end())
       return &it->second;
@@ -171,7 +171,7 @@ private:
     return nullptr;
   }
 
-  bool prepare_generate_chunk(const WorldConfig& config, glm::ivec2 chunk_index)
+  bool prepare_generate_chunk(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
   {
     bool success = true;
 
@@ -186,7 +186,7 @@ private:
     return success;
   }
 
-  Chunk do_generate_chunk(const WorldConfig& config, glm::ivec2 chunk_index)
+  Chunk do_generate_chunk(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
   {
     Chunk chunk = {};
 
@@ -265,9 +265,9 @@ done:;
   void load(World& world, glm::ivec2 chunk_index)
   {
     if(!world.dimension.chunks.contains(chunk_index))
-      if(prepare_generate_chunk(world.config, chunk_index))
+      if(prepare_generate_chunk(world.config.generation, chunk_index))
       {
-        Chunk chunk = do_generate_chunk(world.config, chunk_index);
+        Chunk chunk = do_generate_chunk(world.config.generation, chunk_index);
 
         auto [_, success] = world.dimension.chunks.emplace(chunk_index, std::move(chunk));
         assert(success);

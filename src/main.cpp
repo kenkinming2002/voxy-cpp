@@ -49,31 +49,33 @@ private:
 Voxy::Voxy() :
   m_world{
     .config = {
-      .seed = SEED,
-      .terrain = {
-        .layers = {
-          { .block_id = Block::ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
-          { .block_id = Block::ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
+      .generation = {
+        .seed = SEED,
+        .terrain = {
+          .layers = {
+            { .block_id = Block::ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
+            { .block_id = Block::ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
+          },
         },
-      },
-      .caves = {
-        .max_per_chunk = 2,
-        .max_segment   = 10,
-        .step          = 5.0f,
-        .min_height    = 10.0f,
-        .max_height    = 30.0f,
+        .caves = {
+          .max_per_chunk = 2,
+          .max_segment   = 10,
+          .step          = 5.0f,
+          .min_height    = 10.0f,
+          .max_height    = 30.0f,
 
-        .dig_frequency   = 0.1f,
-        .dig_amplitude   = 1.0f,
-        .dig_lacunarity  = 2.0f,
-        .dig_persistence = 0.5f,
-        .dig_octaves     = 4,
+          .dig_frequency   = 0.1f,
+          .dig_amplitude   = 1.0f,
+          .dig_lacunarity  = 2.0f,
+          .dig_persistence = 0.5f,
+          .dig_octaves     = 4,
 
-        .radius             = 2.0f,
-        .radius_frequency   = 0.1f,
-        .radius_amplitude   = 3.0f,
-        .radius_lacunarity  = 2.0f,
-        .radius_persistence = 0.5f,
+          .radius             = 2.0f,
+          .radius_frequency   = 0.1f,
+          .radius_amplitude   = 3.0f,
+          .radius_lacunarity  = 2.0f,
+          .radius_persistence = 0.5f,
+        },
       },
     },
     .camera = {

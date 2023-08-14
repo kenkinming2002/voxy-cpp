@@ -14,7 +14,7 @@
 
 #include <cstddef>
 
-struct TerrainLayerConfig
+struct TerrainLayerGenerationConfig
 {
   uint32_t block_id;
 
@@ -26,12 +26,12 @@ struct TerrainLayerConfig
   unsigned octaves;
 };
 
-struct TerrainConfig
+struct TerrainGenerationConfig
 {
-  std::vector<TerrainLayerConfig> layers;
+  std::vector<TerrainLayerGenerationConfig> layers;
 };
 
-struct CavesConfig
+struct CavesGenerationConfig
 {
   unsigned max_per_chunk;
   unsigned max_segment;
@@ -54,11 +54,16 @@ struct CavesConfig
   float radius_octaves;
 };
 
+struct WorldGenerationConfig
+{
+  std::size_t             seed;
+  TerrainGenerationConfig terrain;
+  CavesGenerationConfig   caves;
+};
+
 struct WorldConfig
 {
-  std::size_t   seed;
-  TerrainConfig terrain;
-  CavesConfig   caves;
+  WorldGenerationConfig generation;
 };
 
 struct World
@@ -66,6 +71,7 @@ struct World
 public:
   WorldConfig config;
 
+public:
   Camera    camera;
   Entity    player;
   Dimension dimension;
