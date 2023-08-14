@@ -16,20 +16,43 @@ class ChunkRendererSystem : public System
 private:
   static constexpr double REMASH_THROTTLE = 5.0f;
 
+private:
+  struct BlockData
+  {
+    std::uint32_t texture_indices[6];
+  };
+
 public:
-  ChunkRendererSystem() :
-    m_shader_program("assets/chunk.vert", "assets/chunk.frag"),
-    m_blocks_texture_array({
-      "assets/stone.png",
-      "assets/grass_bottom.png",
-      "assets/grass_side.png",
-      "assets/grass_top.png",
-    }),
-    m_block_datas{
-      { .texture_indices = {0, 0, 0, 0, 0, 0} },
-      { .texture_indices = {2, 2, 2, 2, 1, 3} },
+  ChunkRendererSystem(const World& world)
+  {
+    // 1: ShaderProgram
+    m_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
+
+    // 2: TextureArray
+    std::vector<std::string> texture_filenames;
+    for(const BlockConfig& block_config : world.config.blocks)
+      for(const std::string& texture_filename : block_config.textures)
+        texture_filenames.push_back(texture_filename);
+
+    std::sort(texture_filenames.begin(), texture_filenames.end());
+    texture_filenames.erase(std::unique(texture_filenames.begin(), texture_filenames.end()), texture_filenames.end());
+
+    m_blocks_texture_array = std::make_unique<graphics::TextureArray>(texture_filenames);
+
+    // 3: Build lookup table from block id to texture indices
+    std::unordered_map<std::string, std::uint32_t> texture_indices_map;
+    texture_indices_map.reserve(texture_filenames.size());
+    for(size_t i=0; i<texture_filenames.size(); ++i)
+      texture_indices_map.emplace(texture_filenames[i], i);
+
+    for(const BlockConfig& block_config : world.config.blocks)
+    {
+      BlockData block_data;
+      for(size_t i=0; i<6; ++i)
+        block_data.texture_indices[i] = texture_indices_map.at(block_config.textures[i]);
+      m_block_datas.push_back(block_data);
     }
-  {}
+  }
 
 private:
   graphics::Mesh generate_chunk_mesh(const World& world, glm::ivec2 chunk_index, const Chunk& chunk) const
@@ -125,7 +148,7 @@ private:
 
   void on_render(Application& application, const World& world) override
   {
-    glUseProgram(m_shader_program.id());
+    glUseProgram(m_shader_program->id());
 
     glm::mat4 view       = world.camera.view();
     glm::mat4 projection = world.camera.projection();
@@ -134,27 +157,27 @@ private:
     glm::mat4 MVP = projection * view * model;
     glm::mat4 MV  =              view * model;
 
-    glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-    glUniformMatrix4fv(glGetUniformLocation(m_shader_program.id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
+    glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array.id());
-    glUniform1i(glGetUniformLocation(m_shader_program.id(), "blocksTextureArray"), 0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, m_blocks_texture_array->id());
+    glUniform1i(glGetUniformLocation(m_shader_program->id(), "blocksTextureArray"), 0);
     for(const auto& [chunk_index, mesh] : m_chunk_meshes)
         mesh.draw_triangles();
   }
 
 
 private:
-  graphics::ShaderProgram m_shader_program;
-  graphics::TextureArray  m_blocks_texture_array;
+  std::unique_ptr<graphics::ShaderProgram> m_shader_program;
+  std::unique_ptr<graphics::TextureArray>  m_blocks_texture_array;
   std::vector<BlockData>  m_block_datas;
 
   std::unordered_map<glm::ivec2, graphics::Mesh> m_chunk_meshes;
 };
 
-std::unique_ptr<System> create_chunk_renderer_system()
+std::unique_ptr<System> create_chunk_renderer_system(const World& world)
 {
-  return std::make_unique<ChunkRendererSystem>();
+  return std::make_unique<ChunkRendererSystem>(world);
 }
 

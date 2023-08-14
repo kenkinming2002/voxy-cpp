@@ -11,11 +11,6 @@
 
 #include <cstdint>
 
-struct BlockData
-{
-  std::uint32_t texture_indices[6];
-};
-
 struct Dimension
 {
 public:

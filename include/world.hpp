@@ -61,9 +61,15 @@ struct WorldGenerationConfig
   CavesGenerationConfig   caves;
 };
 
+struct BlockConfig
+{
+  std::array<std::string, 6> textures;
+};
+
 struct WorldConfig
 {
-  WorldGenerationConfig generation;
+  WorldGenerationConfig    generation;
+  std::vector<BlockConfig> blocks;
 };
 
 struct World

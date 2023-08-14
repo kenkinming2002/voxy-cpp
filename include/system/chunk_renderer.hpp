@@ -4,7 +4,7 @@
 #include <system.hpp>
 #include <memory>
 
-std::unique_ptr<System> create_chunk_renderer_system();
+std::unique_ptr<System> create_chunk_renderer_system(const World& world);
 
 #endif // SYSTEM_CHUNK_RENDERER_HPP
 

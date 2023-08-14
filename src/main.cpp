@@ -77,6 +77,27 @@ Voxy::Voxy() :
           .radius_persistence = 0.5f,
         },
       },
+      .blocks = {
+        {
+          .textures = {
+            "assets/stone.png",
+            "assets/stone.png",
+            "assets/stone.png",
+            "assets/stone.png",
+            "assets/stone.png",
+            "assets/stone.png",
+          }
+        }, {
+          .textures = {
+            "assets/grass_side.png",
+            "assets/grass_side.png",
+            "assets/grass_side.png",
+            "assets/grass_side.png",
+            "assets/grass_bottom.png",
+            "assets/grass_top.png",
+          },
+        }
+      },
     },
     .camera = {
       .aspect = 1024.0f / 720.0f,
@@ -101,7 +122,7 @@ Voxy::Voxy() :
   m_systems.push_back(create_physics_system());
 
   m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_renderer_system());
+  m_systems.push_back(create_chunk_renderer_system(m_world));
 
   m_systems.push_back(create_debug_system());
 }
