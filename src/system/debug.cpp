@@ -32,11 +32,14 @@ private:
     m_dts[DT_AVERAGE_COUNT-1] = dt;
   }
 
+  void render_line(glm::vec2 viewport, size_t n, const std::string& line)
+  {
+    glm::vec2 position = DEBUG_MARGIN + glm::vec2(0.0f, n * DEBUG_FONT_HEIGHT);
+    m_font->render(m_ui_renderer, viewport, position, line.c_str());
+  }
+
   void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data) override
   {
-    int width, height;
-    application.glfw_get_framebuffer_size(width, height);
-
     // 1: Frame time
     float average = 0.0f;
     for(size_t i=0; i<DT_AVERAGE_COUNT; ++i)
@@ -47,63 +50,32 @@ private:
     glm::ivec3   position = glm::floor(world_data.player.transform.position);
     const Block* block    = world_data.get_block(position);
 
-    std::string line;
-    glm::vec2   cursor = DEBUG_MARGIN;
+    int width, height;
+    application.glfw_get_framebuffer_size(width, height);
+    glm::vec2 viewport = glm::vec2(width, height);
 
-    line = fmt::format("position: x = {}, y = {}, z = {}", world_data.player.transform.position.x, world_data.player.transform.position.y, world_data.player.transform.position.z);
-    m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-    cursor.x = DEBUG_MARGIN.x;
-    cursor.y += DEBUG_FONT_HEIGHT;
+    size_t n = 0;
 
-    line = fmt::format("velocity: x = {}, y = {}, z = {}", world_data.player.velocity.x, world_data.player.velocity.y, world_data.player.velocity.z);
-    m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-    cursor.x = DEBUG_MARGIN.x;
-    cursor.y += DEBUG_FONT_HEIGHT;
-
-    line = fmt::format("collided = {}", world_data.player.collided);
-    m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-    cursor.x = DEBUG_MARGIN.x;
-    cursor.y += DEBUG_FONT_HEIGHT;
-
-    line = fmt::format("grounded = {}", world_data.player.grounded);
-    m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-    cursor.x = DEBUG_MARGIN.x;
-    cursor.y += DEBUG_FONT_HEIGHT;
-
-    line = fmt::format("average frame time = {}", average);
-    m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-    cursor.x = DEBUG_MARGIN.x;
-    cursor.y += DEBUG_FONT_HEIGHT;
+    render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", world_data.player.transform.position.x, world_data.player.transform.position.y, world_data.player.transform.position.z));
+    render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", world_data.player.velocity.x, world_data.player.velocity.y, world_data.player.velocity.z));
+    render_line(viewport, n++, fmt::format("collided = {}", world_data.player.collided));
+    render_line(viewport, n++, fmt::format("grounded = {}", world_data.player.grounded));
+    render_line(viewport, n++, fmt::format("average frame time = {}", average));
 
     if(block)
-    {
-      line = fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level);
-      m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-      cursor.x = DEBUG_MARGIN.x;
-      cursor.y += DEBUG_FONT_HEIGHT;
-    }
+      render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level));
     else
-    {
-      line = fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z);
-      m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-      cursor.x = DEBUG_MARGIN.x;
-      cursor.y += DEBUG_FONT_HEIGHT;
-    }
+      render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z));
 
     if(world_data.selection)
-    {
-      line = fmt::format("selection: position = {}, {}, {}", world_data.selection->x, world_data.selection->y, world_data.selection->z);
-      m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-      cursor.x = DEBUG_MARGIN.x;
-      cursor.y += DEBUG_FONT_HEIGHT;
-    }
+      render_line(viewport, n++, fmt::format("selection: position = {}, {}, {}", world_data.selection->x, world_data.selection->y, world_data.selection->z));
     else
-    {
-      line = "selection: none";
-      m_font->render(m_ui_renderer, glm::vec2(width, height), cursor, line.c_str());
-      cursor.x = DEBUG_MARGIN.x;
-      cursor.y += DEBUG_FONT_HEIGHT;
-    }
+      render_line(viewport, n++, "selection: none");
+
+    if(world_data.placement)
+      render_line(viewport, n++, fmt::format("placement: position = {}, {}, {}", world_data.placement->x, world_data.placement->y, world_data.placement->z));
+    else
+      render_line(viewport, n++, "placement: none");
   }
 
 private:
