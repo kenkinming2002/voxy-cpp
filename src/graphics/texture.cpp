@@ -30,7 +30,7 @@ namespace graphics
 
   Texture::Texture(const std::string& filename)
   {
-    stbi_set_flip_vertically_on_load(false);
+    stbi_set_flip_vertically_on_load(true);
 
     int width, height, channels;
     stbi_uc *bytes = stbi_load(filename.c_str(), &width, &height, &channels, 0);
@@ -41,7 +41,7 @@ namespace graphics
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     switch(channels)
@@ -50,7 +50,6 @@ namespace graphics
       case 4: glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes); break;
       default: throw std::runtime_error("Unexpected number of channel in image\n");
     }
-    glGenerateMipmap(GL_TEXTURE_2D);
   }
 
   Texture::~Texture()

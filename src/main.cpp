@@ -42,8 +42,8 @@ private:
   std::vector<std::unique_ptr<System>> m_systems;
 
   graphics::ShaderProgram entity_shader_program = graphics::ShaderProgram("assets/entity.vert", "assets/entity.frag");
-  graphics::Mesh          entity_mesh           = graphics::Mesh("assets/character/model.obj");
-  graphics::Texture       entity_texture        = graphics::Texture("assets/character/steve.png");
+  graphics::Mesh          entity_mesh           = graphics::Mesh("assets/character/idk.obj");
+  graphics::Texture       entity_texture        = graphics::Texture("assets/character/idk.png");
 };
 
 Voxy::Voxy() :
@@ -137,7 +137,7 @@ void Voxy::on_render()
 
   glm::mat4 view       = m_world.camera.view();
   glm::mat4 projection = m_world.camera.projection();
-  glm::mat4 model      = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 60.0f));
+  glm::mat4 model      = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 50.0f));
 
   glm::mat4 MVP = projection * view * model;
   glm::mat4 MV  =              view * model;
