@@ -1,6 +1,7 @@
 #include <system/player_ui.hpp>
 
 #include <world.hpp>
+#include <camera.hpp>
 
 #include <graphics/mesh.hpp>
 #include <graphics/shader_program.hpp>
@@ -57,7 +58,7 @@ public:
       m_mesh(build_unit_cube_mesh()) {}
 
 private:
-  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data, const Camera& camera) override
+  void on_render(Application& application, const WorldConfig& world_config, const World& world_data, const Camera& camera) override
   {
     // 1: Selection
     if(world_data.selection)

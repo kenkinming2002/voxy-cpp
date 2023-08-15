@@ -25,7 +25,7 @@ public:
   }
 
 private:
-  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, World& world_data, float dt) override
   {
     for(size_t i=0; i<DT_AVERAGE_COUNT-1; ++i)
       m_dts[i] = m_dts[i+1];
@@ -38,7 +38,7 @@ private:
     m_font->render(m_ui_renderer, viewport, position, line.c_str());
   }
 
-  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data, const Camera& camera) override
+  void on_render(Application& application, const WorldConfig& world_config, const World& world_data, const Camera& camera) override
   {
     // 1: Frame time
     float average = 0.0f;
@@ -48,7 +48,7 @@ private:
 
     // 2: Current block
     glm::ivec3   position = glm::floor(world_data.player.transform.position);
-    const Block* block    = world_data.get_block(position);
+    const Block* block    = get_block(world_data, position);
 
     int width, height;
     application.glfw_get_framebuffer_size(width, height);

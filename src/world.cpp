@@ -1,26 +1,141 @@
 #include <world.hpp>
 
-Block* WorldData::get_block(glm::ivec3 position)
+#include <coordinates.hpp>
+
+/**********
+ * Entity *
+ **********/
+void entity_apply_force(Entity& entity, glm::vec3 force, float dt)
 {
-  return dimension.get_block(position);
+  entity.velocity += dt * force;
 }
 
-const Block* WorldData::get_block(glm::ivec3 position) const
+void entity_apply_impulse(Entity& entity, glm::vec3 force)
 {
-  return dimension.get_block(position);
+  entity.velocity += force;
 }
 
-void WorldData::invalidate_mesh_major(glm::ivec3 position)
+/******************
+ * Block Accessor *
+ ******************/
+Block* get_block(Chunk& chunk, glm::ivec3 position)
 {
-  dimension.major_invalidate_mesh(position);
+  if(position.x < 0 || position.x >= CHUNK_WIDTH)  return nullptr;
+  if(position.y < 0 || position.y >= CHUNK_WIDTH)  return nullptr;
+  if(position.z < 0 || position.z >= CHUNK_HEIGHT) return nullptr;
+
+  return &chunk.blocks[position.z][position.y][position.x];
 }
 
-void WorldData::invalidate_mesh_minor(glm::ivec3 position)
+const Block* get_block(const Chunk& chunk, glm::ivec3 position)
 {
-  dimension.minor_invalidate_mesh(position);
+  if(position.x < 0 || position.x >= CHUNK_WIDTH)  return nullptr;
+  if(position.y < 0 || position.y >= CHUNK_WIDTH)  return nullptr;
+  if(position.z < 0 || position.z >= CHUNK_HEIGHT) return nullptr;
+
+  return &chunk.blocks[position.z][position.y][position.x];
 }
 
-void WorldData::invalidate_light(glm::ivec3 position)
+Block* get_block(Dimension& dimension, glm::ivec3 position)
 {
-  dimension.lighting_invalidate(position);
+  auto [local_position, chunk_index] = coordinates::split(position);
+  auto it = dimension.chunks.find(chunk_index);
+  if(it == dimension.chunks.end())
+    return nullptr;
+
+  return ::get_block(it->second, local_position);
 }
+
+const Block* get_block(const Dimension& dimension, glm::ivec3 position)
+{
+  auto [local_position, chunk_index] = coordinates::split(position);
+  auto it = dimension.chunks.find(chunk_index);
+  if(it == dimension.chunks.end())
+    return nullptr;
+
+  return ::get_block(it->second, local_position);
+}
+
+Block* get_block(World& world, glm::ivec3 position)
+{
+  return get_block(world.dimension, position);
+}
+
+const Block* get_block(const World& world, glm::ivec3 position)
+{
+  return get_block(world.dimension, position);
+}
+
+/************************
+ * Explode the World!!! *
+ ************************/
+void explode(Chunk& chunk, glm::vec3 center, float radius)
+{
+  // TODO: Culling
+  glm::ivec3 corner1 = glm::floor(center - glm::vec3(radius, radius, radius));
+  glm::ivec3 corner2 = glm::ceil (center + glm::vec3(radius, radius, radius));
+  for(int z = corner1.z; z<=corner2.z; ++z)
+    for(int y = corner1.y; y<=corner2.y; ++y)
+      for(int x = corner1.x; x<=corner2.x; ++x)
+      {
+        glm::ivec3 pos = { x, y, z };
+        if(glm::length2(glm::vec3(pos) - center) < radius * radius)
+          if(Block* block = get_block(chunk, pos))
+            block->id = BLOCK_ID_NONE;
+      }
+}
+
+/**************************
+ * Invalidate them ALL!!! *
+ **************************/
+void invalidate_mesh_major(Chunk& chunk)
+{
+  chunk.mesh_invalidated_major = true;
+}
+
+void invalidate_mesh_minor(Chunk& chunk)
+{
+  chunk.mesh_invalidated_minor = true;
+}
+
+void invalidate_light(Chunk& chunk, glm::ivec3 position)
+{
+  chunk.pending_lighting_updates.insert(position);
+}
+
+void invalidate_mesh_major(Dimension& dimension, glm::ivec3 position)
+{
+  auto [local_position, chunk_index] = coordinates::split(position);
+  if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
+    invalidate_mesh_major(it->second);
+}
+
+void invalidate_mesh_minor(Dimension& dimension, glm::ivec3 position)
+{
+  auto [local_position, chunk_index] = coordinates::split(position);
+  if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
+    invalidate_mesh_minor(it->second);
+}
+
+void invalidate_light(Dimension& dimension, glm::ivec3 position)
+{
+  auto [local_position, chunk_index] = coordinates::split(position);
+  if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
+    invalidate_light(it->second, local_position);
+}
+
+void invalidate_mesh_major(World& world, glm::ivec3 position)
+{
+  invalidate_mesh_major(world.dimension, position);
+}
+
+void invalidate_mesh_minor(World& world, glm::ivec3 position)
+{
+  invalidate_mesh_minor(world.dimension, position);
+}
+
+void invalidate_light(World& world, glm::ivec3 position)
+{
+  invalidate_light(world.dimension, position);
+}
+

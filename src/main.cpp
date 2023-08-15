@@ -1,6 +1,9 @@
 #include <application.hpp>
 
 #include <world.hpp>
+#include <world_config.hpp>
+
+#include <camera.hpp>
 #include <system.hpp>
 
 #include <system/chunk_generator.hpp>
@@ -39,7 +42,7 @@ private:
   std::vector<std::unique_ptr<System>> m_systems;
 
   WorldConfig m_world_config;
-  WorldData   m_world_data;
+  World   m_world_data;
 
   Camera m_camera;
 
@@ -66,8 +69,8 @@ Voxy::Voxy()
       .seed = SEED,
       .terrain = {
         .layers = {
-          { .block_id = Block::ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
-          { .block_id = Block::ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
+          { .block_id = BLOCK_ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
+          { .block_id = BLOCK_ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
         },
       },
       .caves = {

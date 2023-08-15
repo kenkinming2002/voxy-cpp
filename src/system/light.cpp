@@ -11,13 +11,13 @@
 class LightSystem : public System
 {
 private:
-  static std::pair<bool, int> compute_block_sky_and_light_level(const WorldData& world, glm::ivec3 position, const Block* block)
+  static std::pair<bool, int> compute_block_sky_and_light_level(const World& world, glm::ivec3 position, const Block* block)
   {
     glm::ivec3   neighbour_position;
     const Block* neighbour_block;
 
     // 1: Solid block
-    if(block->id != Block::ID_NONE)
+    if(block->id != BLOCK_ID_NONE)
       return std::make_pair(false, 0);
 
     // 2: Direct Skylight
@@ -26,7 +26,7 @@ private:
 
     // 3: Indirect Skylight
     neighbour_position = position + glm::ivec3(0, 0, 1);
-    neighbour_block    = world.dimension.get_block(neighbour_position);
+    neighbour_block    = get_block(world.dimension, neighbour_position);
     if(neighbour_block->sky)
       return std::make_pair(true, 15);
 
@@ -35,7 +35,7 @@ private:
     for(glm::ivec3 direction : DIRECTIONS)
     {
       neighbour_position = position + direction;
-      neighbour_block    = world.dimension.get_block(neighbour_position);
+      neighbour_block    = get_block(world.dimension, neighbour_position);
       light_level = std::max(light_level, neighbour_block ? (int)neighbour_block->light_level : 15);
       if(light_level == 15)
         break;
@@ -43,7 +43,7 @@ private:
     return std::make_pair(false, std::max(light_level-1, 0));
   }
 
-  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, World& world_data, float dt) override
   {
     struct Item
     {
@@ -70,7 +70,7 @@ private:
 #pragma omp parallel for
       for(Item& item : items)
       {
-        item.block = world_data.dimension.get_block(item.position);
+        item.block = get_block(world_data.dimension, item.position);
         if(!item.block)
           continue;
 
@@ -86,7 +86,7 @@ private:
             item.block->sky = item.new_sky;
 
             glm::ivec3 neighbour_position = item.position + glm::ivec3(0, 0, -1);
-            world_data.dimension.lighting_invalidate(neighbour_position);
+            invalidate_light(world_data, neighbour_position);
           }
 
           if(item.block->light_level != item.new_light_level)
@@ -95,8 +95,8 @@ private:
             for(glm::ivec3 direction : DIRECTIONS)
             {
               glm::ivec3 neighbour_position = item.position + direction;
-              world_data.dimension.major_invalidate_mesh(neighbour_position);
-              world_data.dimension.lighting_invalidate(neighbour_position);
+              invalidate_mesh_major(world_data, neighbour_position);
+              invalidate_light     (world_data, neighbour_position);
             }
           }
         }

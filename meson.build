@@ -25,8 +25,6 @@ voxy_exe = executable('voxy', [
     'src/main.cpp',
     'src/application.cpp',
     'src/world.cpp',
-    'src/dimension.cpp',
-    'src/chunk.cpp',
     'src/graphics/mesh.cpp',
     'src/graphics/texture.cpp',
     'src/graphics/texture_array.cpp',

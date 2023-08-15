@@ -1,11 +1,16 @@
 #include <system/chunk_renderer.hpp>
 
 #include <world.hpp>
+#include <world_config.hpp>
+
+#include <camera.hpp>
+
 #include <coordinates.hpp>
 #include <directions.hpp>
 
 #include <graphics/shader_program.hpp>
 #include <graphics/mesh.hpp>
+#include <graphics/texture_array.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -17,7 +22,7 @@ private:
   static constexpr double REMASH_THROTTLE = 5.0f;
 
 private:
-  void on_start (Application& application, const WorldConfig& world_config, WorldData& world_data) override
+  void on_start (Application& application, const WorldConfig& world_config, World& world_data) override
   {
     // 1: ShaderProgram
     m_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
@@ -49,7 +54,7 @@ private:
 
   }
 
-  graphics::Mesh generate_chunk_mesh(const WorldData& world, glm::ivec2 chunk_index, const ChunkData& chunk) const
+  graphics::Mesh generate_chunk_mesh(const World& world, glm::ivec2 chunk_index, const Chunk& chunk) const
   {
     struct Vertex
     {
@@ -67,8 +72,8 @@ private:
         for(int lx=0; lx<CHUNK_WIDTH; ++lx)
         {
           glm::ivec3   position = coordinates::local_to_global(glm::ivec3(lx, ly, lz), chunk_index);
-          const Block* block    = world.get_block(position);
-          if(block->id == Block::ID_NONE)
+          const Block* block    = get_block(world, position);
+          if(block->id == BLOCK_ID_NONE)
             continue;
 
           for(int i=0; i<std::size(DIRECTIONS); ++i)
@@ -76,8 +81,8 @@ private:
             glm::ivec3 direction = DIRECTIONS[i];
 
             glm::ivec3   neighbour_position = position + direction;
-            const Block* neighbour_block    = world.get_block(neighbour_position);
-            if(neighbour_block && neighbour_block->id != Block::ID_NONE)
+            const Block* neighbour_block    = get_block(world, neighbour_position);
+            if(neighbour_block && neighbour_block->id != BLOCK_ID_NONE)
               continue;
 
             uint32_t index_base = vertices.size();
@@ -125,7 +130,7 @@ private:
     );
   }
 
-  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, World& world_data, float dt) override
   {
     for(auto& [chunk_index, chunk] : world_data.dimension.chunks)
     {
@@ -140,7 +145,7 @@ private:
     }
   }
 
-  void on_render(Application& application, const WorldConfig& world_config, const WorldData& world_data, const Camera& camera) override
+  void on_render(Application& application, const WorldConfig& world_config, const World& world_data, const Camera& camera) override
   {
     glUseProgram(m_shader_program->id());
 

@@ -75,11 +75,11 @@ private:
   }
 
 private:
-  static void entity_update_physics(const DimensionData& dimension_data, EntityData& entity_data, float dt)
+  static void entity_update_physics(const Dimension& dimension_data, Entity& entity_data, float dt)
   {
     float friction = entity_data.grounded ? FRICTION_GROUNDED : FRICTION_AIR;
-    entity_data.apply_force(-friction * entity_data.velocity,             dt);
-    entity_data.apply_force(-GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
+    entity_apply_force(entity_data, -friction * entity_data.velocity,        dt);
+    entity_apply_force(entity_data, -GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
 
     glm::vec3 direction = dt * entity_data.velocity;
 
@@ -114,7 +114,7 @@ private:
 
     for(const Item& item : items)
     {
-      if(const Block* block = dimension_data.get_block(item.position); block && block->id != Block::ID_NONE)
+      if(const Block* block = get_block(dimension_data, item.position); block && block->id != BLOCK_ID_NONE)
       {
         AABB entity_aabb = { .position = entity_data.transform.position, .dimension = entity_data.bounding_box, };
         AABB block_aabb  = { .position = item.position,             .dimension = glm::vec3(1.0f),     };
@@ -134,7 +134,7 @@ private:
     entity_data.transform.position += direction;
   }
 
-  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, World& world_data, float dt) override
   {
     entity_update_physics(world_data.dimension, world_data.player, dt);
   }

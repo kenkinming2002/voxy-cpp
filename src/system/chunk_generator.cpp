@@ -1,8 +1,10 @@
 #include <system/chunk_generator.hpp>
 
+#include <world.hpp>
+#include <world_config.hpp>
+
 #include <coordinates.hpp>
 #include <perlin.hpp>
-#include <world.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -186,9 +188,9 @@ private:
     return success;
   }
 
-  ChunkData do_generate_chunk(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
+  Chunk do_generate_chunk(const WorldGenerationConfig& config, glm::ivec2 chunk_index)
   {
-    ChunkData chunk = {};
+    Chunk chunk = {};
 
     const ChunkInfo& chunk_info = m_chunk_infos.at(chunk_index);
 
@@ -197,7 +199,7 @@ private:
       for(int y=0; y<CHUNK_WIDTH; ++y)
         for(int x=0; x<CHUNK_WIDTH; ++x)
         {
-          Block *block = chunk.get_block(glm::ivec3(x, y, z));
+          Block *block = get_block(chunk, glm::ivec3(x, y, z));
           if(!block) [[unlikely]]
             continue;
 
@@ -216,7 +218,7 @@ private:
             }
           }
 
-          block->id          = Block::ID_NONE;
+          block->id          = BLOCK_ID_NONE;
           block->light_level = 15;
           block->sky         = true;
 done:;
@@ -244,9 +246,9 @@ done:;
                 {
                   glm::ivec3 position(x, y, z);
                   if(glm::length2(glm::vec3(position) - center) < radius * radius)
-                    if(Block* block = chunk.get_block(position))
+                    if(Block* block = get_block(chunk, position))
                     {
-                      block->id          = Block::ID_NONE;
+                      block->id          = BLOCK_ID_NONE;
                       block->light_level = 0;
                       block->sky         = false;
                       chunk.pending_lighting_updates.insert(position);
@@ -262,12 +264,12 @@ done:;
     return chunk;
   }
 
-  void load(const WorldConfig& world_config, WorldData& world_data, glm::ivec2 chunk_index)
+  void load(const WorldConfig& world_config, World& world_data, glm::ivec2 chunk_index)
   {
     if(!world_data.dimension.chunks.contains(chunk_index))
       if(prepare_generate_chunk(world_config.generation, chunk_index))
       {
-        ChunkData chunk = do_generate_chunk(world_config.generation, chunk_index);
+        Chunk chunk = do_generate_chunk(world_config.generation, chunk_index);
 
         auto [_, success] = world_data.dimension.chunks.emplace(chunk_index, std::move(chunk));
         assert(success);
@@ -276,7 +278,7 @@ done:;
       }
   }
 
-  void load(const WorldConfig& world_config, WorldData& world_data, glm::ivec2 center, int radius)
+  void load(const WorldConfig& world_config, World& world_data, glm::ivec2 center, int radius)
   {
     for(int cy = center.y - radius; cy <= center.y + radius; ++cy)
       for(int cx = center.x - radius; cx <= center.x + radius; ++cx)
@@ -286,7 +288,7 @@ done:;
       }
   }
 
-  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, World& world_data, float dt) override
   {
     glm::ivec2 center = {
       std::floor(world_data.player.transform.position.x / CHUNK_WIDTH),

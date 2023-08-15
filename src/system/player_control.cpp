@@ -31,14 +31,14 @@ private:
   static constexpr float ACTION_COOLDOWN = 0.1f;
 
 private:
-  void on_update(Application& application, const WorldConfig& world_config, WorldData& world_data, float dt) override
+  void on_update(Application& application, const WorldConfig& world_config, World& world_data, float dt) override
   {
     // 1: Jump
     if(application.glfw_get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
       if(world_data.player.grounded)
       {
         world_data.player.grounded = false;
-        world_data.player.apply_impulse(glm::vec3(0.0f, 0.0f, 8.0f));
+        entity_apply_impulse(world_data.player, glm::vec3(0.0f, 0.0f, 8.0f));
       }
 
     // 2: Movement
@@ -49,7 +49,7 @@ private:
     if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world_data.player.transform.local_forward();
     translation.z = 0.0f;
     if(glm::length(translation) != 0.0f)
-      world_data.player.apply_force(5.0f * glm::normalize(translation), dt);
+      entity_apply_force(world_data.player, 5.0f * glm::normalize(translation), dt);
 
     // 3: Rotation
     double new_cursor_xpos;
@@ -74,12 +74,12 @@ private:
     world_data.selection.reset();
     world_data.placement.reset();
     ray_cast(world_data.player.transform.position + world_data.player.eye_offset, world_data.player.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
-        const Block *block = world_data.get_block(block_position);
-        if(block && block->id != Block::ID_NONE)
+        const Block *block = get_block(world_data, block_position);
+        if(block && block->id != BLOCK_ID_NONE)
           world_data.selection = block_position;
         else
           world_data.placement = block_position;
-        return block && block->id != Block::ID_NONE;
+        return block && block->id != BLOCK_ID_NONE;
     });
 
     // Can only place against a selected block
@@ -89,20 +89,20 @@ private:
     if(m_cooldown == 0.0f)
       if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         if(world_data.selection)
-          if(Block *block = world_data.get_block(*world_data.selection))
-            if(block->id != Block::ID_NONE)
+          if(Block *block = get_block(world_data, *world_data.selection))
+            if(block->id != BLOCK_ID_NONE)
             {
               if(block->destroy_level != 15)
                 ++block->destroy_level;
               else
-                block->id = Block::ID_NONE;
+                block->id = BLOCK_ID_NONE;
 
-              world_data.invalidate_mesh_major(*world_data.selection);
-              world_data.invalidate_light(*world_data.selection);
+              invalidate_mesh_major(world_data, *world_data.selection);
+              invalidate_light     (world_data, *world_data.selection);
               for(glm::ivec3 direction : DIRECTIONS)
               {
                 glm::ivec3 neighbour_position = *world_data.selection + direction;
-                world_data.invalidate_mesh_major(neighbour_position);
+                invalidate_mesh_major(world_data, neighbour_position);
               }
               m_cooldown = ACTION_COOLDOWN;
             }
@@ -110,17 +110,17 @@ private:
     if(m_cooldown == 0.0f)
       if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
         if(world_data.placement)
-          if(Block *block = world_data.get_block(*world_data.placement))
-            if(block->id == Block::ID_NONE)
+          if(Block *block = get_block(world_data, *world_data.placement))
+            if(block->id == BLOCK_ID_NONE)
               if(!aabb_collide(world_data.player.transform.position, world_data.player.bounding_box, *world_data.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
               {
-                block->id = Block::ID_STONE;
-                world_data.invalidate_mesh_major(*world_data.placement);
-                world_data.invalidate_light(*world_data.placement);
+                block->id = BLOCK_ID_STONE;
+                invalidate_mesh_major(world_data, *world_data.placement);
+                invalidate_light     (world_data, *world_data.placement);
                 for(glm::ivec3 direction : DIRECTIONS)
                 {
                   glm::ivec3 neighbour_position = *world_data.placement + direction;
-                  world_data.invalidate_mesh_major(neighbour_position);
+                  invalidate_mesh_major(world_data, neighbour_position);
                 }
                 m_cooldown = ACTION_COOLDOWN;
               }
