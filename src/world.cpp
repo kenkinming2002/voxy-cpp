@@ -88,33 +88,21 @@ void explode(Chunk& chunk, glm::vec3 center, float radius)
 /**************************
  * Invalidate them ALL!!! *
  **************************/
-void invalidate_mesh_major(Chunk& chunk)
+void invalidate_mesh(Chunk& chunk)
 {
-  chunk.mesh_invalidated_major = true;
-}
-
-void invalidate_mesh_minor(Chunk& chunk)
-{
-  chunk.mesh_invalidated_minor = true;
+  chunk.mesh_invalidated = true;
 }
 
 void invalidate_light(Chunk& chunk, glm::ivec3 position)
 {
-  chunk.pending_lighting_updates.insert(position);
+  chunk.light_invalidations.insert(position);
 }
 
-void invalidate_mesh_major(Dimension& dimension, glm::ivec3 position)
+void invalidate_mesh(Dimension& dimension, glm::ivec3 position)
 {
   auto [local_position, chunk_index] = coordinates::split(position);
   if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
-    invalidate_mesh_major(it->second);
-}
-
-void invalidate_mesh_minor(Dimension& dimension, glm::ivec3 position)
-{
-  auto [local_position, chunk_index] = coordinates::split(position);
-  if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
-    invalidate_mesh_minor(it->second);
+    invalidate_mesh(it->second);
 }
 
 void invalidate_light(Dimension& dimension, glm::ivec3 position)
@@ -124,14 +112,9 @@ void invalidate_light(Dimension& dimension, glm::ivec3 position)
     invalidate_light(it->second, local_position);
 }
 
-void invalidate_mesh_major(World& world, glm::ivec3 position)
+void invalidate_mesh(World& world, glm::ivec3 position)
 {
-  invalidate_mesh_major(world.dimension, position);
-}
-
-void invalidate_mesh_minor(World& world, glm::ivec3 position)
-{
-  invalidate_mesh_minor(world.dimension, position);
+  invalidate_mesh(world.dimension, position);
 }
 
 void invalidate_light(World& world, glm::ivec3 position)

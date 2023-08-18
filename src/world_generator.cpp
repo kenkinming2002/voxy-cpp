@@ -239,15 +239,13 @@ done:;
                     block->id          = BLOCK_ID_NONE;
                     block->light_level = 0;
                     block->sky         = false;
-                    chunk.pending_lighting_updates.insert(position);
+                    chunk.light_invalidations.insert(position);
                   }
               }
         }
     }
 
-  chunk.mesh_invalidated_major = true;
-  chunk.mesh_invalidated_minor = false;
-  chunk.last_remash_time       = glfwGetTime();
+  chunk.mesh_invalidated = true;
 }
 
 bool WorldGenerator::try_generate_chunk_info(glm::ivec2 chunk_index)

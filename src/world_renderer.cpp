@@ -70,13 +70,9 @@ void WorldRenderer::render(const Camera& camera, const World& world)
   std::vector<Vertex>   vertices;
 
   for(auto& [chunk_index, chunk] : world.dimension.chunks)
-  {
-    double time = glfwGetTime();
-    if(chunk.mesh_invalidated_major || (chunk.mesh_invalidated_minor && (time - chunk.last_remash_time) >= REMASH_THROTTLE))
+    if(chunk.mesh_invalidated)
     {
-      chunk.mesh_invalidated_major = false;
-      chunk.mesh_invalidated_minor = false;
-      chunk.last_remash_time = time;
+      chunk.mesh_invalidated = false;
 
       indices.clear();
       vertices.clear();
@@ -130,7 +126,6 @@ void WorldRenderer::render(const Camera& camera, const World& world)
 
       m_chunk_meshes.insert_or_assign(chunk_index, graphics::Mesh(mesh_layout, graphics::as_bytes(indices), graphics::as_bytes(vertices)));
     }
-  }
 
   // 2: Rendering
   glUseProgram(m_shader_program->id());

@@ -43,11 +43,8 @@ struct Chunk
 {
   Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 
-  mutable bool   mesh_invalidated_major;
-  mutable bool   mesh_invalidated_minor;
-  mutable double last_remash_time;
-
-  std::unordered_set<glm::ivec3> pending_lighting_updates;
+  mutable bool                           mesh_invalidated;
+  mutable std::unordered_set<glm::ivec3> light_invalidations;
 };
 
 struct Dimension
@@ -90,15 +87,12 @@ void explode(Chunk& chunk, glm::vec3 center, float radius);
 /**************************
  * Invalidate them ALL!!! *
  **************************/
-void invalidate_mesh_major(Chunk& chunk);
-void invalidate_mesh_minor(Chunk& chunk);
-void invalidate_light     (Chunk& chunk, glm::ivec3 position);
+void invalidate_mesh (Chunk& chunk);
+void invalidate_light(Chunk& chunk, glm::ivec3 position);
 
-void invalidate_mesh_major(Dimension& dimension, glm::ivec3 position);
-void invalidate_mesh_minor(Dimension& dimension, glm::ivec3 position);
+void invalidate_mesh(Dimension& dimension, glm::ivec3 position);
 void invalidate_light     (Dimension& dimension, glm::ivec3 position);
 
-void invalidate_mesh_major(World& world, glm::ivec3 position);
-void invalidate_mesh_minor(World& world, glm::ivec3 position);
+void invalidate_mesh(World& world, glm::ivec3 position);
 void invalidate_light     (World& world, glm::ivec3 position);
 

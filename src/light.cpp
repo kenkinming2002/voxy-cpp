@@ -51,9 +51,9 @@ void update_light(World& world)
     std::vector<Item> items;
     for(auto& [chunk_index, chunk] : world.dimension.chunks)
     {
-      for(glm::vec3 position : chunk.pending_lighting_updates)
+      for(glm::vec3 position : chunk.light_invalidations)
         items.push_back(Item{.position = coordinates::local_to_global(position, chunk_index)});
-      chunk.pending_lighting_updates.clear();
+      chunk.light_invalidations.clear();
     }
     if(items.empty())
       break;
@@ -87,7 +87,7 @@ void update_light(World& world)
           for(glm::ivec3 direction : DIRECTIONS)
           {
             glm::ivec3 neighbour_position = item.position + direction;
-            invalidate_mesh_major(world, neighbour_position);
+            invalidate_mesh(world, neighbour_position);
             invalidate_light     (world, neighbour_position);
           }
         }

@@ -126,12 +126,12 @@ void PlayerController::update(Application& application, World& world, float dt)
             else
               block->id = BLOCK_ID_NONE;
 
-            invalidate_mesh_major(world, *world.selection);
+            invalidate_mesh(world, *world.selection);
             invalidate_light     (world, *world.selection);
             for(glm::ivec3 direction : DIRECTIONS)
             {
               glm::ivec3 neighbour_position = *world.selection + direction;
-              invalidate_mesh_major(world, neighbour_position);
+              invalidate_mesh(world, neighbour_position);
             }
             m_cooldown = ACTION_COOLDOWN;
           }
@@ -144,12 +144,12 @@ void PlayerController::update(Application& application, World& world, float dt)
             if(!aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
             {
               block->id = BLOCK_ID_STONE;
-              invalidate_mesh_major(world, *world.placement);
+              invalidate_mesh(world, *world.placement);
               invalidate_light     (world, *world.placement);
               for(glm::ivec3 direction : DIRECTIONS)
               {
                 glm::ivec3 neighbour_position = *world.placement + direction;
-                invalidate_mesh_major(world, neighbour_position);
+                invalidate_mesh(world, neighbour_position);
               }
               m_cooldown = ACTION_COOLDOWN;
             }
