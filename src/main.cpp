@@ -2,32 +2,19 @@
 
 #include <world.hpp>
 #include <world_config.hpp>
-
 #include <camera.hpp>
-#include <system.hpp>
 
-#include <system/chunk_generator.hpp>
-#include <system/chunk_renderer.hpp>
+#include <world_generator.hpp>
+#include <world_renderer.hpp>
 
-#include <system/light.hpp>
-#include <system/physics.hpp>
+#include <player_controller.hpp>
 
-#include <system/player_control.hpp>
-#include <system/player_ui.hpp>
+#include <physics.hpp>
+#include <light.hpp>
 
-#include <system/debug.hpp>
+#include <debug_renderer.hpp>
 
 #include <spdlog/spdlog.h>
-
-#include <cxxabi.h>
-
-#include <glm/gtc/type_ptr.hpp>
-
-#include <graphics/shader_program.hpp>
-#include <graphics/mesh.hpp>
-#include <graphics/texture.hpp>
-
-static constexpr size_t SEED = 0b1011011010110101110110110101110101011010110101011111010100011010;
 
 class Voxy : public Application
 {
@@ -39,34 +26,24 @@ private:
   void on_render()         override;
 
 private:
-  std::vector<std::unique_ptr<System>> m_systems;
-
   WorldConfig m_world_config;
-  World   m_world_data;
+  World       m_world;
+  Camera      m_camera;
 
-  Camera m_camera;
+  std::unique_ptr<WorldGenerator> m_world_generator;
+  std::unique_ptr<WorldRenderer>  m_world_renderer;
 
-  graphics::ShaderProgram entity_shader_program = graphics::ShaderProgram("assets/entity.vert", "assets/entity.frag");
-  graphics::Mesh          entity_mesh           = graphics::Mesh("assets/character/idk.obj");
-  graphics::Texture       entity_texture        = graphics::Texture("assets/character/idk.png");
+  std::unique_ptr<PlayerController> m_player_controller;
+
+  std::unique_ptr<DebugRenderer> m_debug_renderer;
 };
 
 Voxy::Voxy()
 {
-  m_systems.push_back(create_player_control_system());
-  m_systems.push_back(create_player_ui_system());
-
-  m_systems.push_back(create_light_system());
-  m_systems.push_back(create_physics_system());
-
-  m_systems.push_back(create_chunk_generator_system());
-  m_systems.push_back(create_chunk_renderer_system());
-
-  m_systems.push_back(create_debug_system());
-
+  // TODO: Load config from files
   m_world_config = {
     .generation = {
-      .seed = SEED,
+      .seed = 0b1011011010110101110110110101110101011010110101011111010100011010,
       .terrain = {
         .layers = {
           { .block_id = BLOCK_ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
@@ -116,7 +93,7 @@ Voxy::Voxy()
     },
   };
 
-  m_world_data = {
+  m_world = {
     .player = {
       .transform = {
         .position = glm::vec3(0.0f, 0.0f, 50.0f),
@@ -134,66 +111,38 @@ Voxy::Voxy()
     .fovy   = 45.0f,
   };
 
-  for(auto& system : m_systems)
-    system->on_start(*this, m_world_config, m_world_data);
+  m_world_generator   = std::make_unique<WorldGenerator>(m_world_config.generation);
+  m_world_renderer    = std::make_unique<WorldRenderer>(m_world_config);
+  m_player_controller = std::make_unique<PlayerController>();
+  m_debug_renderer    = std::make_unique<DebugRenderer>();
 }
 
 void Voxy::on_update(float dt)
 {
-  for(auto& system : m_systems)
-  {
-    double time_begin = glfwGetTime();
-    system->on_update(*this, m_world_config, m_world_data, dt);
-    double time_end = glfwGetTime();
-    double time = time_end - time_begin;
+  m_world_generator->update(m_world);
+  m_player_controller->update(*this, m_world, dt);
 
-    const std::type_info& type_info = typeid(*system);
-
-    int status;
-    const char* type_name = abi::__cxa_demangle(type_info.name(), NULL, NULL, &status);
-    if(time <= 25)
-      spdlog::trace("Updating {} takes {} ms", type_name, time);
-    else if(time <= 50)
-      spdlog::info("Updating {} takes {} ms", type_name, time);
-    else
-      spdlog::warn("Updating {} takes {} ms", type_name, time);
-
-    std::free((void*)type_name);
-  }
-
-  m_camera.transform           = m_world_data.player.transform;
-  m_camera.transform.position += m_world_data.player.eye_offset;
-
-  int width, height;
-  glfw_get_framebuffer_size(width, height);
-  glViewport(0, 0, width, height);
-  m_camera.aspect = (double)width / (double)height;
+  update_physics(m_world, dt);
+  update_light(m_world);
 }
 
 void Voxy::on_render()
 {
+  int width, height;
+  glfw_get_framebuffer_size(width, height);
+
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glViewport(0, 0, width, height);
 
-  glUseProgram(entity_shader_program.id());
+  m_camera.transform           = m_world.player.transform;
+  m_camera.transform.position += m_world.player.eye_offset;
+  m_camera.aspect = (float)width / (float)height;
 
-  glm::mat4 view       = m_camera.view();
-  glm::mat4 projection = m_camera.projection();
-  glm::mat4 model      = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 50.0f));
+  m_world_renderer->render(m_camera, m_world);
+  m_player_controller->render(m_camera, m_world);
 
-  glm::mat4 MVP = projection * view * model;
-  glm::mat4 MV  =              view * model;
-
-  glUniformMatrix4fv(glGetUniformLocation(entity_shader_program.id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-  glUniformMatrix4fv(glGetUniformLocation(entity_shader_program.id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, entity_texture.id());
-  glUniform1i(glGetUniformLocation(entity_shader_program.id(), "ourTexture"), 0);
-  entity_mesh.draw_triangles();
-
-  for(auto& system : m_systems)
-    system->on_render(*this, m_world_config, m_world_data, m_camera);
+  m_debug_renderer->render(*this, m_world);
 }
 
 int main()

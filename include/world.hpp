@@ -43,9 +43,9 @@ struct Chunk
 {
   Block blocks[CHUNK_HEIGHT][CHUNK_WIDTH][CHUNK_WIDTH];
 
-  bool   mesh_invalidated_major;
-  bool   mesh_invalidated_minor;
-  double last_remash_time;
+  mutable bool   mesh_invalidated_major;
+  mutable bool   mesh_invalidated_minor;
+  mutable double last_remash_time;
 
   std::unordered_set<glm::ivec3> pending_lighting_updates;
 };
