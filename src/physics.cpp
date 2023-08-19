@@ -2,9 +2,9 @@
 
 #include <optional>
 
-static constexpr float FRICTION_AIR      = 0.5f;
-static constexpr float FRICTION_GROUNDED = 3.0f;
-static constexpr float GRAVITY  = 20.0f;
+static constexpr float FRICTION_AIR      = 0.03f;
+static constexpr float FRICTION_GROUNDED = 0.05f;
+static constexpr float GRAVITY           = 9.8f;
 
 struct AABB
 {

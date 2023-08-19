@@ -64,8 +64,9 @@ struct World
 /**********
  * Entity *
  **********/
-void entity_apply_force  (Entity& entity, glm::vec3 force, float dt);
-void entity_apply_impulse(Entity& entity, glm::vec3 force);
+void entity_apply_impulse (Entity& entity, glm::vec3 force);
+void entity_apply_force   (Entity& entity, glm::vec3 force, float dt);
+void entity_apply_force   (Entity& entity, glm::vec3 force, float dt, float max);
 
 /******************
  * Block Accessor *

@@ -12,7 +12,11 @@
 class PlayerController
 {
 public:
-  static constexpr float ROTATION_SPEED  = 0.1f;
+  static constexpr float ROTATION_SPEED = 0.1f;
+  static constexpr float MOVEMENT_SPEED = 5.0f;
+
+  static constexpr float JUMP_STRENGTH = 5.0f;
+
   static constexpr float RAY_CAST_LENGTH = 20.0f;
   static constexpr float ACTION_COOLDOWN = 0.1f;
   static constexpr float UI_SELECTION_THICKNESS = 3.0f;

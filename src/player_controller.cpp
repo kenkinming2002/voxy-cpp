@@ -67,7 +67,7 @@ void PlayerController::update(Application& application, World& world, float dt)
     if(world.player.grounded)
     {
       world.player.grounded = false;
-      entity_apply_impulse(world.player, glm::vec3(0.0f, 0.0f, 8.0f));
+      entity_apply_impulse(world.player, JUMP_STRENGTH * glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
   // 2: Movement
@@ -76,9 +76,11 @@ void PlayerController::update(Application& application, World& world, float dt)
   if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= world.player.transform.local_right();
   if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += world.player.transform.local_forward();
   if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world.player.transform.local_forward();
-  translation.z = 0.0f;
-  if(glm::length(translation) != 0.0f)
-    entity_apply_force(world.player, 5.0f * glm::normalize(translation), dt);
+
+  if(glm::vec3 direction = translation; direction.z = 0.0f, glm::length(direction) != 0.0f)
+    entity_apply_force(world.player, MOVEMENT_SPEED * glm::normalize(direction), dt);
+  else if(glm::vec3 direction = -world.player.velocity; direction.z = 0.0f, glm::length(direction) != 0.0f)
+    entity_apply_force(world.player, MOVEMENT_SPEED * glm::normalize(direction), dt, glm::length(direction));
 
   // 3: Rotation
   double new_cursor_xpos;

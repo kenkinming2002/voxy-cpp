@@ -5,14 +5,27 @@
 /**********
  * Entity *
  **********/
-void entity_apply_force(Entity& entity, glm::vec3 force, float dt)
+static inline glm::vec3 clamp(glm::vec3 v, float max)
 {
-  entity.velocity += dt * force;
+  if(v.x == 0.0f && v.y == 0.0f && v.z == 0.0f)
+    return glm::vec3(0.0f);
+  else
+    return std::min(glm::length(v), max) * glm::normalize(v);
 }
 
 void entity_apply_impulse(Entity& entity, glm::vec3 force)
 {
   entity.velocity += force;
+}
+
+void entity_apply_force(Entity& entity, glm::vec3 force, float dt)
+{
+  entity_apply_impulse(entity, dt * force);
+}
+
+void entity_apply_force(Entity& entity, glm::vec3 force, float dt, float max)
+{
+  entity_apply_impulse(entity, clamp(dt * force, max));
 }
 
 /******************
