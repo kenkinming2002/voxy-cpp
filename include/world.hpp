@@ -31,6 +31,13 @@ struct Entity
   bool grounded;
 };
 
+struct Player
+{
+  Entity entity;
+  std::optional<glm::ivec3> placement;
+  std::optional<glm::ivec3> selection;
+};
+
 struct Block
 {
   std::uint32_t id            : 23;
@@ -54,11 +61,8 @@ struct Dimension
 
 struct World
 {
-  Entity    player;
   Dimension dimension;
-
-  std::optional<glm::ivec3> placement;
-  std::optional<glm::ivec3> selection;
+  Player    player;
 };
 
 /**********

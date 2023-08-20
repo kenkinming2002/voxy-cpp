@@ -123,5 +123,5 @@ static void entity_update_physics(const Dimension& dimension_data, Entity& entit
 
 void update_physics(World& world, float dt)
 {
-  entity_update_physics(world.dimension, world.player, dt);
+  entity_update_physics(world.dimension, world.player.entity, dt);
 }

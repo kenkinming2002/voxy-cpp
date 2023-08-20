@@ -18,7 +18,7 @@ void DebugRenderer::render(Application& application, const World& world)
     average /= DT_AVERAGE_COUNT;
 
     // 2: Current block
-    glm::ivec3   position = glm::floor(world.player.transform.position);
+    glm::ivec3   position = glm::floor(world.player.entity.transform.position);
     const Block* block    = get_block(world, position);
 
     int width, height;
@@ -27,10 +27,10 @@ void DebugRenderer::render(Application& application, const World& world)
 
     size_t n = 0;
 
-    render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", world.player.transform.position.x, world.player.transform.position.y, world.player.transform.position.z));
-    render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", world.player.velocity.x, world.player.velocity.y, world.player.velocity.z));
-    render_line(viewport, n++, fmt::format("collided = {}", world.player.collided));
-    render_line(viewport, n++, fmt::format("grounded = {}", world.player.grounded));
+    render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", world.player.entity.transform.position.x, world.player.entity.transform.position.y, world.player.entity.transform.position.z));
+    render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", world.player.entity.velocity.x, world.player.entity.velocity.y, world.player.entity.velocity.z));
+    render_line(viewport, n++, fmt::format("collided = {}", world.player.entity.collided));
+    render_line(viewport, n++, fmt::format("grounded = {}", world.player.entity.grounded));
     render_line(viewport, n++, fmt::format("average frame time = {}", average));
 
     if(block)
@@ -38,15 +38,15 @@ void DebugRenderer::render(Application& application, const World& world)
     else
       render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z));
 
-    if(world.selection)
-      render_line(viewport, n++, fmt::format("selection: position = {}, {}, {}", world.selection->x, world.selection->y, world.selection->z));
+    if(world.player.selection)
+      render_line(viewport, n++, fmt::format("player.selection: position = {}, {}, {}", world.player.selection->x, world.player.selection->y, world.player.selection->z));
     else
       render_line(viewport, n++, "selection: none");
 
-    if(world.placement)
-      render_line(viewport, n++, fmt::format("placement: position = {}, {}, {}", world.placement->x, world.placement->y, world.placement->z));
+    if(world.player.placement)
+      render_line(viewport, n++, fmt::format("player.placement: position = {}, {}, {}", world.player.placement->x, world.player.placement->y, world.player.placement->z));
     else
-      render_line(viewport, n++, "placement: none");
+      render_line(viewport, n++, "player.placement: none");
 }
 
 void DebugRenderer::render_line(glm::vec2 viewport, size_t n, const std::string& line)

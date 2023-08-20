@@ -94,16 +94,20 @@ Voxy::Voxy()
   };
 
   m_world = {
-    .player = {
-      .transform = {
-        .position = glm::vec3(0.0f, 0.0f, 50.0f),
-        .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-      },
-      .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
-      .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
-      .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
-    },
     .dimension = {},
+    .player = {
+      .entity = {
+        .transform = {
+          .position = glm::vec3(0.0f, 0.0f, 50.0f),
+          .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        },
+        .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
+        .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+        .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
+      },
+      .placement = std::nullopt,
+      .selection = std::nullopt,
+    },
   };
 
   m_camera = {
@@ -135,8 +139,8 @@ void Voxy::on_render()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, width, height);
 
-  m_camera.transform           = m_world.player.transform;
-  m_camera.transform.position += m_world.player.eye_offset;
+  m_camera.transform           = m_world.player.entity.transform;
+  m_camera.transform.position += m_world.player.entity.eye_offset;
   m_camera.aspect = (float)width / (float)height;
 
   m_world_renderer->render(m_camera, m_world);

@@ -138,8 +138,8 @@ WorldGenerator::WorldGenerator(WorldGenerationConfig config) : m_config(std::mov
 void WorldGenerator::update(World& world)
 {
   glm::ivec2 center = {
-    std::floor(world.player.transform.position.x / CHUNK_WIDTH),
-    std::floor(world.player.transform.position.y / CHUNK_WIDTH),
+    std::floor(world.player.entity.transform.position.x / CHUNK_WIDTH),
+    std::floor(world.player.entity.transform.position.y / CHUNK_WIDTH),
   };
   try_load(world, center, CHUNK_LOAD_RADIUS);
 }

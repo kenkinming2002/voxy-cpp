@@ -64,23 +64,23 @@ void PlayerController::update(Application& application, World& world, float dt)
 {
   // 1: Jump
   if(application.glfw_get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
-    if(world.player.grounded)
+    if(world.player.entity.grounded)
     {
-      world.player.grounded = false;
-      entity_apply_impulse(world.player, JUMP_STRENGTH * glm::vec3(0.0f, 0.0f, 1.0f));
+      world.player.entity.grounded = false;
+      entity_apply_impulse(world.player.entity, JUMP_STRENGTH * glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
   // 2: Movement
   glm::vec3 translation = glm::vec3(0.0f);
-  if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += world.player.transform.local_right();
-  if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= world.player.transform.local_right();
-  if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += world.player.transform.local_forward();
-  if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world.player.transform.local_forward();
+  if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += world.player.entity.transform.local_right();
+  if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= world.player.entity.transform.local_right();
+  if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += world.player.entity.transform.local_forward();
+  if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world.player.entity.transform.local_forward();
 
   if(glm::vec3 direction = translation; direction.z = 0.0f, glm::length(direction) != 0.0f)
-    entity_apply_force(world.player, MOVEMENT_SPEED * glm::normalize(direction), dt);
-  else if(glm::vec3 direction = -world.player.velocity; direction.z = 0.0f, glm::length(direction) != 0.0f)
-    entity_apply_force(world.player, MOVEMENT_SPEED * glm::normalize(direction), dt, glm::length(direction));
+    entity_apply_force(world.player.entity, MOVEMENT_SPEED * glm::normalize(direction), dt);
+  else if(glm::vec3 direction = -world.player.entity.velocity; direction.z = 0.0f, glm::length(direction) != 0.0f)
+    entity_apply_force(world.player.entity, MOVEMENT_SPEED * glm::normalize(direction), dt, glm::length(direction));
 
   // 3: Rotation
   double new_cursor_xpos;
@@ -90,7 +90,7 @@ void PlayerController::update(Application& application, World& world, float dt)
   {
     double xrel = new_cursor_xpos - m_cursor_xpos;
     double yrel = new_cursor_ypos - m_cursor_ypos;
-    world.player.transform = world.player.transform.rotate(glm::vec3(0.0f,
+    world.player.entity.transform = world.player.entity.transform.rotate(glm::vec3(0.0f,
       -yrel * ROTATION_SPEED,
       -xrel * ROTATION_SPEED
     ));
@@ -102,25 +102,25 @@ void PlayerController::update(Application& application, World& world, float dt)
   // 4: Block placement/destruction
   m_cooldown = std::max(m_cooldown - dt, 0.0f);
 
-  world.selection.reset();
-  world.placement.reset();
-  ray_cast(world.player.transform.position + world.player.eye_offset, world.player.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+  world.player.selection.reset();
+  world.player.placement.reset();
+  ray_cast(world.player.entity.transform.position + world.player.entity.eye_offset, world.player.entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
       const Block *block = get_block(world, block_position);
       if(block && block->id != BLOCK_ID_NONE)
-        world.selection = block_position;
+        world.player.selection = block_position;
       else
-        world.placement = block_position;
+        world.player.placement = block_position;
       return block && block->id != BLOCK_ID_NONE;
   });
 
   // Can only place against a selected block
-  if(!world.selection)
-    world.placement.reset();
+  if(!world.player.selection)
+    world.player.placement.reset();
 
   if(m_cooldown == 0.0f)
     if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-      if(world.selection)
-        if(Block *block = get_block(world, *world.selection))
+      if(world.player.selection)
+        if(Block *block = get_block(world, *world.player.selection))
           if(block->id != BLOCK_ID_NONE)
           {
             if(block->destroy_level != 15)
@@ -128,11 +128,11 @@ void PlayerController::update(Application& application, World& world, float dt)
             else
               block->id = BLOCK_ID_NONE;
 
-            invalidate_mesh(world, *world.selection);
-            invalidate_light     (world, *world.selection);
+            invalidate_mesh(world, *world.player.selection);
+            invalidate_light     (world, *world.player.selection);
             for(glm::ivec3 direction : DIRECTIONS)
             {
-              glm::ivec3 neighbour_position = *world.selection + direction;
+              glm::ivec3 neighbour_position = *world.player.selection + direction;
               invalidate_mesh(world, neighbour_position);
             }
             m_cooldown = ACTION_COOLDOWN;
@@ -140,17 +140,17 @@ void PlayerController::update(Application& application, World& world, float dt)
 
   if(m_cooldown == 0.0f)
     if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-      if(world.placement)
-        if(Block *block = get_block(world, *world.placement))
+      if(world.player.placement)
+        if(Block *block = get_block(world, *world.player.placement))
           if(block->id == BLOCK_ID_NONE)
-            if(!aabb_collide(world.player.transform.position, world.player.bounding_box, *world.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+            if(!aabb_collide(world.player.entity.transform.position, world.player.entity.bounding_box, *world.player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
             {
               block->id = BLOCK_ID_STONE;
-              invalidate_mesh(world, *world.placement);
-              invalidate_light     (world, *world.placement);
+              invalidate_mesh(world, *world.player.placement);
+              invalidate_light     (world, *world.player.placement);
               for(glm::ivec3 direction : DIRECTIONS)
               {
-                glm::ivec3 neighbour_position = *world.placement + direction;
+                glm::ivec3 neighbour_position = *world.player.placement + direction;
                 invalidate_mesh(world, neighbour_position);
               }
               m_cooldown = ACTION_COOLDOWN;
@@ -160,9 +160,9 @@ void PlayerController::update(Application& application, World& world, float dt)
 void PlayerController::render(const Camera& camera, const World& world)
 {
   // 1: Selection
-  if(world.selection)
+  if(world.player.selection)
   {
-    glm::vec3 position = *world.selection;
+    glm::vec3 position = *world.player.selection;
 
     glm::mat4 view       = camera.view();
     glm::mat4 projection = camera.projection();
@@ -177,9 +177,9 @@ void PlayerController::render(const Camera& camera, const World& world)
   }
 
   // 1: Selection
-  if(world.placement)
+  if(world.player.placement)
   {
-    glm::vec3 position = *world.placement;
+    glm::vec3 position = *world.player.placement;
 
     glm::mat4 view       = camera.view();
     glm::mat4 projection = camera.projection();
