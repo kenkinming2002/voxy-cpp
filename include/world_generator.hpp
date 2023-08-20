@@ -45,14 +45,15 @@ private:
   void try_load(World& world, glm::ivec2 chunk_index);
 
 private:
-  bool try_generate_chunk_info(glm::ivec2 chunk_index);
+  bool ensure_chunk_info(glm::ivec2 chunk_index);
+  const ChunkInfo& get_chunk_info(glm::ivec2 chunk_index) const;
 
 private:
   WorldGenerationConfig m_config;
 
 private:
-  std::mutex                  m_mutex;
-  std::condition_variable_any m_cv;
+  mutable std::mutex                  m_mutex;
+  mutable std::condition_variable_any m_cv;
 
 private:
   std::unordered_set<glm::ivec2>            m_pendings;

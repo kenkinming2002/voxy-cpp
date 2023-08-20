@@ -171,7 +171,7 @@ void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index)
     for(int x = corner1.x; x <= corner2.x; ++x)
     {
       glm::ivec2 neighbour_chunk_index = glm::ivec2(x, y);
-      if(!try_generate_chunk_info(neighbour_chunk_index))
+      if(!ensure_chunk_info(neighbour_chunk_index))
         can_load = false;
     }
 
@@ -183,7 +183,7 @@ void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index)
   assert(success);
   Chunk& chunk = it->second;
 
-  const ChunkInfo& chunk_info = m_chunk_infos.at(chunk_index);
+  const ChunkInfo& chunk_info = get_chunk_info(chunk_index);
 
   // 2.1: Create terrain based on height maps
   for(int z=0; z<CHUNK_HEIGHT; ++z)
@@ -220,7 +220,7 @@ done:;
     for(int x = corner1.x; x <= corner2.x; ++x)
     {
       glm::ivec2       neighbour_chunk_index = glm::ivec2(x, y);
-      const ChunkInfo& neighbour_chunk_info  = m_chunk_infos.at(neighbour_chunk_index);
+      const ChunkInfo& neighbour_chunk_info  = get_chunk_info(neighbour_chunk_index);
       for(const Worm& worm : neighbour_chunk_info.worms)
         for(const Worm::Node& node : worm.nodes)
         {
@@ -248,7 +248,7 @@ done:;
   chunk.mesh_invalidated = true;
 }
 
-bool WorldGenerator::try_generate_chunk_info(glm::ivec2 chunk_index)
+bool WorldGenerator::ensure_chunk_info(glm::ivec2 chunk_index)
 {
   std::unique_lock lk(m_mutex);
   if(m_chunk_infos.find(chunk_index) != m_chunk_infos.end()) return true;
@@ -261,3 +261,8 @@ bool WorldGenerator::try_generate_chunk_info(glm::ivec2 chunk_index)
   return false;
 }
 
+const ChunkInfo& WorldGenerator::get_chunk_info(glm::ivec2 chunk_index) const
+{
+  std::unique_lock lk(m_mutex);
+  return m_chunk_infos.at(chunk_index);
+}
