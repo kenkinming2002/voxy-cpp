@@ -70,10 +70,10 @@ static void entity_update_physics(const Dimension& dimension, Entity& entity, fl
 
   glm::vec3 direction = dt * entity.velocity;
 
-  glm::vec3 corner1 = entity.transform.position                                  ;
-  glm::vec3 corner2 = entity.transform.position                       + direction;
-  glm::vec3 corner3 = entity.transform.position + entity.bounding_box            ;
-  glm::vec3 corner4 = entity.transform.position + entity.bounding_box + direction;
+  glm::vec3 corner1 = entity.transform.position - entity.bounding_box / 2.0f            ;
+  glm::vec3 corner2 = entity.transform.position - entity.bounding_box / 2.0f + direction;
+  glm::vec3 corner3 = entity.transform.position + entity.bounding_box / 2.0f            ;
+  glm::vec3 corner4 = entity.transform.position + entity.bounding_box / 2.0f + direction;
 
   glm::ivec3 corner_min = glm::floor(glm::min(glm::min(glm::min(corner1, corner2), corner3), corner4));
   glm::ivec3 corner_max = glm::ceil (glm::max(glm::max(glm::max(corner1, corner2), corner3), corner4));
@@ -103,7 +103,7 @@ static void entity_update_physics(const Dimension& dimension, Entity& entity, fl
   {
     if(const Block* block = get_block(dimension, item.position); block && block->id != BLOCK_ID_NONE)
     {
-      AABB entity_aabb = { .position = entity.transform.position, .dimension = entity.bounding_box, };
+      AABB entity_aabb = { .position = entity.transform.position - entity.bounding_box / 2.0f, .dimension = entity.bounding_box, };
       AABB block_aabb  = { .position = item.position,             .dimension = glm::vec3(1.0f),     };
       if(std::optional<SweptAABBResult> result = swept_aabb(entity_aabb, block_aabb, direction))
         if(0.0f <= result->t_in && result->t_in <= 1.0f)

@@ -25,8 +25,7 @@ struct Entity
   glm::vec3     velocity;
 
   glm::vec3 bounding_box;
-
-  glm::vec3 eye_offset;
+  float     eye;
 
   bool collided;
   bool grounded;

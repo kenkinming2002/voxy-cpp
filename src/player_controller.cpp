@@ -106,7 +106,7 @@ void PlayerController::update(Application& application, World& world, float dt)
 
   world.player.selection.reset();
   world.player.placement.reset();
-  ray_cast(player_entity.transform.position + player_entity.eye_offset, player_entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+  ray_cast(player_entity.transform.position + glm::vec3(0.0f, 0.0f, player_entity.eye), player_entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
       const Block *block = get_block(world, block_position);
       if(block && block->id != BLOCK_ID_NONE)
         world.player.selection = block_position;

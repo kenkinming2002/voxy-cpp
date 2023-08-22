@@ -110,7 +110,7 @@ Voxy::Voxy()
           },
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
           .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
+          .eye          = 0.5f,
         },
         {
           .id = 0,
@@ -120,7 +120,7 @@ Voxy::Voxy()
           },
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
           .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
+          .eye          = 0.5f,
         },
       }
     },
@@ -162,8 +162,8 @@ void Voxy::on_render()
 
   const Entity& player_entity = m_world.dimension.entities.at(m_world.player.entity_id);
 
-  m_camera.transform           = player_entity.transform;
-  m_camera.transform.position += player_entity.eye_offset;
+  m_camera.transform             = player_entity.transform;
+  m_camera.transform.position.z += player_entity.eye;
   m_camera.aspect = (float)width / (float)height;
 
   m_world_renderer->render(m_camera, m_world);

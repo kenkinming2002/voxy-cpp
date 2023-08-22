@@ -165,9 +165,12 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
 void WorldRenderer::render_entites(const Camera& camera, const World& world)
 {
   glUseProgram(m_entity_shader_program->id());
-
-  for(const Entity& entity : world.dimension.entities)
+  for(size_t i=0; i<world.dimension.entities.size(); ++i)
   {
+    if(i == world.player.entity_id)
+      continue;
+
+    const Entity&           entity             = world.dimension.entities[i];
     const EntityRenderInfo& entity_render_info = m_entity_render_infos.at(entity.id);
 
     glm::mat4 view       = camera.view();
