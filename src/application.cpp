@@ -12,6 +12,12 @@ static void GLAPIENTRY message_callback(GLenum source, GLenum type, GLuint id, G
   fprintf(stderr, "OpenGL Error: type = %u: %s\n", type, message);
 }
 
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  Application& application = *(Application*)glfwGetWindowUserPointer(window);
+  application.on_key(key, scancode, action, mods);
+}
+
 Application::Application()
 {
   if(!glfwInit())
@@ -35,6 +41,9 @@ Application::Application()
   }
 
   glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  glfwSetWindowUserPointer(m_window, this);
+  glfwSetKeyCallback(m_window, key_callback);
 
   glfwMakeContextCurrent(m_window);
   if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))

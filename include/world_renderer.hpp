@@ -38,11 +38,11 @@ public:
   WorldRenderer(const WorldConfig& config);
 
 public:
-  void render(const Camera& camera, const World& world);
+  void render(const Camera& camera, const World& world, bool third_person);
 
 private:
   void render_chunks(const Camera& camera, const World& world);
-  void render_entites(const Camera& camera, const World& world);
+  void render_entites(const Camera& camera, const World& world, bool third_person);
 
 private:
   std::vector<BlockRenderInfo> m_block_render_infos;

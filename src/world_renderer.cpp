@@ -51,10 +51,10 @@ WorldRenderer::WorldRenderer(const WorldConfig& config)
 
 }
 
-void WorldRenderer::render(const Camera& camera, const World& world)
+void WorldRenderer::render(const Camera& camera, const World& world, bool third_person)
 {
   render_chunks(camera, world);
-  render_entites(camera, world);
+  render_entites(camera, world, third_person);
 }
 
 void WorldRenderer::render_chunks(const Camera& camera, const World& world)
@@ -162,12 +162,12 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
     mesh.draw_triangles();
 }
 
-void WorldRenderer::render_entites(const Camera& camera, const World& world)
+void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person)
 {
   glUseProgram(m_entity_shader_program->id());
   for(size_t i=0; i<world.dimension.entities.size(); ++i)
   {
-    if(i == world.player.entity_id)
+    if(!third_person && i == world.player.entity_id)
       continue;
 
     const Entity&           entity             = world.dimension.entities[i];

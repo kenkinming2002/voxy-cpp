@@ -22,13 +22,18 @@ public:
   Voxy();
 
 private:
+  void on_key(int key, int scancode, int action, int mods) override;
+
+private:
   void on_update(float dt) override;
   void on_render()         override;
 
 private:
   WorldConfig m_world_config;
   World       m_world;
+
   Camera      m_camera;
+  bool        m_third_person;
 
   std::unique_ptr<WorldGenerator> m_world_generator;
   std::unique_ptr<WorldRenderer>  m_world_renderer;
@@ -135,11 +140,18 @@ Voxy::Voxy()
     .aspect = 1024.0f / 720.0f,
     .fovy   = 45.0f,
   };
+  m_third_person = true;
 
   m_world_generator   = std::make_unique<WorldGenerator>(m_world_config.generation);
   m_world_renderer    = std::make_unique<WorldRenderer>(m_world_config);
   m_player_controller = std::make_unique<PlayerController>();
   m_debug_renderer    = std::make_unique<DebugRenderer>();
+}
+
+void Voxy::on_key(int key, int scancode, int action, int mods)
+{
+  if(key == GLFW_KEY_F5 && action == GLFW_PRESS)
+    m_third_person = !m_third_person;
 }
 
 void Voxy::on_update(float dt)
@@ -165,8 +177,10 @@ void Voxy::on_render()
   m_camera.transform             = player_entity.transform;
   m_camera.transform.position.z += player_entity.eye;
   m_camera.aspect = (float)width / (float)height;
+  if(m_third_person)
+    m_camera.transform.position -= player_entity.transform.local_forward() * 2.0f;
 
-  m_world_renderer->render(m_camera, m_world);
+  m_world_renderer->render(m_camera, m_world, m_third_person);
   m_player_controller->render(m_camera, m_world);
 
   m_debug_renderer->render(*this, m_world);

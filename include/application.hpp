@@ -25,6 +25,9 @@ public:
   void glfw_get_cursor_pos(double& xpos, double& ypos);
 
 public:
+  virtual void on_key(int key, int scancode, int action, int mods) {}
+
+public:
   virtual void on_update(float dt) = 0;
   virtual void on_render()         = 0;
 
