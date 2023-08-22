@@ -18,13 +18,19 @@ static constexpr std::uint32_t BLOCK_ID_STONE = 0;
 static constexpr std::uint32_t BLOCK_ID_GRASS = 1;
 static constexpr std::uint32_t BLOCK_ID_NONE  = 2;
 
+struct AABB
+{
+  glm::vec3 position;
+  glm::vec3 dimension;
+};
+
 struct Entity
 {
   std::uint16_t id;
   Transform     transform;
   glm::vec3     velocity;
 
-  glm::vec3 bounding_box;
+  glm::vec3 dimension;
   float     eye;
 
   bool collided;
@@ -69,6 +75,8 @@ struct World
 /**********
  * Entity *
  **********/
+AABB entity_get_aabb(const Entity& entity);
+
 void entity_apply_impulse (Entity& entity, glm::vec3 force);
 void entity_apply_force   (Entity& entity, glm::vec3 force, float dt);
 void entity_apply_force   (Entity& entity, glm::vec3 force, float dt, float max);

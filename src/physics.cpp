@@ -6,12 +6,6 @@ static constexpr float FRICTION_AIR      = 0.03f;
 static constexpr float FRICTION_GROUNDED = 0.05f;
 static constexpr float GRAVITY           = 9.8f;
 
-struct AABB
-{
-  glm::vec3 position;
-  glm::vec3 dimension;
-};
-
 struct SweptAABBResult
 {
   float t_in;  glm::vec3 normal_in;
@@ -68,12 +62,13 @@ static void entity_update_physics(const Dimension& dimension, Entity& entity, fl
   entity_apply_force(entity, -friction * entity.velocity,        dt);
   entity_apply_force(entity, -GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
 
+  AABB entity_aabb = entity_get_aabb(entity);
   glm::vec3 direction = dt * entity.velocity;
 
-  glm::vec3 corner1 = entity.transform.position - entity.bounding_box / 2.0f            ;
-  glm::vec3 corner2 = entity.transform.position - entity.bounding_box / 2.0f + direction;
-  glm::vec3 corner3 = entity.transform.position + entity.bounding_box / 2.0f            ;
-  glm::vec3 corner4 = entity.transform.position + entity.bounding_box / 2.0f + direction;
+  glm::vec3 corner1 = entity_aabb.position                                    ;
+  glm::vec3 corner2 = entity_aabb.position                         + direction;
+  glm::vec3 corner3 = entity_aabb.position + entity_aabb.dimension            ;
+  glm::vec3 corner4 = entity_aabb.position + entity_aabb.dimension + direction;
 
   glm::ivec3 corner_min = glm::floor(glm::min(glm::min(glm::min(corner1, corner2), corner3), corner4));
   glm::ivec3 corner_max = glm::ceil (glm::max(glm::max(glm::max(corner1, corner2), corner3), corner4));
@@ -103,7 +98,6 @@ static void entity_update_physics(const Dimension& dimension, Entity& entity, fl
   {
     if(const Block* block = get_block(dimension, item.position); block && block->id != BLOCK_ID_NONE)
     {
-      AABB entity_aabb = { .position = entity.transform.position - entity.bounding_box / 2.0f, .dimension = entity.bounding_box, };
       AABB block_aabb  = { .position = item.position,             .dimension = glm::vec3(1.0f),     };
       if(std::optional<SweptAABBResult> result = swept_aabb(entity_aabb, block_aabb, direction))
         if(0.0f <= result->t_in && result->t_in <= 1.0f)

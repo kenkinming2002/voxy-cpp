@@ -145,7 +145,7 @@ void PlayerController::update(Application& application, World& world, float dt)
       if(world.player.placement)
         if(Block *block = get_block(world, *world.player.placement))
           if(block->id == BLOCK_ID_NONE)
-            if(!aabb_collide(player_entity.transform.position, player_entity.bounding_box, *world.player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+            if(!aabb_collide(player_entity.transform.position, player_entity.dimension, *world.player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
             {
               block->id = BLOCK_ID_STONE;
               invalidate_mesh(world, *world.player.placement);

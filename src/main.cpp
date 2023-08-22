@@ -109,7 +109,7 @@ Voxy::Voxy()
             .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
           },
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
-          .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+          .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
           .eye          = 0.5f,
         },
         {
@@ -119,7 +119,7 @@ Voxy::Voxy()
             .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
           },
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
-          .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+          .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
           .eye          = 0.5f,
         },
       }

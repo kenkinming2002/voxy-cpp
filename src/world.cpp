@@ -13,6 +13,14 @@ static inline glm::vec3 clamp(glm::vec3 v, float max)
     return std::min(glm::length(v), max) * glm::normalize(v);
 }
 
+AABB entity_get_aabb(const Entity& entity)
+{
+  return AABB{
+    .position = entity.transform.position - entity.dimension / 2.0f,
+    .dimension = entity.dimension,
+  };
+}
+
 void entity_apply_impulse(Entity& entity, glm::vec3 force)
 {
   entity.velocity += force;
