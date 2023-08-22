@@ -62,18 +62,18 @@ static std::optional<SweptAABBResult> swept_aabb(AABB box1, AABB box2, glm::vec3
   return result;
 }
 
-static void entity_update_physics(const Dimension& dimension_data, Entity& entity_data, float dt)
+static void entity_update_physics(const Dimension& dimension, Entity& entity, float dt)
 {
-  float friction = entity_data.grounded ? FRICTION_GROUNDED : FRICTION_AIR;
-  entity_apply_force(entity_data, -friction * entity_data.velocity,        dt);
-  entity_apply_force(entity_data, -GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
+  float friction = entity.grounded ? FRICTION_GROUNDED : FRICTION_AIR;
+  entity_apply_force(entity, -friction * entity.velocity,        dt);
+  entity_apply_force(entity, -GRAVITY  * glm::vec3(0.0f, 0.0f, 1.0f), dt);
 
-  glm::vec3 direction = dt * entity_data.velocity;
+  glm::vec3 direction = dt * entity.velocity;
 
-  glm::vec3 corner1 = entity_data.transform.position                                  ;
-  glm::vec3 corner2 = entity_data.transform.position                       + direction;
-  glm::vec3 corner3 = entity_data.transform.position + entity_data.bounding_box            ;
-  glm::vec3 corner4 = entity_data.transform.position + entity_data.bounding_box + direction;
+  glm::vec3 corner1 = entity.transform.position                                  ;
+  glm::vec3 corner2 = entity.transform.position                       + direction;
+  glm::vec3 corner3 = entity.transform.position + entity.bounding_box            ;
+  glm::vec3 corner4 = entity.transform.position + entity.bounding_box + direction;
 
   glm::ivec3 corner_min = glm::floor(glm::min(glm::min(glm::min(corner1, corner2), corner3), corner4));
   glm::ivec3 corner_max = glm::ceil (glm::max(glm::max(glm::max(corner1, corner2), corner3), corner4));
@@ -94,31 +94,31 @@ static void entity_update_physics(const Dimension& dimension_data, Entity& entit
       for(int x = corner_min.x; x<=corner_max.x; ++x)
         items.push_back(Item{
           .position = glm::ivec3(x, y, z),
-          .distance = glm::length(glm::vec3(x, y, z) - entity_data.transform.position),
+          .distance = glm::length(glm::vec3(x, y, z) - entity.transform.position),
         });
 
   std::sort(items.begin(), items.end(), [](const Item& lhs, const Item& rhs) { return lhs.distance < rhs.distance; });
 
   for(const Item& item : items)
   {
-    if(const Block* block = get_block(dimension_data, item.position); block && block->id != BLOCK_ID_NONE)
+    if(const Block* block = get_block(dimension, item.position); block && block->id != BLOCK_ID_NONE)
     {
-      AABB entity_aabb = { .position = entity_data.transform.position, .dimension = entity_data.bounding_box, };
+      AABB entity_aabb = { .position = entity.transform.position, .dimension = entity.bounding_box, };
       AABB block_aabb  = { .position = item.position,             .dimension = glm::vec3(1.0f),     };
       if(std::optional<SweptAABBResult> result = swept_aabb(entity_aabb, block_aabb, direction))
         if(0.0f <= result->t_in && result->t_in <= 1.0f)
         {
           direction       -= glm::dot(direction,       result->normal_in) * result->normal_in * (1.0f - result->t_in);
-          entity_data.velocity -= glm::dot(entity_data.velocity, result->normal_in) * result->normal_in;
+          entity.velocity -= glm::dot(entity.velocity, result->normal_in) * result->normal_in;
 
-          entity_data.collided = true;
+          entity.collided = true;
           if(result->normal_in.z > 0.0f)
-            entity_data.grounded = true;
+            entity.grounded = true;
         }
     }
   }
 
-  entity_data.transform.position += direction;
+  entity.transform.position += direction;
 }
 
 void update_physics(World& world, float dt)
