@@ -14,5 +14,6 @@ void main()
 {
   vec3 fragColor = texture(ourTexture, fragTexCoords).rgb;
   outColor = vec4(mix(skyColor, fragColor, visibility), 1.0);
+  outColor = vec4(fragColor, 1.0);
 }
 

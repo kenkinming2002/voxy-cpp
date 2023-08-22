@@ -184,7 +184,7 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world)
     glUniformMatrix4fv(glGetUniformLocation(m_entity_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, entity_render_info.texture->id());
+    glBindTexture(GL_TEXTURE_2D, entity_render_info.texture->id());
     glUniform1i(glGetUniformLocation(m_entity_shader_program->id(), "ourTexture"), 0);
     entity_render_info.mesh->draw_triangles();
   }
