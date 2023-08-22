@@ -15,9 +15,15 @@ static inline glm::vec3 clamp(glm::vec3 v, float max)
 
 AABB entity_get_aabb(const Entity& entity)
 {
+  glm::vec3 position = entity.transform.position;
+  glm::vec3 dimension = entity.dimension;
+
+  position.x -= dimension.x / 2.0f;
+  position.y -= dimension.y / 2.0f;
+
   return AABB{
-    .position = entity.transform.position - entity.dimension / 2.0f,
-    .dimension = entity.dimension,
+    .position = position,
+    .dimension = dimension,
   };
 }
 

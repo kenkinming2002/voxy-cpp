@@ -110,7 +110,7 @@ Voxy::Voxy()
           },
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
           .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye          = 0.5f,
+          .eye          = 1.5f,
         },
         {
           .id = 0,
@@ -120,7 +120,7 @@ Voxy::Voxy()
           },
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
           .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye          = 0.5f,
+          .eye          = 1.5f,
         },
       }
     },
