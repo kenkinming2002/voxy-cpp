@@ -20,9 +20,10 @@ static constexpr std::uint32_t BLOCK_ID_NONE  = 2;
 
 struct Entity
 {
-  Transform transform;
+  std::uint16_t id;
+  Transform     transform;
+  glm::vec3     velocity;
 
-  glm::vec3 velocity;
   glm::vec3 bounding_box;
 
   glm::vec3 eye_offset;

@@ -4,6 +4,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <iostream>
+
 namespace graphics
 {
   Mesh::Mesh(const std::string& filename)

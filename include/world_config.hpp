@@ -59,9 +59,16 @@ struct BlockConfig
   std::array<std::string, 6> textures;
 };
 
+struct EntityConfig
+{
+  std::string model;
+  std::string texture;
+};
+
 struct WorldConfig
 {
-  WorldGenerationConfig    generation;
-  std::vector<BlockConfig> blocks;
+  WorldGenerationConfig     generation;
+  std::vector<BlockConfig>  blocks;
+  std::vector<EntityConfig> entities;
 };
 

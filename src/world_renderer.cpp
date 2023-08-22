@@ -37,12 +37,27 @@ WorldRenderer::WorldRenderer(const WorldConfig& config)
     m_block_render_infos.push_back(block_render_info);
   }
 
-  // 2: OpenGL
-  m_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
-  m_texture_array  = std::make_unique<graphics::TextureArray>(block_texture_filenames);
+  m_chunk_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
+  m_chunk_texture_array  = std::make_unique<graphics::TextureArray>(block_texture_filenames);
+
+  // 2: Entity
+  for(const EntityConfig& entity_config : config.entities)
+    m_entity_render_infos.push_back(EntityRenderInfo{
+      .mesh    = std::make_unique<graphics::Mesh>(entity_config.model),
+      .texture = std::make_unique<graphics::Texture>(entity_config.texture),
+    });
+
+  m_entity_shader_program = std::make_unique<graphics::ShaderProgram>("assets/entity.vert", "assets/entity.frag");
+
 }
 
 void WorldRenderer::render(const Camera& camera, const World& world)
+{
+  render_chunks(camera, world);
+  render_entites(camera, world);
+}
+
+void WorldRenderer::render_chunks(const Camera& camera, const World& world)
 {
   // 1: Mesh building
   struct Vertex
@@ -128,7 +143,7 @@ void WorldRenderer::render(const Camera& camera, const World& world)
     }
 
   // 2: Rendering
-  glUseProgram(m_shader_program->id());
+  glUseProgram(m_chunk_shader_program->id());
 
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
@@ -137,12 +152,38 @@ void WorldRenderer::render(const Camera& camera, const World& world)
   glm::mat4 MVP = projection * view * model;
   glm::mat4 MV  =              view * model;
 
-  glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-  glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
+  glUniformMatrix4fv(glGetUniformLocation(m_chunk_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+  glUniformMatrix4fv(glGetUniformLocation(m_chunk_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, m_texture_array->id());
-  glUniform1i(glGetUniformLocation(m_shader_program->id(), "blocksTextureArray"), 0);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_chunk_texture_array->id());
+  glUniform1i(glGetUniformLocation(m_chunk_shader_program->id(), "blocksTextureArray"), 0);
   for(const auto& [chunk_index, mesh] : m_chunk_meshes)
     mesh.draw_triangles();
 }
+
+void WorldRenderer::render_entites(const Camera& camera, const World& world)
+{
+  glUseProgram(m_entity_shader_program->id());
+
+  for(const Entity& entity : world.dimension.entities)
+  {
+    const EntityRenderInfo& entity_render_info = m_entity_render_infos.at(entity.id);
+
+    glm::mat4 view       = camera.view();
+    glm::mat4 projection = camera.projection();
+    glm::mat4 model      = entity.transform.as_matrix();
+
+    glm::mat4 MVP = projection * view * model;
+    glm::mat4 MV  =              view * model;
+
+    glUniformMatrix4fv(glGetUniformLocation(m_entity_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(glGetUniformLocation(m_entity_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, entity_render_info.texture->id());
+    glUniform1i(glGetUniformLocation(m_entity_shader_program->id(), "ourTexture"), 0);
+    entity_render_info.mesh->draw_triangles();
+  }
+}
+

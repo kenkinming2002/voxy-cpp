@@ -91,11 +91,19 @@ Voxy::Voxy()
         },
       }
     },
+    .entities = {
+      {
+        .model   = "assets/character/idk.obj",
+        .texture = "assets/character/idk.png",
+      },
+    },
   };
 
   m_world = {
     .dimension = {
-      .entities = {{
+      .entities = {
+        {
+          .id = 0,
           .transform = {
             .position = glm::vec3(0.0f, 0.0f, 50.0f),
             .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
@@ -103,7 +111,18 @@ Voxy::Voxy()
           .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
           .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
           .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
-      }}
+        },
+        {
+          .id = 0,
+          .transform = {
+            .position = glm::vec3(0.0f, 0.0f, 50.0f),
+            .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+          },
+          .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
+          .bounding_box = glm::vec3(0.9f, 0.9f, 1.9f),
+          .eye_offset   = glm::vec3(0.5f, 0.5f, 1.5f),
+        },
+      }
     },
     .player = {
       .entity_id = 0,
