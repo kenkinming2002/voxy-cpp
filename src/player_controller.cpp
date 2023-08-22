@@ -62,25 +62,27 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
 
 void PlayerController::update(Application& application, World& world, float dt)
 {
+  Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+
   // 1: Jump
   if(application.glfw_get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
-    if(world.player.entity.grounded)
+    if(player_entity.grounded)
     {
-      world.player.entity.grounded = false;
-      entity_apply_impulse(world.player.entity, JUMP_STRENGTH * glm::vec3(0.0f, 0.0f, 1.0f));
+      player_entity.grounded = false;
+      entity_apply_impulse(player_entity, JUMP_STRENGTH * glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
   // 2: Movement
   glm::vec3 translation = glm::vec3(0.0f);
-  if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += world.player.entity.transform.local_right();
-  if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= world.player.entity.transform.local_right();
-  if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += world.player.entity.transform.local_forward();
-  if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= world.player.entity.transform.local_forward();
+  if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += player_entity.transform.local_right();
+  if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= player_entity.transform.local_right();
+  if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += player_entity.transform.local_forward();
+  if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= player_entity.transform.local_forward();
 
   if(glm::vec3 direction = translation; direction.z = 0.0f, glm::length(direction) != 0.0f)
-    entity_apply_force(world.player.entity, MOVEMENT_SPEED * glm::normalize(direction), dt);
-  else if(glm::vec3 direction = -world.player.entity.velocity; direction.z = 0.0f, glm::length(direction) != 0.0f)
-    entity_apply_force(world.player.entity, MOVEMENT_SPEED * glm::normalize(direction), dt, glm::length(direction));
+    entity_apply_force(player_entity, MOVEMENT_SPEED * glm::normalize(direction), dt);
+  else if(glm::vec3 direction = -player_entity.velocity; direction.z = 0.0f, glm::length(direction) != 0.0f)
+    entity_apply_force(player_entity, MOVEMENT_SPEED * glm::normalize(direction), dt, glm::length(direction));
 
   // 3: Rotation
   double new_cursor_xpos;
@@ -90,7 +92,7 @@ void PlayerController::update(Application& application, World& world, float dt)
   {
     double xrel = new_cursor_xpos - m_cursor_xpos;
     double yrel = new_cursor_ypos - m_cursor_ypos;
-    world.player.entity.transform = world.player.entity.transform.rotate(glm::vec3(0.0f,
+    player_entity.transform = player_entity.transform.rotate(glm::vec3(0.0f,
       -yrel * ROTATION_SPEED,
       -xrel * ROTATION_SPEED
     ));
@@ -104,7 +106,7 @@ void PlayerController::update(Application& application, World& world, float dt)
 
   world.player.selection.reset();
   world.player.placement.reset();
-  ray_cast(world.player.entity.transform.position + world.player.entity.eye_offset, world.player.entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
+  ray_cast(player_entity.transform.position + player_entity.eye_offset, player_entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
       const Block *block = get_block(world, block_position);
       if(block && block->id != BLOCK_ID_NONE)
         world.player.selection = block_position;
@@ -143,7 +145,7 @@ void PlayerController::update(Application& application, World& world, float dt)
       if(world.player.placement)
         if(Block *block = get_block(world, *world.player.placement))
           if(block->id == BLOCK_ID_NONE)
-            if(!aabb_collide(world.player.entity.transform.position, world.player.entity.bounding_box, *world.player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+            if(!aabb_collide(player_entity.transform.position, player_entity.bounding_box, *world.player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
             {
               block->id = BLOCK_ID_STONE;
               invalidate_mesh(world, *world.player.placement);

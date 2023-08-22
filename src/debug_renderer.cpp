@@ -18,7 +18,8 @@ void DebugRenderer::render(Application& application, const World& world)
     average /= DT_AVERAGE_COUNT;
 
     // 2: Current block
-    glm::ivec3   position = glm::floor(world.player.entity.transform.position);
+    const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+    glm::ivec3   position = glm::floor(player_entity.transform.position);
     const Block* block    = get_block(world, position);
 
     int width, height;
@@ -27,10 +28,10 @@ void DebugRenderer::render(Application& application, const World& world)
 
     size_t n = 0;
 
-    render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", world.player.entity.transform.position.x, world.player.entity.transform.position.y, world.player.entity.transform.position.z));
-    render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", world.player.entity.velocity.x, world.player.entity.velocity.y, world.player.entity.velocity.z));
-    render_line(viewport, n++, fmt::format("collided = {}", world.player.entity.collided));
-    render_line(viewport, n++, fmt::format("grounded = {}", world.player.entity.grounded));
+    render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", player_entity.transform.position.x, player_entity.transform.position.y, player_entity.transform.position.z));
+    render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", player_entity.velocity.x, player_entity.velocity.y, player_entity.velocity.z));
+    render_line(viewport, n++, fmt::format("collided = {}", player_entity.collided));
+    render_line(viewport, n++, fmt::format("grounded = {}", player_entity.grounded));
     render_line(viewport, n++, fmt::format("average frame time = {}", average));
 
     if(block)

@@ -6,8 +6,8 @@
 #include <glm/gtx/hash.hpp>
 
 #include <unordered_set>
-
 #include <optional>
+#include <memory>
 
 #include <cstddef>
 
@@ -33,7 +33,7 @@ struct Entity
 
 struct Player
 {
-  Entity entity;
+  size_t entity_id;
   std::optional<glm::ivec3> placement;
   std::optional<glm::ivec3> selection;
 };
@@ -57,6 +57,7 @@ struct Chunk
 struct Dimension
 {
   std::unordered_map<glm::ivec2, Chunk> chunks;
+  std::vector<Entity>                   entities;
 };
 
 struct World
