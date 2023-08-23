@@ -169,6 +169,8 @@ void Voxy::on_update(float dt)
 
   update_physics(m_world, dt);
   update_light(m_world);
+
+  m_debug_renderer->update(dt);
 }
 
 void Voxy::on_render()

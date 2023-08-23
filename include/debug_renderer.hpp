@@ -19,6 +19,7 @@ public:
   DebugRenderer();
 
 public:
+  void update(float dt);
   void render(Application& application, const World& world);
 
 private:

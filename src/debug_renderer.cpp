@@ -9,6 +9,13 @@ DebugRenderer::DebugRenderer()
     m_dts[i] = 0.0f;
 }
 
+void DebugRenderer::update(float dt)
+{
+  for(size_t i=0; i<DT_AVERAGE_COUNT-1; ++i)
+    m_dts[i] = m_dts[i+1];
+  m_dts[DT_AVERAGE_COUNT-1] = dt;
+}
+
 void DebugRenderer::render(Application& application, const World& world)
 {
   // 1: Frame time
@@ -32,7 +39,7 @@ void DebugRenderer::render(Application& application, const World& world)
   render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", player_entity.velocity.x, player_entity.velocity.y, player_entity.velocity.z));
   render_line(viewport, n++, fmt::format("collided = {}", player_entity.collided));
   render_line(viewport, n++, fmt::format("grounded = {}", player_entity.grounded));
-  render_line(viewport, n++, fmt::format("average frame time = {}", average));
+  render_line(viewport, n++, fmt::format("average update time = {}", average));
 
   if(block)
     render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level));
