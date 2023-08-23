@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include <spdlog/spdlog.h>
+
 struct Transform
 {
   glm::vec3 position;
@@ -23,6 +25,13 @@ struct Transform
   glm::mat4 as_matrix() const
   {
     return glm::translate(glm::mat4(1.0f), position) * glm::toMat4(rotation);
+  }
+
+  glm::mat4 as_matrix_no_pitch_roll() const
+  {
+    glm::mat4 rotation_matrix = glm::toMat4(rotation);
+    float yaw = -std::atan2(rotation_matrix[2][0], rotation_matrix[2][1]);
+    return glm::translate(glm::mat4(1.0f), position) * glm::toMat4(glm::angleAxis(yaw, glm::vec3(0.0f, 0.0f, 1.0f)));
   }
 
   Transform rotate(glm::quat rotation) const

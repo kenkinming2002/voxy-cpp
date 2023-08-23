@@ -175,7 +175,7 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
 
     glm::mat4 view       = camera.view();
     glm::mat4 projection = camera.projection();
-    glm::mat4 model      = entity.transform.as_matrix();
+    glm::mat4 model      = entity.transform.as_matrix_no_pitch_roll();
 
     glm::mat4 MVP = projection * view * model;
     glm::mat4 MV  =              view * model;
