@@ -5,8 +5,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <glm/gtc/type_ptr.hpp>
-
 WorldRenderer::WorldRenderer(const WorldConfig& config)
 {
   // 1: Build BlockRenderInfo[]
@@ -43,7 +41,7 @@ WorldRenderer::WorldRenderer(const WorldConfig& config)
   // 2: Entity
   for(const EntityConfig& entity_config : config.entities)
     m_entity_render_infos.push_back(EntityRenderInfo{
-      .mesh    = std::make_unique<graphics::Mesh>(entity_config.model),
+      .mesh    = graphics::Mesh::load_from(entity_config.model),
       .texture = std::make_unique<graphics::Texture>(entity_config.texture),
     });
 
@@ -67,18 +65,6 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
     uint32_t  texture_index;
     float     light_ratio;
     float     destroy_ratio;
-  };
-
-  graphics::MeshLayout mesh_layout{
-    .index_type = graphics::IndexType::UNSIGNED_INT,
-      .stride = sizeof(Vertex),
-      .attributes = {
-        { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
-        { .type = graphics::AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
-        { .type = graphics::AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index),  },
-        { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_ratio),    },
-        { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, destroy_ratio),  },
-      },
   };
 
   std::vector<uint32_t> indices;
@@ -139,32 +125,51 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
             }
           }
 
-      m_chunk_meshes.insert_or_assign(chunk_index, graphics::Mesh(mesh_layout, graphics::as_bytes(indices), graphics::as_bytes(vertices)));
+      auto it = m_chunk_meshes.find(chunk_index);
+      if(it == m_chunk_meshes.end())
+      {
+        const graphics::Attribute attributes[] = {
+          { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
+          { .type = graphics::AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
+          { .type = graphics::AttributeType::UNSIGNED_INT1, .offset = offsetof(Vertex, texture_index),  },
+          { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, light_ratio),    },
+          { .type = graphics::AttributeType::FLOAT1,        .offset = offsetof(Vertex, destroy_ratio),  },
+        };
+
+        std::unique_ptr<graphics::Mesh> chunk_mesh = std::make_unique<graphics::Mesh>(
+          graphics::IndexType::UNSIGNED_INT,
+          graphics::PrimitiveType::TRIANGLES,
+          sizeof(Vertex),
+          attributes);
+
+        bool success;
+        std::tie(it, success) = m_chunk_meshes.emplace(chunk_index, std::move(chunk_mesh));
+        assert(success);
+      }
+      it->second->write(std::as_bytes(std::span(indices)), std::as_bytes(std::span(vertices)), graphics::Usage::DYNAMIC);
     }
 
   // 2: Rendering
-  glUseProgram(m_chunk_shader_program->id());
+  m_chunk_shader_program->use();
 
   glm::mat4 view       = camera.view();
   glm::mat4 projection = camera.projection();
   glm::mat4 model      = glm::mat4(1.0f);
 
-  glm::mat4 MVP = projection * view * model;
-  glm::mat4 MV  =              view * model;
-
-  glUniformMatrix4fv(glGetUniformLocation(m_chunk_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-  glUniformMatrix4fv(glGetUniformLocation(m_chunk_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
+  m_chunk_shader_program->set_uniform("MVP", projection * view * model);
+  m_chunk_shader_program->set_uniform("MV",               view * model);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D_ARRAY, m_chunk_texture_array->id());
-  glUniform1i(glGetUniformLocation(m_chunk_shader_program->id(), "blocksTextureArray"), 0);
+  m_chunk_shader_program->set_uniform( "blocksTextureArray", 0);
+
   for(const auto& [chunk_index, mesh] : m_chunk_meshes)
-    mesh.draw_triangles();
+    mesh->draw();
 }
 
 void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
-  glUseProgram(m_entity_shader_program->id());
+  m_entity_shader_program->use();
   for(size_t i=0; i<world.dimension.entities.size(); ++i)
   {
     if(!third_person && i == world.player.entity_id)
@@ -177,16 +182,13 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
     glm::mat4 projection = camera.projection();
     glm::mat4 model      = entity.transform.as_matrix_no_pitch_roll();
 
-    glm::mat4 MVP = projection * view * model;
-    glm::mat4 MV  =              view * model;
-
-    glUniformMatrix4fv(glGetUniformLocation(m_entity_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-    glUniformMatrix4fv(glGetUniformLocation(m_entity_shader_program->id(), "MV"),  1, GL_FALSE, glm::value_ptr(MV));
+    m_entity_shader_program->set_uniform("MVP", projection * view * model);
+    m_entity_shader_program->set_uniform("MV",               view * model);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, entity_render_info.texture->id());
-    glUniform1i(glGetUniformLocation(m_entity_shader_program->id(), "ourTexture"), 0);
-    entity_render_info.mesh->draw_triangles();
+    m_entity_shader_program->set_uniform("ourTexture", 0);
+    entity_render_info.mesh->draw();
   }
 
   for(size_t i=0; i<world.dimension.entities.size(); ++i)

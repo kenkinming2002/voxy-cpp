@@ -8,23 +8,13 @@
 
 namespace graphics
 {
-  Mesh::Mesh(const std::string& filename)
+  std::unique_ptr<Mesh> Mesh::load_from(const std::string& filename)
   {
     struct Vertex
     {
       glm::vec3 position;
       glm::vec3 normal;
       glm::vec2 texture_coords;
-    };
-
-    m_layout = {
-      .index_type = graphics::IndexType::UNSIGNED_INT,
-      .stride = sizeof(Vertex),
-      .attributes = {
-        { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, position),       },
-        { .type = graphics::AttributeType::FLOAT3,        .offset = offsetof(Vertex, normal),         },
-        { .type = graphics::AttributeType::FLOAT2,        .offset = offsetof(Vertex, texture_coords), },
-      },
     };
 
     tinyobj::ObjReader reader;
@@ -58,151 +48,102 @@ namespace graphics
         indices.push_back(indices.size());
       }
 
-    m_vertices = as_bytes(vertices);
-    m_indices  = as_bytes(indices);
+    const Attribute attributes[] = {
+      { .type = graphics::AttributeType::FLOAT3, .offset = offsetof(Vertex, position),       },
+      { .type = graphics::AttributeType::FLOAT3, .offset = offsetof(Vertex, normal),         },
+      { .type = graphics::AttributeType::FLOAT2, .offset = offsetof(Vertex, texture_coords), },
+    };
 
-    m_generated = false;
-    m_vao = 0;
-    m_ebo = 0;
-    m_vbo = 0;
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(
+        IndexType::UNSIGNED_INT,
+        PrimitiveType::TRIANGLES,
+        sizeof(Vertex),
+        attributes
+    );
+    mesh->write(std::as_bytes(std::span(indices)), std::as_bytes(std::span(vertices)), Usage::STATIC);
+    return mesh;
   }
 
-  Mesh::Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices) :
-    m_layout(std::move(layout)),
-    m_indices(std::move(indices)),
-    m_vertices(std::move(vertices)),
-    m_generated(false),
-    m_vao(0),
-    m_ebo(0),
-    m_vbo(0)
-  {}
+  Mesh::Mesh(IndexType index_type, PrimitiveType primitive_type, size_t stride, std::span<const Attribute> attributes) :
+    m_index_type(index_type),
+    m_primitive_type(primitive_type),
+    m_element_count(0)
+  {
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_ebo);
+    glGenBuffers(1, &m_vbo);
+
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+
+    for(std::size_t i=0; i<attributes.size(); ++i)
+    {
+      glEnableVertexAttribArray(i);
+      switch(attributes[i].type)
+      {
+        case AttributeType::FLOAT1: glVertexAttribPointer(i, 1, GL_FLOAT, GL_FALSE, stride, (void*)attributes[i].offset); break;
+        case AttributeType::FLOAT2: glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, stride, (void*)attributes[i].offset); break;
+        case AttributeType::FLOAT3: glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, stride, (void*)attributes[i].offset); break;
+        case AttributeType::FLOAT4: glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, stride, (void*)attributes[i].offset); break;
+
+        case AttributeType::UNSIGNED_INT1: glVertexAttribIPointer(i, 1, GL_UNSIGNED_INT, stride, (void*)attributes[i].offset); break;
+        case AttributeType::UNSIGNED_INT2: glVertexAttribIPointer(i, 2, GL_UNSIGNED_INT, stride, (void*)attributes[i].offset); break;
+        case AttributeType::UNSIGNED_INT3: glVertexAttribIPointer(i, 3, GL_UNSIGNED_INT, stride, (void*)attributes[i].offset); break;
+        case AttributeType::UNSIGNED_INT4: glVertexAttribIPointer(i, 4, GL_UNSIGNED_INT, stride, (void*)attributes[i].offset); break;
+      }
+    }
+    glBindVertexArray(0);
+  }
 
   Mesh::~Mesh()
   {
-    if(m_generated)
+    glDeleteVertexArrays(1, &m_vao);
+    glDeleteBuffers(1, &m_ebo);
+    glDeleteBuffers(1, &m_vbo);
+  }
+
+  void Mesh::write(std::span<const std::byte> indices, std::span<const std::byte> vertices, Usage usage)
+  {
+    GLenum _usage;
+    switch(usage)
     {
-      glDeleteVertexArrays(1, &m_vao);
-      glDeleteBuffers(1, &m_ebo);
-      glDeleteBuffers(1, &m_vbo);
+    case Usage::STATIC:  _usage = GL_STATIC_DRAW; break;
+    case Usage::DYNAMIC: _usage = GL_DYNAMIC_DRAW; break;
+    case Usage::STREAM:  _usage = GL_STREAM_DRAW; break;
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size(), indices.data(), _usage);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size(), vertices.data(), _usage);
+
+    switch(m_index_type)
+    {
+    case IndexType::UNSIGNED_BYTE:  m_element_count = indices.size() / 1; break;
+    case IndexType::UNSIGNED_SHORT: m_element_count = indices.size() / 2; break;
+    case IndexType::UNSIGNED_INT:   m_element_count = indices.size() / 4; break;
     }
   }
 
-  void Mesh::draw_triangles() const
+  void Mesh::draw() const
   {
-    if(!m_generated)
+    GLenum mode, type;
+    switch(m_index_type)
     {
-      spdlog::info("Lazily generating mesh with index buffer size = {}, vertex buffer size = {}",
-          m_indices.size(),
-          m_vertices.size());
-
-      glGenVertexArrays(1, &m_vao);
-      glGenBuffers(1, &m_ebo);
-      glGenBuffers(1, &m_vbo);
-
-      glBindVertexArray(m_vao);
-
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
-
-      glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-      glBufferData(GL_ARRAY_BUFFER, m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
-
-      switch(m_layout.index_type)
-      {
-      case IndexType::UNSIGNED_BYTE:  m_element_count = m_indices.size() / 1; break;
-      case IndexType::UNSIGNED_SHORT: m_element_count = m_indices.size() / 2; break;
-      case IndexType::UNSIGNED_INT:   m_element_count = m_indices.size() / 4; break;
-      }
-
-      for(std::size_t i=0; i<m_layout.attributes.size(); ++i)
-      {
-        glEnableVertexAttribArray(i);
-        switch(m_layout.attributes[i].type)
-        {
-        case AttributeType::FLOAT1: glVertexAttribPointer(i, 1, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::FLOAT2: glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::FLOAT3: glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::FLOAT4: glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-
-        case AttributeType::UNSIGNED_INT1: glVertexAttribIPointer(i, 1, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::UNSIGNED_INT2: glVertexAttribIPointer(i, 2, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::UNSIGNED_INT3: glVertexAttribIPointer(i, 3, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::UNSIGNED_INT4: glVertexAttribIPointer(i, 4, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        }
-      }
-
-      m_indices.clear();
-      m_vertices.clear();
-
-      m_generated = true;
+    case IndexType::UNSIGNED_BYTE:  type = GL_UNSIGNED_BYTE;  break;
+    case IndexType::UNSIGNED_SHORT: type = GL_UNSIGNED_SHORT; break;
+    case IndexType::UNSIGNED_INT:   type = GL_UNSIGNED_INT;   break;
+    }
+    switch(m_primitive_type)
+    {
+    case PrimitiveType::LINES:     mode = GL_LINES;     break;
+    case PrimitiveType::TRIANGLES: mode = GL_TRIANGLES; break;
     }
 
     glBindVertexArray(m_vao);
-    switch(m_layout.index_type)
-    {
-    case IndexType::UNSIGNED_BYTE:  glDrawElements(GL_TRIANGLES, m_element_count, GL_UNSIGNED_BYTE,  (void*)0); break;
-    case IndexType::UNSIGNED_SHORT: glDrawElements(GL_TRIANGLES, m_element_count, GL_UNSIGNED_SHORT, (void*)0); break;
-    case IndexType::UNSIGNED_INT:   glDrawElements(GL_TRIANGLES, m_element_count, GL_UNSIGNED_INT,   (void*)0); break;
-    }
-  }
-
-  void Mesh::draw_lines() const
-  {
-    if(!m_generated)
-    {
-      spdlog::info("Lazily generating mesh with index buffer size = {}, vertex buffer size = {}",
-          m_indices.size(),
-          m_vertices.size());
-
-      glGenVertexArrays(1, &m_vao);
-      glGenBuffers(1, &m_ebo);
-      glGenBuffers(1, &m_vbo);
-
-      glBindVertexArray(m_vao);
-
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
-
-      glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-      glBufferData(GL_ARRAY_BUFFER, m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
-
-      switch(m_layout.index_type)
-      {
-      case IndexType::UNSIGNED_BYTE:  m_element_count = m_indices.size() / 1; break;
-      case IndexType::UNSIGNED_SHORT: m_element_count = m_indices.size() / 2; break;
-      case IndexType::UNSIGNED_INT:   m_element_count = m_indices.size() / 4; break;
-      }
-
-      for(std::size_t i=0; i<m_layout.attributes.size(); ++i)
-      {
-        glEnableVertexAttribArray(i);
-        switch(m_layout.attributes[i].type)
-        {
-        case AttributeType::FLOAT1: glVertexAttribPointer(i, 1, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::FLOAT2: glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::FLOAT3: glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::FLOAT4: glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-
-        case AttributeType::UNSIGNED_INT1: glVertexAttribIPointer(i, 1, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::UNSIGNED_INT2: glVertexAttribIPointer(i, 2, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::UNSIGNED_INT3: glVertexAttribIPointer(i, 3, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        case AttributeType::UNSIGNED_INT4: glVertexAttribIPointer(i, 4, GL_UNSIGNED_INT, m_layout.stride, (void*)m_layout.attributes[i].offset); break;
-        }
-      }
-
-      m_indices.clear();
-      m_vertices.clear();
-
-      m_generated = true;
-    }
-
-    glBindVertexArray(m_vao);
-    switch(m_layout.index_type)
-    {
-    case IndexType::UNSIGNED_BYTE:  glDrawElements(GL_LINES, m_element_count, GL_UNSIGNED_BYTE,  (void*)0); break;
-    case IndexType::UNSIGNED_SHORT: glDrawElements(GL_LINES, m_element_count, GL_UNSIGNED_SHORT, (void*)0); break;
-    case IndexType::UNSIGNED_INT:   glDrawElements(GL_LINES, m_element_count, GL_UNSIGNED_INT,   (void*)0); break;
-    }
+    glDrawElements(mode, m_element_count, type, (void*)0);
   }
 }
 

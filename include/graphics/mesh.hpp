@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <span>
+#include <memory>
 
 #include <stddef.h>
 
@@ -16,6 +17,11 @@ namespace graphics
     UNSIGNED_BYTE,
     UNSIGNED_SHORT,
     UNSIGNED_INT,
+  };
+
+  enum class PrimitiveType {
+    LINES,
+    TRIANGLES,
   };
 
   enum class AttributeType {
@@ -36,46 +42,34 @@ namespace graphics
     size_t        offset;
   };
 
-  struct MeshLayout
-  {
-    IndexType              index_type;
-
-    std::size_t            stride;
-    std::vector<Attribute> attributes;
+  enum class Usage {
+    STATIC,
+    DYNAMIC,
+    STREAM,
   };
 
   struct Mesh
   {
   public:
-    Mesh(const std::string& filename);
-    Mesh(MeshLayout layout, std::vector<std::byte> indices, std::vector<std::byte> vertices);
+    static std::unique_ptr<Mesh> load_from(const std::string& filename);
+
+  public:
+    Mesh(IndexType index_type, PrimitiveType primitive_type, size_t stride, std::span<const Attribute> attributes);
     ~Mesh();
 
   public:
-    void draw_triangles() const;
-    void draw_lines() const;
+    void write(std::span<const std::byte> indices, std::span<const std::byte> vertices, Usage usage);
+    void draw() const;
 
   private:
-    MeshLayout m_layout;
+    IndexType     m_index_type;
+    PrimitiveType m_primitive_type;
+    size_t        m_element_count;
 
-    mutable std::vector<std::byte> m_indices;
-    mutable std::vector<std::byte> m_vertices;
-
-    mutable bool m_generated;
-
-    mutable GLuint m_vao;
-    mutable GLuint m_ebo;
-    mutable GLuint m_vbo;
-
-    mutable GLsizei m_element_count;
+    GLuint m_vao;
+    GLuint m_ebo;
+    GLuint m_vbo;
   };
-
-  template<typename T>
-  inline static std::vector<std::byte> as_bytes(const std::vector<T>& data) requires(std::is_standard_layout_v<T>)
-  {
-    auto bytes = std::as_bytes(std::span(data));
-    return std::vector(bytes.begin(), bytes.end());
-  }
 }
 
 #endif // MESH_HPP

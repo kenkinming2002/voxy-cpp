@@ -48,9 +48,9 @@ private:
 private:
   std::vector<BlockRenderInfo> m_block_render_infos;
 
-  std::unique_ptr<graphics::ShaderProgram>       m_chunk_shader_program;
-  std::unique_ptr<graphics::TextureArray>        m_chunk_texture_array;
-  std::unordered_map<glm::ivec2, graphics::Mesh> m_chunk_meshes;
+  std::unique_ptr<graphics::ShaderProgram>                        m_chunk_shader_program;
+  std::unique_ptr<graphics::TextureArray>                         m_chunk_texture_array;
+  std::unordered_map<glm::ivec2, std::unique_ptr<graphics::Mesh>> m_chunk_meshes;
 
   std::vector<EntityRenderInfo> m_entity_render_infos;
 

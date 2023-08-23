@@ -1,6 +1,5 @@
 #include <graphics/wireframe_renderer.hpp>
 
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace graphics
@@ -32,19 +31,14 @@ namespace graphics
         for(int x : {0, 1})
           vertices.push_back(glm::vec3(x, y, z));
 
-    graphics::MeshLayout layout{
-      .index_type = graphics::IndexType::UNSIGNED_BYTE,
-        .stride = sizeof(glm::vec3),
-        .attributes = {
-          { .type = graphics::AttributeType::FLOAT3, .offset = 0, },
-        },
-    };
-
-    m_cube_mesh = std::make_unique<graphics::Mesh>(
-        std::move(layout),
-        graphics::as_bytes(indices),
-        graphics::as_bytes(vertices)
-        );
+    const Attribute attributes[] = {{ .type = graphics::AttributeType::FLOAT3, .offset = 0, }};
+    m_cube_mesh = std::make_unique<Mesh>(
+        IndexType::UNSIGNED_BYTE,
+        PrimitiveType::LINES,
+        sizeof(glm::vec3),
+        attributes
+    );
+    m_cube_mesh->write(std::as_bytes(std::span(indices)), std::as_bytes(std::span(vertices)), Usage::STATIC);
   }
 
   void WireframeRenderer::render_cube(const Camera& camera, glm::vec3 position, glm::vec3 dimension, glm::vec3 color, float thickness)
@@ -56,13 +50,12 @@ namespace graphics
     model = glm::translate(model, position);
     model = glm::scale    (model, dimension);
 
-    glm::mat4 MVP = projection * view * model;
+    m_shader_program->use();
+    m_shader_program->set_uniform("MVP",   projection * view * model);
+    m_shader_program->set_uniform("color", color);
 
-    glUseProgram(m_shader_program->id());
-    glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
-    glUniform3f(glGetUniformLocation(m_shader_program->id(), "color"), color.r, color.g, color.b);
     glLineWidth(thickness);
-    m_cube_mesh->draw_lines();
+    m_cube_mesh->draw();
   }
 }
 

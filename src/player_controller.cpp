@@ -3,8 +3,6 @@
 #include <directions.hpp>
 #include <ray_cast.hpp>
 
-#include <glm/gtc/type_ptr.hpp>
-
 PlayerController::PlayerController()
 {
   m_first    = true;
