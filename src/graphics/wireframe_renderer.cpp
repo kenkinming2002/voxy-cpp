@@ -47,7 +47,7 @@ namespace graphics
         );
   }
 
-  void WireframeRenderer::render_cube(const Camera& camera, glm::vec3 position, glm::vec3 dimension, float thickness)
+  void WireframeRenderer::render_cube(const Camera& camera, glm::vec3 position, glm::vec3 dimension, glm::vec3 color, float thickness)
   {
     glm::mat4 view       = camera.view();
     glm::mat4 projection = camera.projection();
@@ -60,6 +60,7 @@ namespace graphics
 
     glUseProgram(m_shader_program->id());
     glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniform3f(glGetUniformLocation(m_shader_program->id(), "color"), color.r, color.g, color.b);
     glLineWidth(thickness);
     m_cube_mesh->draw_lines();
   }

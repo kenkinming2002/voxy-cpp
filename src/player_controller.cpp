@@ -122,11 +122,7 @@ void PlayerController::update(Application& application, World& world, float dt)
 
 void PlayerController::render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer)
 {
-  // 1: Selection
-  if(world.player.selection)
-    wireframe_renderer.render_cube(camera, *world.player.selection, glm::vec3(1.0f), UI_SELECTION_THICKNESS);
-
-  // 1: Selection
-  if(world.player.placement)
-    wireframe_renderer.render_cube(camera, *world.player.placement, glm::vec3(1.0f), UI_SELECTION_THICKNESS);
+  if(world.player.selection) wireframe_renderer.render_cube(camera, *world.player.selection, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);
+  if(world.player.placement) wireframe_renderer.render_cube(camera, *world.player.placement, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);
 }
+

@@ -197,7 +197,7 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
     const Entity& entity = world.dimension.entities[i];
 
     AABB entity_aabb = entity_get_aabb(entity);
-    wireframe_renderer.render_cube(camera, entity_aabb.position, entity_aabb.dimension, 5.0f);
+    wireframe_renderer.render_cube(camera, entity_aabb.position, entity_aabb.dimension, glm::vec3(0.6f, 0.6f, 0.6f), 5.0f);
   }
 }
 
