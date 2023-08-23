@@ -42,8 +42,8 @@ namespace graphics
 
   static GLuint link_program(const char* vertex_shader_path, const char *fragment_shader_path)
   {
-    GLuint vertex_shader   = compile_shader(GL_VERTEX_SHADER,   vertex_shader_path);   //std::experimental::scope_exit vertex_shader_exit  ([vertex_shader]  (){ glDeleteShader(vertex_shader); });
-    GLuint fragment_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader_path); //std::experimental::scope_exit fragment_shader_exit([fragment_shader](){ glDeleteShader(fragment_shader); });
+    GLuint vertex_shader   = compile_shader(GL_VERTEX_SHADER,   vertex_shader_path);   std::experimental::scope_exit vertex_shader_exit  ([vertex_shader]  (){ glDeleteShader(vertex_shader); });
+    GLuint fragment_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader_path); std::experimental::scope_exit fragment_shader_exit([fragment_shader](){ glDeleteShader(fragment_shader); });
 
     GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
