@@ -9,6 +9,7 @@
 #include <graphics/texture_array.hpp>
 #include <graphics/mesh.hpp>
 #include <graphics/texture.hpp>
+#include <graphics/wireframe_renderer.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
@@ -38,11 +39,11 @@ public:
   WorldRenderer(const WorldConfig& config);
 
 public:
-  void render(const Camera& camera, const World& world, bool third_person);
+  void render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
   void render_chunks(const Camera& camera, const World& world);
-  void render_entites(const Camera& camera, const World& world, bool third_person);
+  void render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
   std::vector<BlockRenderInfo> m_block_render_infos;

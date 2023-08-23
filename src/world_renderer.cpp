@@ -51,10 +51,10 @@ WorldRenderer::WorldRenderer(const WorldConfig& config)
 
 }
 
-void WorldRenderer::render(const Camera& camera, const World& world, bool third_person)
+void WorldRenderer::render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
   render_chunks(camera, world);
-  render_entites(camera, world, third_person);
+  render_entites(camera, world, third_person, wireframe_renderer);
 }
 
 void WorldRenderer::render_chunks(const Camera& camera, const World& world)
@@ -162,7 +162,7 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
     mesh.draw_triangles();
 }
 
-void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person)
+void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
   glUseProgram(m_entity_shader_program->id());
   for(size_t i=0; i<world.dimension.entities.size(); ++i)
@@ -187,6 +187,17 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
     glBindTexture(GL_TEXTURE_2D, entity_render_info.texture->id());
     glUniform1i(glGetUniformLocation(m_entity_shader_program->id(), "ourTexture"), 0);
     entity_render_info.mesh->draw_triangles();
+  }
+
+  for(size_t i=0; i<world.dimension.entities.size(); ++i)
+  {
+    if(!third_person && i == world.player.entity_id)
+      continue;
+
+    const Entity& entity = world.dimension.entities[i];
+
+    AABB entity_aabb = entity_get_aabb(entity);
+    wireframe_renderer.render_cube(camera, entity_aabb.position, entity_aabb.dimension, 5.0f);
   }
 }
 

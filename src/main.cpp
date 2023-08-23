@@ -188,7 +188,7 @@ void Voxy::on_render()
   if(m_third_person)
     m_camera.transform.position -= player_entity.transform.local_forward() * 5.0f;
 
-  m_world_renderer->render(m_camera, m_world, m_third_person);
+  m_world_renderer->render(m_camera, m_world, m_third_person, *m_wireframe_renderer);
   m_player_controller->render(m_camera, m_world, *m_wireframe_renderer);
 
   m_debug_renderer->render(*this, m_world);
