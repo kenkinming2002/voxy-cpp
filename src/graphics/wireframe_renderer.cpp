@@ -7,7 +7,7 @@ namespace graphics
 {
   WireframeRenderer::WireframeRenderer()
   {
-    m_cube_shader_program = std::make_unique<graphics::ShaderProgram>("assets/ui_selection.vert", "assets/ui_selection.frag");
+    m_shader_program = std::make_unique<graphics::ShaderProgram>("assets/wireframe.vert", "assets/wireframe.frag");
 
     std::vector<uint8_t>  indices;
     std::vector<glm::vec3> vertices;
@@ -59,8 +59,8 @@ void graphics::WireframeRenderer::render_cube(const Camera& camera, glm::vec3 po
 
   glm::mat4 MVP = projection * view * model;
 
-  glUseProgram(m_cube_shader_program->id());
-  glUniformMatrix4fv(glGetUniformLocation(m_cube_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
+  glUseProgram(m_shader_program->id());
+  glUniformMatrix4fv(glGetUniformLocation(m_shader_program->id(), "MVP"), 1, GL_FALSE, glm::value_ptr(MVP));
   glLineWidth(thickness);
   m_cube_mesh->draw_lines();
 }

@@ -18,7 +18,7 @@ namespace graphics
     void render_cube(const Camera& camera, glm::vec3 position, glm::vec3 dimension, float thickness);
 
   private:
-    std::unique_ptr<ShaderProgram> m_cube_shader_program;
+    std::unique_ptr<ShaderProgram> m_shader_program;
     std::unique_ptr<Mesh>          m_cube_mesh;
   };
 }
