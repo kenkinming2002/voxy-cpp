@@ -178,7 +178,7 @@ void Voxy::on_render()
   m_camera.transform.position.z += player_entity.eye;
   m_camera.aspect = (float)width / (float)height;
   if(m_third_person)
-    m_camera.transform.position -= player_entity.transform.local_forward() * 2.0f;
+    m_camera.transform.position -= player_entity.transform.local_forward() * 5.0f;
 
   m_world_renderer->render(m_camera, m_world, m_third_person);
   m_player_controller->render(m_camera, m_world);
