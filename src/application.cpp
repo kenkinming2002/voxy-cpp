@@ -1,6 +1,9 @@
 #include <application.hpp>
 
 #include <spdlog/spdlog.h>
+
+#include <algorithm>
+
 #include <cstdlib>
 
 static constexpr const char* WINDOW_NAME   = "voxy";
@@ -89,6 +92,7 @@ void Application::run()
       m_accumulated_dt -= FIXED_DT;
       this->on_update(FIXED_DT);
     }
+    m_accumulated_dt = std::min(m_accumulated_dt, (double)FIXED_DT);
 
     this->on_render();
     glfwSwapBuffers(m_window);
