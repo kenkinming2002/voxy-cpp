@@ -37,6 +37,7 @@ voxy_exe = executable('voxy', [
     'src/graphics/shader_program.cpp',
     'src/graphics/ui_renderer.cpp',
     'src/graphics/font.cpp',
+    'src/graphics/wireframe_renderer.cpp',
   ],
   include_directories : 'include',
   dependencies : [external_dep, glfw3_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep, openmp_dep]

@@ -2,6 +2,7 @@
 
 #include <graphics/shader_program.hpp>
 #include <graphics/mesh.hpp>
+#include <graphics/wireframe_renderer.hpp>
 
 #include <application.hpp>
 #include <world.hpp>
@@ -26,7 +27,7 @@ public:
 
 public:
   void update(Application& application, World& world, float dt);
-  void render(const Camera& camera, const World& world);
+  void render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
   bool   m_first = true;
@@ -34,8 +35,4 @@ private:
   double m_cursor_ypos;
 
   float m_cooldown = 0.0f;
-
-private:
-  std::unique_ptr<graphics::ShaderProgram> m_cube_shader_program;
-  std::unique_ptr<graphics::Mesh>          m_cube_mesh;
 };

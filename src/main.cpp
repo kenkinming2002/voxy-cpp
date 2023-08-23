@@ -12,6 +12,8 @@
 #include <physics.hpp>
 #include <light.hpp>
 
+#include <graphics/wireframe_renderer.hpp>
+
 #include <debug_renderer.hpp>
 
 #include <spdlog/spdlog.h>
@@ -39,6 +41,8 @@ private:
   std::unique_ptr<WorldRenderer>  m_world_renderer;
 
   std::unique_ptr<PlayerController> m_player_controller;
+
+  std::unique_ptr<graphics::WireframeRenderer> m_wireframe_renderer;
 
   std::unique_ptr<DebugRenderer> m_debug_renderer;
 };
@@ -144,8 +148,12 @@ Voxy::Voxy()
 
   m_world_generator   = std::make_unique<WorldGenerator>(m_world_config.generation);
   m_world_renderer    = std::make_unique<WorldRenderer>(m_world_config);
+
   m_player_controller = std::make_unique<PlayerController>();
-  m_debug_renderer    = std::make_unique<DebugRenderer>();
+
+  m_wireframe_renderer = std::make_unique<graphics::WireframeRenderer>();
+
+  m_debug_renderer = std::make_unique<DebugRenderer>();
 }
 
 void Voxy::on_key(int key, int scancode, int action, int mods)
@@ -181,7 +189,7 @@ void Voxy::on_render()
     m_camera.transform.position -= player_entity.transform.local_forward() * 5.0f;
 
   m_world_renderer->render(m_camera, m_world, m_third_person);
-  m_player_controller->render(m_camera, m_world);
+  m_player_controller->render(m_camera, m_world, *m_wireframe_renderer);
 
   m_debug_renderer->render(*this, m_world);
 }
