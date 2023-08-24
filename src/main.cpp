@@ -49,64 +49,7 @@ private:
 
 Voxy::Voxy()
 {
-  // TODO: Load config from files
-  m_world_config = {
-    .generation = {
-      .seed = 0b1011011010110101110110110101110101011010110101011111010100011010,
-      .terrain = {
-        .layers = {
-          { .block_id = BLOCK_ID_STONE, .base = 40.0f, .frequency = 0.03f, .amplitude = 20.0f, .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 4, },
-          { .block_id = BLOCK_ID_GRASS, .base = 5.0f,  .frequency = 0.01f, .amplitude = 2.0f,  .lacunarity = 2.0f, .persistence = 0.5f, .octaves = 2, },
-        },
-      },
-      .caves = {
-        .max_per_chunk = 2,
-        .max_segment   = 10,
-        .step          = 5.0f,
-        .min_height    = 10.0f,
-        .max_height    = 30.0f,
-
-        .dig_frequency   = 0.1f,
-        .dig_amplitude   = 1.0f,
-        .dig_lacunarity  = 2.0f,
-        .dig_persistence = 0.5f,
-        .dig_octaves     = 4,
-
-        .radius             = 2.0f,
-        .radius_frequency   = 0.1f,
-        .radius_amplitude   = 3.0f,
-        .radius_lacunarity  = 2.0f,
-        .radius_persistence = 0.5f,
-      },
-    },
-    .blocks = {
-      {
-        .textures = {
-          "assets/stone.png",
-          "assets/stone.png",
-          "assets/stone.png",
-          "assets/stone.png",
-          "assets/stone.png",
-          "assets/stone.png",
-        }
-      }, {
-        .textures = {
-          "assets/grass_side.png",
-          "assets/grass_side.png",
-          "assets/grass_side.png",
-          "assets/grass_side.png",
-          "assets/grass_bottom.png",
-          "assets/grass_top.png",
-        },
-      }
-    },
-    .entities = {
-      {
-        .model   = "assets/character/idk.obj",
-        .texture = "assets/character/idk.png",
-      },
-    },
-  };
+  m_world_config = load_world_config("world");
 
   m_world = {
     .dimension = {
@@ -147,7 +90,7 @@ Voxy::Voxy()
   m_third_person = true;
 
   m_world_generator   = std::make_unique<WorldGenerator>(m_world_config.generation);
-  m_world_renderer    = std::make_unique<WorldRenderer>(m_world_config);
+  m_world_renderer    = std::make_unique<WorldRenderer>("world", m_world_config);
 
   m_player_controller = std::make_unique<PlayerController>();
 

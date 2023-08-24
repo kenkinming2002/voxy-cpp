@@ -1,0 +1,33 @@
+seed: 0b1011011010110101110110110101110101011010110101011111010100011010
+terrain:
+  layers:
+    - block_id: 0
+      base: 40.0
+      frequency: 0.03
+      amplitude: 20.0
+      lacunarity: 2.0
+      persistence: 0.5
+      octaves: 4
+    - block_id: 1
+      base: 5.0
+      frequency: 0.01
+      amplitude: 2.0
+      lacunarity: 2.0
+      persistence: 0.5
+      octaves: 2
+  caves:
+    max_per_chunk: 2
+    max_segment: 10
+    step: 5.0
+    min_height: 10.0
+    max_height: 30.0
+    dig_frequency: 0.1
+    dig_amplitude: 1.0
+    dig_lacunarity: 2.0
+    dig_persistence: 0.5
+    dig_octaves: 4
+    radius: 2.0
+    radius_frequency: 0.1
+    radius_amplitude: 3.0
+    radius_lacunarity: 2.0
+    radius_persistence: 0.5

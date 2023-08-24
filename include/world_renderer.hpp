@@ -36,7 +36,7 @@ public:
   static constexpr double REMASH_THROTTLE = 5.0f;
 
 public:
-  WorldRenderer(const WorldConfig& config);
+  WorldRenderer(std::string_view path, const WorldConfig& config);
 
 public:
   void render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);

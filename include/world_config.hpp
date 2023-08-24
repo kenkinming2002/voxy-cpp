@@ -72,3 +72,4 @@ struct WorldConfig
   std::vector<EntityConfig> entities;
 };
 
+WorldConfig load_world_config(std::string_view path);

@@ -5,7 +5,7 @@
 
 #include <GLFW/glfw3.h>
 
-WorldRenderer::WorldRenderer(const WorldConfig& config)
+WorldRenderer::WorldRenderer(std::string_view path, const WorldConfig& config)
 {
   // 1: Build BlockRenderInfo[]
   std::unordered_set<std::string> block_texture_filenames_set;
@@ -22,7 +22,7 @@ WorldRenderer::WorldRenderer(const WorldConfig& config)
   size_t i = 0;
   for(const std::string& block_texture_filename : block_texture_filenames_set)
   {
-    block_texture_filenames.push_back(block_texture_filename);
+    block_texture_filenames.push_back(fmt::format("{}/assets/{}", path, block_texture_filename));
     block_texture_indices  .emplace(block_texture_filename, i++);
   }
 
@@ -41,8 +41,8 @@ WorldRenderer::WorldRenderer(const WorldConfig& config)
   // 2: Entity
   for(const EntityConfig& entity_config : config.entities)
     m_entity_render_infos.push_back(EntityRenderInfo{
-      .mesh    = graphics::Mesh::load_from(entity_config.model),
-      .texture = std::make_unique<graphics::Texture>(entity_config.texture),
+      .mesh    = graphics::Mesh::load_from(fmt::format("{}/assets/{}", path, entity_config.model)),
+      .texture = std::make_unique<graphics::Texture>(fmt::format("{}/assets/{}", path, entity_config.texture)),
     });
 
   m_entity_shader_program = std::make_unique<graphics::ShaderProgram>("assets/entity.vert", "assets/entity.frag");

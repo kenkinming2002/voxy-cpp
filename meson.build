@@ -16,6 +16,7 @@ external_dep = declare_dependency(
 glfw3_dep = dependency('glfw3')
 freetype2_dep = dependency('freetype2')
 glm_dep = dependency('glm')
+yaml_cpp_dep = dependency('yaml-cpp')
 fmt_dep = dependency('fmt')
 spdlog_dep = dependency('spdlog')
 openmp_dep = dependency('openmp')
@@ -25,6 +26,7 @@ voxy_exe = executable('voxy', [
     'src/main.cpp',
     'src/application.cpp',
     'src/world.cpp',
+    'src/world_config.cpp',
     'src/world_generator.cpp',
     'src/world_renderer.cpp',
     'src/player_controller.cpp',
@@ -40,5 +42,5 @@ voxy_exe = executable('voxy', [
     'src/graphics/wireframe_renderer.cpp',
   ],
   include_directories : 'include',
-  dependencies : [external_dep, glfw3_dep, freetype2_dep, glm_dep, fmt_dep, spdlog_dep, openmp_dep]
+  dependencies : [external_dep, glfw3_dep, freetype2_dep, glm_dep, yaml_cpp_dep, fmt_dep, spdlog_dep, openmp_dep]
 )
