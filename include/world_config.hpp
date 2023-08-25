@@ -44,22 +44,9 @@ struct GenerationConfig
   CavesGenerationConfig   caves;
 };
 
-struct BlockConfig
-{
-  std::array<std::string, 6> textures;
-};
-
-struct EntityConfig
-{
-  std::string model;
-  std::string texture;
-};
-
 struct WorldConfig
 {
-  GenerationConfig          generation;
-  std::vector<BlockConfig>  blocks;
-  std::vector<EntityConfig> entities;
+  GenerationConfig generation;
 };
 
 WorldConfig load_world_config(std::string_view path);
