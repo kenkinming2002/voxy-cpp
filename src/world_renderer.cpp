@@ -41,8 +41,8 @@ WorldRenderer::WorldRenderer(std::string_view path, const WorldConfig& config)
   // 2: Entity
   for(const EntityConfig& entity_config : config.entities)
     m_entity_render_infos.push_back(EntityRenderInfo{
-      .mesh    = graphics::Mesh::load_from(fmt::format("{}/assets/{}", path, entity_config.model)),
-      .texture = std::make_unique<graphics::Texture>(fmt::format("{}/assets/{}", path, entity_config.texture)),
+      .mesh    = graphics::Mesh   ::load_from(fmt::format("{}/assets/{}", path, entity_config.model)),
+      .texture = graphics::Texture::load_from(fmt::format("{}/assets/{}", path, entity_config.texture)),
     });
 
   m_entity_shader_program = std::make_unique<graphics::ShaderProgram>("assets/entity.vert", "assets/entity.frag");

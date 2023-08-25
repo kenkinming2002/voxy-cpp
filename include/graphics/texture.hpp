@@ -4,21 +4,24 @@
 #include <glad/glad.h>
 
 #include <string>
+#include <memory>
 
 namespace graphics
 {
   struct Texture
   {
-    public:
-      Texture(unsigned char *bytes, unsigned width, unsigned height, unsigned channels);
-      Texture(const std::string& filename);
-      ~Texture();
+  public:
+    static std::unique_ptr<Texture> load_from(const std::string& filename);
 
-    public:
-      GLuint id() const { return m_id; }
+  public:
+    Texture(unsigned char *bytes, unsigned width, unsigned height, unsigned channels);
+    ~Texture();
 
-    private:
-      GLuint m_id;
+  public:
+    GLuint id() const { return m_id; }
+
+  private:
+    GLuint m_id;
   };
 }
 
