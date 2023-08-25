@@ -14,7 +14,7 @@ template<typename Prng>
 static inline std::vector<HeightMap> generate_height_maps(Prng& prng, const TerrainGenerationConfig& config, glm::ivec2 chunk_index)
 {
   std::vector<HeightMap> height_maps;
-  for(const TerrainLayerGenerationConfig& terrain_layer_config : config.layers)
+  for(const LayerGenerationConfig& terrain_layer_config : config.layers)
   {
     size_t seed = prng();
 
@@ -87,7 +87,7 @@ static inline std::vector<Worm> generate_worms(Prng& prng, const CavesGeneration
 }
 
 template<typename Prng>
-static inline ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, const WorldGenerationConfig& config, glm::ivec2 chunk_index)
+static inline ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, const GenerationConfig& config, glm::ivec2 chunk_index)
 {
   std::vector<HeightMap> height_maps = generate_height_maps(prng_global, config.terrain, chunk_index);
   std::vector<Worm>      worms       = generate_worms(prng_local, config.caves, chunk_index);
@@ -104,7 +104,7 @@ static inline size_t hash_combine(std::size_t seed, const T& v)
   return seed ^ (hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2));
 }
 
-WorldGenerator::WorldGenerator(WorldGenerationConfig config) : m_config(std::move(config))
+WorldGenerator::WorldGenerator(GenerationConfig config) : m_config(std::move(config))
 {
   unsigned count = std::thread::hardware_concurrency();
   m_workers.reserve(count);

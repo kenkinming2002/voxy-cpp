@@ -35,7 +35,7 @@ public:
   static constexpr size_t CHUNK_LOAD_RADIUS = 4;
 
 public:
-  WorldGenerator(WorldGenerationConfig config);
+  WorldGenerator(GenerationConfig config);
 
 public:
   void update(World& world);
@@ -49,7 +49,7 @@ private:
   const ChunkInfo& get_chunk_info(glm::ivec2 chunk_index) const;
 
 private:
-  WorldGenerationConfig m_config;
+  GenerationConfig m_config;
 
 private:
   mutable std::mutex                  m_mutex;

@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-struct TerrainLayerGenerationConfig
+struct LayerGenerationConfig
 {
   std::uint32_t block_id;
 
@@ -21,7 +21,7 @@ struct TerrainLayerGenerationConfig
 
 struct TerrainGenerationConfig
 {
-  std::vector<TerrainLayerGenerationConfig> layers;
+  std::vector<LayerGenerationConfig> layers;
 };
 
 struct CavesGenerationConfig
@@ -47,7 +47,7 @@ struct CavesGenerationConfig
   float radius_octaves;
 };
 
-struct WorldGenerationConfig
+struct GenerationConfig
 {
   std::size_t             seed;
   TerrainGenerationConfig terrain;
@@ -67,7 +67,7 @@ struct EntityConfig
 
 struct WorldConfig
 {
-  WorldGenerationConfig     generation;
+  GenerationConfig          generation;
   std::vector<BlockConfig>  blocks;
   std::vector<EntityConfig> entities;
 };
