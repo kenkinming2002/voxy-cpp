@@ -25,7 +25,7 @@ public:
 
   ~Lazy()
   {
-    m_state->done.wait(false, std::memory_order_acquire);
+    get().~T();
   }
 
 public:
