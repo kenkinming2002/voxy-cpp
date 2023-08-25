@@ -133,14 +133,12 @@ void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index)
     return;
 
   // 0: Setup
-  int        radius  = std::ceil(m_config.caves.max_segment * m_config.caves.step / CHUNK_WIDTH);
-  glm::ivec2 corner1 = chunk_index - glm::ivec2(radius, radius);
-  glm::ivec2 corner2 = chunk_index + glm::ivec2(radius, radius);
+  int radius = std::ceil(m_config.caves.max_segment * m_config.caves.step / CHUNK_WIDTH);
 
   // 1: Check if we can generate the chunk now
   bool can_load = true;
-  for(int y = corner1.y; y <= corner2.y; ++y)
-    for(int x = corner1.x; x <= corner2.x; ++x)
+  for(int y = chunk_index.y - radius; y <= chunk_index.y + radius; ++y)
+    for(int x = chunk_index.x - radius; x <= chunk_index.x + radius; ++x)
     {
       glm::ivec2 neighbour_chunk_index = glm::ivec2(x, y);
       auto it = m_chunk_infos.find(neighbour_chunk_index);
@@ -200,8 +198,8 @@ done:;
       }
 
   // 2.2: Carve out caves based off worms
-  for(int y = corner1.y; y <= corner2.y; ++y)
-    for(int x = corner1.x; x <= corner2.x; ++x)
+  for(int y = chunk_index.y - radius; y <= chunk_index.y + radius; ++y)
+    for(int x = chunk_index.x - radius; x <= chunk_index.x + radius; ++x)
     {
       glm::ivec2       neighbour_chunk_index = glm::ivec2(x, y);
       const ChunkInfo& neighbour_chunk_info  = m_chunk_infos.at(neighbour_chunk_index).get();
@@ -210,11 +208,9 @@ done:;
         {
           glm::vec3  center  = coordinates::global_to_local(node.center, chunk_index);
           float      radius  = node.radius;
-          glm::ivec3 corner1 = glm::floor(glm::vec3(center) - glm::vec3(radius, radius, radius));
-          glm::ivec3 corner2 = glm::ceil (glm::vec3(center) + glm::vec3(radius, radius, radius));
-          for(int z = corner1.z; z<=corner2.z; ++z)
-            for(int y = corner1.y; y<=corner2.y; ++y)
-              for(int x = corner1.x; x<=corner2.x; ++x)
+          for(int z = center.z - radius; z<=center.z+radius; ++z)
+            for(int y = center.y - radius; y<=center.y+radius; ++y)
+              for(int x = center.x - radius; x<=center.x+radius; ++x)
               {
                 glm::ivec3 position(x, y, z);
                 if(glm::length2(glm::vec3(position) - center) < radius * radius)
