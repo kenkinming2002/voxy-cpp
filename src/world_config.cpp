@@ -14,32 +14,39 @@ static GenerationConfig load_generation_config(std::string_view path)
   for(YAML::Node layer : layers)
   {
     LayerGenerationConfig layer_generation_config;
-    layer_generation_config.block_id     = layer["block_id"]   .as<std::uint32_t>();
-    layer_generation_config.base         = layer["base"]       .as<float>();
-    layer_generation_config.frequency    = layer["frequency"]  .as<float>();
-    layer_generation_config.amplitude    = layer["amplitude"]  .as<float>();
-    layer_generation_config.lacunarity   = layer["lacunarity"] .as<float>();
-    layer_generation_config.persistence  = layer["persistence"].as<float>();
-    layer_generation_config.octaves      = layer["octaves"]    .as<unsigned>();
+
+    layer_generation_config.block_id = layer["block_id"].as<std::uint32_t>();
+
+    layer_generation_config.height_base              = layer["height_base"]                .as<float>();
+    layer_generation_config.height_noise.frequency   = layer["height_noise"]["frequency"]  .as<float>();
+    layer_generation_config.height_noise.amplitude   = layer["height_noise"]["amplitude"]  .as<float>();
+    layer_generation_config.height_noise.lacunarity  = layer["height_noise"]["lacunarity"] .as<float>();
+    layer_generation_config.height_noise.persistence = layer["height_noise"]["persistence"].as<float>();
+    layer_generation_config.height_noise.octaves     = layer["height_noise"]["octaves"]    .as<unsigned>();
+
     generation_config.terrain.layers.push_back(layer_generation_config);
   }
 
   YAML::Node caves = terrain["caves"];
+
   generation_config.caves.max_per_chunk      = caves["max_per_chunk"]     .as<unsigned>();
   generation_config.caves.max_segment        = caves["max_segment"]       .as<unsigned>();
   generation_config.caves.step               = caves["step"]              .as<float>();
   generation_config.caves.min_height         = caves["min_height"]        .as<float>();
   generation_config.caves.max_height         = caves["max_height"]        .as<float>();
-  generation_config.caves.dig_frequency      = caves["dig_frequency"]     .as<float>();
-  generation_config.caves.dig_amplitude      = caves["dig_amplitude"]     .as<float>();
-  generation_config.caves.dig_lacunarity     = caves["dig_lacunarity"]    .as<float>();
-  generation_config.caves.dig_persistence    = caves["dig_persistence"]   .as<float>();
-  generation_config.caves.dig_octaves        = caves["dig_octaves"]       .as<float>();
-  generation_config.caves.radius             = caves["radius"]            .as<float>();
-  generation_config.caves.radius_frequency   = caves["radius_frequency"]  .as<float>();
-  generation_config.caves.radius_amplitude   = caves["radius_amplitude"]  .as<float>();
-  generation_config.caves.radius_lacunarity  = caves["radius_lacunarity"] .as<float>();
-  generation_config.caves.radius_persistence = caves["radius_persistence"].as<float>();
+
+  generation_config.caves.dig_noise.frequency   = caves["dig_noise"]["frequency"]     .as<float>();
+  generation_config.caves.dig_noise.amplitude   = caves["dig_noise"]["amplitude"]     .as<float>();
+  generation_config.caves.dig_noise.lacunarity  = caves["dig_noise"]["lacunarity"]    .as<float>();
+  generation_config.caves.dig_noise.persistence = caves["dig_noise"]["persistence"]   .as<float>();
+  generation_config.caves.dig_noise.octaves     = caves["dig_noise"]["octaves"]       .as<unsigned>();
+
+  generation_config.caves.radius_base              = caves["radius_base"]                .as<float>();
+  generation_config.caves.radius_noise.frequency   = caves["radius_noise"]["frequency"]  .as<float>();
+  generation_config.caves.radius_noise.amplitude   = caves["radius_noise"]["amplitude"]  .as<float>();
+  generation_config.caves.radius_noise.lacunarity  = caves["radius_noise"]["lacunarity"] .as<float>();
+  generation_config.caves.radius_noise.persistence = caves["radius_noise"]["persistence"].as<float>();
+  generation_config.caves.radius_noise.octaves     = caves["radius_noise"]["octaves"]    .as<unsigned>();
 
   return generation_config;
 }

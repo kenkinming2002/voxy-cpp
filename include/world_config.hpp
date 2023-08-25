@@ -1,22 +1,20 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <noise.hpp>
 
 #include <array>
 #include <string>
 #include <vector>
 
+#include <cstddef>
+#include <cstdint>
+
 struct LayerGenerationConfig
 {
   std::uint32_t block_id;
 
-  float    base;
-  float    frequency;
-  float    amplitude;
-  float    lacunarity;
-  float    persistence;
-  unsigned octaves;
+  float       height_base;
+  NoiseConfig height_noise;
 };
 
 struct TerrainGenerationConfig
@@ -33,18 +31,10 @@ struct CavesGenerationConfig
   float min_height;
   float max_height;
 
-  float dig_frequency;
-  float dig_amplitude;
-  float dig_lacunarity;
-  float dig_persistence;
-  float dig_octaves;
+  NoiseConfig dig_noise;
 
-  float radius;
-  float radius_frequency;
-  float radius_amplitude;
-  float radius_lacunarity;
-  float radius_persistence;
-  float radius_octaves;
+  float       radius_base;
+  NoiseConfig radius_noise;
 };
 
 struct GenerationConfig

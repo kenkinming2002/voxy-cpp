@@ -71,10 +71,10 @@ float perlin(size_t seed, glm::vec<L, float> position)
 }
 
 template<glm::length_t L>
-float perlin(size_t seed, glm::vec<L, float> position, float frequency, float amplitude, float lacunarity, float persistence, unsigned count)
+float perlin(size_t seed, glm::vec<L, float> position, float frequency, float amplitude, float lacunarity, float persistence, unsigned octaves)
 {
   float value = 0.0f;
-  for(unsigned i=0; i<count; ++i)
+  for(unsigned i=0; i<octaves; ++i)
   {
     value += perlin(seed, position * frequency) * amplitude;
     frequency *= lacunarity;
