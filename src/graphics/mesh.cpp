@@ -93,7 +93,6 @@ namespace graphics
         case AttributeType::UNSIGNED_INT4: glVertexAttribIPointer(i, 4, GL_UNSIGNED_INT, stride, (void*)attributes[i].offset); break;
       }
     }
-    glBindVertexArray(0);
   }
 
   Mesh::~Mesh()
@@ -112,6 +111,8 @@ namespace graphics
     case Usage::DYNAMIC: _usage = GL_DYNAMIC_DRAW; break;
     case Usage::STREAM:  _usage = GL_STREAM_DRAW; break;
     }
+
+    glBindVertexArray(0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size(), indices.data(), _usage);
