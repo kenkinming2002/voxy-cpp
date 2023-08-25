@@ -57,8 +57,10 @@ Voxy::Voxy()
   };
   m_third_person = true;
 
-  m_world_generator   = std::make_unique<WorldGenerator>(m_world_config.generation);
-  m_world_renderer    = std::make_unique<WorldRenderer>("world", m_world_config);
+  m_world_generator = std::make_unique<WorldGenerator>(m_world_config.generation);
+
+  ResourcePack resource_pack = load_resource_pack("resource_pack");
+  m_world_renderer = std::make_unique<WorldRenderer>(std::move(resource_pack));
 
   m_player_controller = std::make_unique<PlayerController>();
 

@@ -5,48 +5,10 @@
 
 #include <GLFW/glfw3.h>
 
-WorldRenderer::WorldRenderer(std::string_view path, const WorldConfig& config)
+WorldRenderer::WorldRenderer(ResourcePack resource_pack) : m_resource_pack(std::move(resource_pack))
 {
-  // 1: Build BlockRenderInfo[]
-  std::unordered_set<std::string> block_texture_filenames_set;
-  for(const BlockConfig& block_config : config.blocks)
-    for(const std::string& block_texture_filename : block_config.textures)
-      block_texture_filenames_set.insert(block_texture_filename);
-
-  std::vector<std::string>                block_texture_filenames;
-  std::unordered_map<std::string, size_t> block_texture_indices;
-
-  block_texture_filenames.reserve(block_texture_filenames_set.size());
-  block_texture_indices  .reserve(block_texture_filenames_set.size());
-
-  size_t i = 0;
-  for(const std::string& block_texture_filename : block_texture_filenames_set)
-  {
-    block_texture_filenames.push_back(fmt::format("{}/assets/{}", path, block_texture_filename));
-    block_texture_indices  .emplace(block_texture_filename, i++);
-  }
-
-  m_block_render_infos.reserve(config.blocks.size());
-  for(const BlockConfig& block_config : config.blocks)
-  {
-    BlockRenderInfo block_render_info = {};
-    for(unsigned i=0; i<6; ++i)
-      block_render_info.texture_indices[i] = block_texture_indices.at(block_config.textures[i]);
-    m_block_render_infos.push_back(block_render_info);
-  }
-
   m_chunk_shader_program = std::make_unique<graphics::ShaderProgram>("assets/chunk.vert", "assets/chunk.frag");
-  m_chunk_texture_array  = std::make_unique<graphics::TextureArray>(block_texture_filenames);
-
-  // 2: Entity
-  for(const EntityConfig& entity_config : config.entities)
-    m_entity_render_infos.push_back(EntityRenderInfo{
-      .mesh    = graphics::Mesh   ::load_from(fmt::format("{}/assets/{}", path, entity_config.model)),
-      .texture = graphics::Texture::load_from(fmt::format("{}/assets/{}", path, entity_config.texture)),
-    });
-
   m_entity_shader_program = std::make_unique<graphics::ShaderProgram>("assets/entity.vert", "assets/entity.frag");
-
 }
 
 void WorldRenderer::render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
@@ -109,8 +71,8 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
               glm::ivec3 right = glm::cross(glm::vec3(up), glm::vec3(out));
               glm::vec3 center = glm::vec3(position) + glm::vec3(0.5f, 0.5f, 0.5f) + 0.5f * glm::vec3(out);
 
-              const BlockRenderInfo& block_render_info = m_block_render_infos.at(block->id);
-              uint32_t texture_index = block_render_info.texture_indices[i];
+              const BlockResource& block_resource = m_resource_pack.blocks.at(block->id);
+              uint32_t texture_index = block_resource.texture_indices[i];
               uint32_t light_level   = neighbour_block ? neighbour_block->light_level : 15;
               uint32_t destroy_level = block->destroy_level;
 
@@ -160,7 +122,7 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
   m_chunk_shader_program->set_uniform("MV",               view * model);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, m_chunk_texture_array->id());
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_resource_pack.blocks_texture_array->id());
   m_chunk_shader_program->set_uniform( "blocksTextureArray", 0);
 
   for(const auto& [chunk_index, mesh] : m_chunk_meshes)
@@ -175,8 +137,8 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
     if(!third_person && i == world.player.entity_id)
       continue;
 
-    const Entity&           entity             = world.dimension.entities[i];
-    const EntityRenderInfo& entity_render_info = m_entity_render_infos.at(entity.id);
+    const Entity&         entity          = world.dimension.entities[i];
+    const EntityResource& entity_resource = m_resource_pack.entities.at(entity.id);
 
     glm::mat4 view       = camera.view();
     glm::mat4 projection = camera.projection();
@@ -186,9 +148,9 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
     m_entity_shader_program->set_uniform("MV",               view * model);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, entity_render_info.texture->id());
+    glBindTexture(GL_TEXTURE_2D, entity_resource.texture->id());
     m_entity_shader_program->set_uniform("ourTexture", 0);
-    entity_render_info.mesh->draw();
+    entity_resource.mesh->draw();
   }
 
   for(size_t i=0; i<world.dimension.entities.size(); ++i)

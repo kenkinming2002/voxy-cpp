@@ -3,6 +3,8 @@
 #include <world.hpp>
 #include <world_config.hpp>
 
+#include <resource_pack.hpp>
+
 #include <camera.hpp>
 
 #include <graphics/shader_program.hpp>
@@ -19,24 +21,13 @@
 
 #include <cstdint>
 
-struct BlockRenderInfo
-{
-  std::uint32_t texture_indices[6];
-};
-
-struct EntityRenderInfo
-{
-  std::unique_ptr<graphics::Mesh>    mesh;
-  std::unique_ptr<graphics::Texture> texture;
-};
-
 class WorldRenderer
 {
 public:
   static constexpr double REMASH_THROTTLE = 5.0f;
 
 public:
-  WorldRenderer(std::string_view path, const WorldConfig& config);
+  WorldRenderer(ResourcePack resource_pack);
 
 public:
   void render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
@@ -46,13 +37,10 @@ private:
   void render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
-  std::vector<BlockRenderInfo> m_block_render_infos;
+  ResourcePack m_resource_pack;
 
-  std::unique_ptr<graphics::ShaderProgram>                        m_chunk_shader_program;
-  std::unique_ptr<graphics::TextureArray>                         m_chunk_texture_array;
-  std::unordered_map<glm::ivec2, std::unique_ptr<graphics::Mesh>> m_chunk_meshes;
-
-  std::vector<EntityRenderInfo> m_entity_render_infos;
-
+  std::unique_ptr<graphics::ShaderProgram> m_chunk_shader_program;
   std::unique_ptr<graphics::ShaderProgram> m_entity_shader_program;
+
+  std::unordered_map<glm::ivec2, std::unique_ptr<graphics::Mesh>> m_chunk_meshes;
 };

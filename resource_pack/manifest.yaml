@@ -1,0 +1,18 @@
+blocks:
+  - textures:
+    - "stone.png"
+    - "stone.png"
+    - "stone.png"
+    - "stone.png"
+    - "stone.png"
+    - "stone.png"
+  - textures:
+    - "grass_side.png"
+    - "grass_side.png"
+    - "grass_side.png"
+    - "grass_side.png"
+    - "grass_bottom.png"
+    - "grass_top.png"
+entities:
+  - mesh: "idk.obj"
+    texture: "idk.png"

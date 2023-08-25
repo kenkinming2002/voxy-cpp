@@ -24,6 +24,7 @@ openmp_dep = dependency('openmp')
 voxy_exe = executable('voxy', [
     'src/camera.cpp',
     'src/thread_pool.cpp',
+    'src/resource_pack.cpp',
     'src/main.cpp',
     'src/application.cpp',
     'src/world.cpp',
