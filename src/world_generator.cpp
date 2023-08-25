@@ -104,36 +104,7 @@ static inline size_t hash_combine(std::size_t seed, const T& v)
   return seed ^ (hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2));
 }
 
-WorldGenerator::WorldGenerator(GenerationConfig config) : m_config(std::move(config))
-{
-  unsigned count = std::thread::hardware_concurrency();
-  m_workers.reserve(count);
-  for(unsigned i=0; i<count; ++i)
-    m_workers.emplace_back([this](std::stop_token stoken){
-      std::unique_lock lk(m_mutex);
-      for(;;)
-      {
-        m_cv.wait(lk, stoken, [this](){ return !m_pendings.empty(); });
-        if(stoken.stop_requested())
-          return;
-
-        auto it = m_pendings.begin();
-        glm::vec2 chunk_index = *it;
-        m_pendings.erase(it);
-        m_workings.insert(chunk_index);
-        lk.unlock();
-
-        std::mt19937 prng_global(m_config.seed);
-        std::mt19937 prng_local(hash_combine(m_config.seed, chunk_index));
-        ChunkInfo chunk_info = generate_chunk_info(prng_global, prng_local, m_config, chunk_index);
-
-        lk.lock();
-        auto [_, success] = m_chunk_infos.emplace(chunk_index, std::move(chunk_info));
-        assert(success);
-        m_workings.erase(chunk_index);
-      }
-    });
-}
+WorldGenerator::WorldGenerator(GenerationConfig config) : m_config(std::move(config)) {}
 
 void WorldGenerator::update(World& world)
 {
@@ -172,7 +143,19 @@ void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index)
     for(int x = corner1.x; x <= corner2.x; ++x)
     {
       glm::ivec2 neighbour_chunk_index = glm::ivec2(x, y);
-      if(!ensure_chunk_info(neighbour_chunk_index))
+      auto it = m_chunk_infos.find(neighbour_chunk_index);
+      if(it == m_chunk_infos.end())
+      {
+        bool success;
+        std::tie(it, success) = m_chunk_infos.emplace(neighbour_chunk_index, [this, neighbour_chunk_index]() {
+          std::mt19937 prng_global(m_config.seed);
+          std::mt19937 prng_local(hash_combine(m_config.seed, neighbour_chunk_index));
+          return generate_chunk_info(prng_global, prng_local, m_config, neighbour_chunk_index);
+        });
+        assert(success);
+      }
+
+      if(!it->second.try_get())
         can_load = false;
     }
 
@@ -184,7 +167,7 @@ void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index)
   assert(success);
   Chunk& chunk = it->second;
 
-  const ChunkInfo& chunk_info = get_chunk_info(chunk_index);
+  const ChunkInfo& chunk_info = m_chunk_infos.at(chunk_index).get();
 
   // 2.1: Create terrain based on height maps
   for(int z=0; z<CHUNK_HEIGHT; ++z)
@@ -221,7 +204,7 @@ done:;
     for(int x = corner1.x; x <= corner2.x; ++x)
     {
       glm::ivec2       neighbour_chunk_index = glm::ivec2(x, y);
-      const ChunkInfo& neighbour_chunk_info  = get_chunk_info(neighbour_chunk_index);
+      const ChunkInfo& neighbour_chunk_info  = m_chunk_infos.at(neighbour_chunk_index).get();
       for(const Worm& worm : neighbour_chunk_info.worms)
         for(const Worm::Node& node : worm.nodes)
         {
@@ -249,21 +232,3 @@ done:;
   chunk.mesh_invalidated = true;
 }
 
-bool WorldGenerator::ensure_chunk_info(glm::ivec2 chunk_index)
-{
-  std::unique_lock lk(m_mutex);
-  if(m_chunk_infos.find(chunk_index) != m_chunk_infos.end()) return true;
-  if(m_workings   .find(chunk_index) != m_workings   .end()) return false;
-  if(m_pendings   .find(chunk_index) != m_workings   .end()) return false;
-  m_pendings.insert(chunk_index);
-
-  lk.unlock();
-  m_cv.notify_one();
-  return false;
-}
-
-const ChunkInfo& WorldGenerator::get_chunk_info(glm::ivec2 chunk_index) const
-{
-  std::unique_lock lk(m_mutex);
-  return m_chunk_infos.at(chunk_index);
-}

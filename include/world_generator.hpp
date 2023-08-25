@@ -3,6 +3,8 @@
 #include <world.hpp>
 #include <world_config.hpp>
 
+#include <lazy.hpp>
+
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -45,21 +47,6 @@ private:
   void try_load(World& world, glm::ivec2 chunk_index);
 
 private:
-  bool ensure_chunk_info(glm::ivec2 chunk_index);
-  const ChunkInfo& get_chunk_info(glm::ivec2 chunk_index) const;
-
-private:
-  GenerationConfig m_config;
-
-private:
-  mutable std::mutex                  m_mutex;
-  mutable std::condition_variable_any m_cv;
-
-private:
-  std::unordered_set<glm::ivec2>            m_pendings;
-  std::unordered_set<glm::ivec2>            m_workings;
-  std::unordered_map<glm::ivec2, ChunkInfo> m_chunk_infos;
-
-private:
-  std::vector<std::jthread> m_workers;
+  GenerationConfig                                m_config;
+  std::unordered_map<glm::ivec2, Lazy<ChunkInfo>> m_chunk_infos;
 };
