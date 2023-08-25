@@ -110,3 +110,4 @@ void invalidate_light     (Dimension& dimension, glm::ivec3 position);
 void invalidate_mesh(World& world, glm::ivec3 position);
 void invalidate_light     (World& world, glm::ivec3 position);
 
+World load_world(std::string_view path);

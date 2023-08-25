@@ -50,39 +50,7 @@ private:
 Voxy::Voxy()
 {
   m_world_config = load_world_config("world");
-
-  m_world = {
-    .dimension = {
-      .entities = {
-        {
-          .id = 0,
-          .transform = {
-            .position = glm::vec3(0.0f, 0.0f, 50.0f),
-            .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-          },
-          .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
-          .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye          = 1.5f,
-        },
-        {
-          .id = 0,
-          .transform = {
-            .position = glm::vec3(0.0f, 0.0f, 50.0f),
-            .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-          },
-          .velocity     = glm::vec3(0.0f, 0.0f, 0.0f),
-          .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye          = 1.5f,
-        },
-      }
-    },
-    .player = {
-      .entity_id = 0,
-      .placement = std::nullopt,
-      .selection = std::nullopt,
-    },
-  };
-
+  m_world = load_world("world");
   m_camera = {
     .aspect = 1024.0f / 720.0f,
     .fovy   = 45.0f,
