@@ -94,28 +94,28 @@ static inline size_t hash_combine(std::size_t seed, const T& v)
 
 WorldGenerator::WorldGenerator(GenerationConfig config) : m_config(std::move(config)) {}
 
-void WorldGenerator::update(World& world)
+void WorldGenerator::update(World& world, LightManager& light_manager)
 {
   const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
   glm::ivec2 center = {
     std::floor(player_entity.transform.position.x / CHUNK_WIDTH),
     std::floor(player_entity.transform.position.y / CHUNK_WIDTH),
   };
-  try_load(world, center, CHUNK_LOAD_RADIUS);
+  try_load(world, light_manager, center, CHUNK_LOAD_RADIUS);
 }
 
-void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index, int radius)
+void WorldGenerator::try_load(World& world, LightManager& light_manager, glm::ivec2 chunk_index, int radius)
 {
   for(int dy = -radius; dy <= radius; ++dy)
     for(int dx = -radius; dx <= radius; ++dx)
       if(dx * dx + dy * dy <= radius * radius)
       {
         glm::ivec2 position = chunk_index + glm::ivec2(dx, dy);
-        try_load(world, position);
+        try_load(world, light_manager, position);
       }
 }
 
-void WorldGenerator::try_load(World& world, glm::ivec2 chunk_index)
+void WorldGenerator::try_load(World& world, LightManager& light_manager, glm::ivec2 chunk_index)
 {
   if(world.dimension.chunks.find(chunk_index) != world.dimension.chunks.end())
     return;
@@ -207,7 +207,7 @@ done:;
                     block->id          = BLOCK_ID_NONE;
                     block->light_level = 0;
                     block->sky         = false;
-                    chunk.light_invalidations.insert(position);
+                    light_manager.invalidate(coordinates::local_to_global(position, chunk_index));
                   }
               }
         }

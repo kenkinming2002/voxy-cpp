@@ -8,6 +8,8 @@
 #include <world.hpp>
 #include <camera.hpp>
 
+#include <light_manager.hpp>
+
 #include <memory>
 
 class PlayerController
@@ -26,7 +28,7 @@ public:
   PlayerController();
 
 public:
-  void update(Application& application, World& world, float dt);
+  void update(Application& application, World& world, LightManager& light_manager, float dt);
   void render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer);
 
 private:

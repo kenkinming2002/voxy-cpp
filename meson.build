@@ -32,7 +32,7 @@ voxy_exe = executable('voxy', [
     'src/world_generator.cpp',
     'src/world_renderer.cpp',
     'src/player_controller.cpp',
-    'src/light.cpp',
+    'src/light_manager.cpp',
     'src/physics.cpp',
     'src/debug_renderer.cpp',
     'src/graphics/mesh.cpp',

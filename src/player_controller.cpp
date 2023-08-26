@@ -19,7 +19,7 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
   return true;
 }
 
-void PlayerController::update(Application& application, World& world, float dt)
+void PlayerController::update(Application& application, World& world, LightManager& light_manager, float dt)
 {
   Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
 
@@ -90,7 +90,7 @@ void PlayerController::update(Application& application, World& world, float dt)
               block->id = BLOCK_ID_NONE;
 
             invalidate_mesh(world, *world.player.selection);
-            invalidate_light     (world, *world.player.selection);
+            light_manager.invalidate(*world.player.selection);
             for(glm::ivec3 direction : DIRECTIONS)
             {
               glm::ivec3 neighbour_position = *world.player.selection + direction;
@@ -108,7 +108,7 @@ void PlayerController::update(Application& application, World& world, float dt)
             {
               block->id = BLOCK_ID_STONE;
               invalidate_mesh(world, *world.player.placement);
-              invalidate_light     (world, *world.player.placement);
+              light_manager.invalidate(*world.player.placement);
               for(glm::ivec3 direction : DIRECTIONS)
               {
                 glm::ivec3 neighbour_position = *world.player.placement + direction;

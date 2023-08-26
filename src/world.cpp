@@ -120,11 +120,6 @@ void invalidate_mesh(Chunk& chunk)
   chunk.mesh_invalidated = true;
 }
 
-void invalidate_light(Chunk& chunk, glm::ivec3 position)
-{
-  chunk.light_invalidations.insert(position);
-}
-
 void invalidate_mesh(Dimension& dimension, glm::ivec3 position)
 {
   auto [local_position, chunk_index] = coordinates::split(position);
@@ -132,21 +127,9 @@ void invalidate_mesh(Dimension& dimension, glm::ivec3 position)
     invalidate_mesh(it->second);
 }
 
-void invalidate_light(Dimension& dimension, glm::ivec3 position)
-{
-  auto [local_position, chunk_index] = coordinates::split(position);
-  if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
-    invalidate_light(it->second, local_position);
-}
-
 void invalidate_mesh(World& world, glm::ivec3 position)
 {
   invalidate_mesh(world.dimension, position);
-}
-
-void invalidate_light(World& world, glm::ivec3 position)
-{
-  invalidate_light(world.dimension, position);
 }
 
 World load_world(std::string_view path)

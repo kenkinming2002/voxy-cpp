@@ -4,13 +4,14 @@
 #include <world_config.hpp>
 #include <camera.hpp>
 
+#include <light_manager.hpp>
+
 #include <world_generator.hpp>
 #include <world_renderer.hpp>
 
 #include <player_controller.hpp>
 
 #include <physics.hpp>
-#include <light.hpp>
 
 #include <graphics/wireframe_renderer.hpp>
 
@@ -39,6 +40,8 @@ private:
 
   std::unique_ptr<WorldGenerator> m_world_generator;
   std::unique_ptr<WorldRenderer>  m_world_renderer;
+
+  LightManager m_light_manager;
 
   std::unique_ptr<PlayerController> m_player_controller;
 
@@ -77,11 +80,11 @@ void Voxy::on_key(int key, int scancode, int action, int mods)
 
 void Voxy::on_update(float dt)
 {
-  m_world_generator->update(m_world);
-  m_player_controller->update(*this, m_world, dt);
+  m_world_generator->update(m_world, m_light_manager);
+  m_player_controller->update(*this, m_world, m_light_manager, dt);
+  m_light_manager.update(m_world);
 
   update_physics(m_world, dt);
-  update_light(m_world);
 
   m_debug_renderer->update(dt);
 }

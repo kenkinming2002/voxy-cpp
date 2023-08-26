@@ -3,6 +3,8 @@
 #include <world.hpp>
 #include <world_config.hpp>
 
+#include <light_manager.hpp>
+
 #include <lazy.hpp>
 
 #include <condition_variable>
@@ -40,11 +42,11 @@ public:
   WorldGenerator(GenerationConfig config);
 
 public:
-  void update(World& world);
+  void update(World& world, LightManager& light_manager);
 
 private:
-  void try_load(World& world, glm::ivec2 chunk_index, int radius);
-  void try_load(World& world, glm::ivec2 chunk_index);
+  void try_load(World& world, LightManager& light_manager, glm::ivec2 chunk_index, int radius);
+  void try_load(World& world, LightManager& light_manager, glm::ivec2 chunk_index);
 
 private:
   GenerationConfig                                m_config;
