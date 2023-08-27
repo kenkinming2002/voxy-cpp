@@ -83,25 +83,6 @@ const Block* get_block(const World& world, glm::ivec3 position)
   return ::get_block(it->second, local_position);
 }
 
-/************************
- * Explode the World!!! *
- ************************/
-void explode(Chunk& chunk, glm::vec3 center, float radius)
-{
-  // TODO: Culling
-  glm::ivec3 corner1 = glm::floor(center - glm::vec3(radius, radius, radius));
-  glm::ivec3 corner2 = glm::ceil (center + glm::vec3(radius, radius, radius));
-  for(int z = corner1.z; z<=corner2.z; ++z)
-    for(int y = corner1.y; y<=corner2.y; ++y)
-      for(int x = corner1.x; x<=corner2.x; ++x)
-      {
-        glm::ivec3 pos = { x, y, z };
-        if(glm::length2(glm::vec3(pos) - center) < radius * radius)
-          if(Block* block = get_block(chunk, pos))
-            block->id = BLOCK_ID_NONE;
-      }
-}
-
 /**************************
  * Invalidate them ALL!!! *
  **************************/

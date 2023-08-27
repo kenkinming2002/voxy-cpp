@@ -84,11 +84,6 @@ const Block* get_block(const Chunk& chunk, glm::ivec3 position);
       Block* get_block(      World& world, glm::ivec3 position);
 const Block* get_block(const World& world, glm::ivec3 position);
 
-/************************
- * Explode the World!!! *
- ************************/
-void explode(Chunk& chunk, glm::vec3 center, float radius);
-
 /**************************
  * Invalidate them ALL!!! *
  **************************/
