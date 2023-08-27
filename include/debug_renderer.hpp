@@ -20,14 +20,12 @@ public:
 
 public:
   void update(float dt);
-  void render(glm::vec2 viewport, const World& world);
+  void render(glm::vec2 viewport, const World& world, graphics::UIRenderer& ui_renderer);
 
 private:
-  void render_line(glm::vec2 viewport, size_t n, const std::string& line);
+  void render_line(glm::vec2 viewport, size_t n, const std::string& line, graphics::UIRenderer& ui_renderer);
 
 private:
-  graphics::UIRenderer            m_ui_renderer;
   std::unique_ptr<graphics::Font> m_font;
-
   float m_dts[DT_AVERAGE_COUNT];
 };

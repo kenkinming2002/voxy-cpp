@@ -7,6 +7,7 @@
 
 #include <graphics/window.hpp>
 #include <graphics/wireframe_renderer.hpp>
+#include <graphics/ui_renderer.hpp>
 
 #include <camera.hpp>
 #include <timer.hpp>
@@ -28,6 +29,7 @@ int main()
 
   graphics::Window            window("voxy", 1024, 720);
   graphics::WireframeRenderer wireframer_renderer;
+  graphics::UIRenderer        ui_renderer;
 
   WorldRenderer world_renderer(load_resource_pack("resource_pack"));
   DebugRenderer debug_renderer;
@@ -74,7 +76,7 @@ int main()
 
     world_renderer.render(camera, world, third_person, wireframer_renderer);
     player_controller.render(camera, world, wireframer_renderer);
-    debug_renderer.render(glm::vec2(width, height), world);
+    debug_renderer.render(glm::vec2(width, height), world, ui_renderer);
 
     window.swap_buffers();
   }

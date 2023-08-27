@@ -16,7 +16,7 @@ void DebugRenderer::update(float dt)
   m_dts[DT_AVERAGE_COUNT-1] = dt;
 }
 
-void DebugRenderer::render(glm::vec2 viewport, const World& world)
+void DebugRenderer::render(glm::vec2 viewport, const World& world, graphics::UIRenderer& ui_renderer)
 {
   // 1: Frame time
   float average = 0.0f;
@@ -31,30 +31,30 @@ void DebugRenderer::render(glm::vec2 viewport, const World& world)
 
   size_t n = 0;
 
-  render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", player_entity.transform.position.x, player_entity.transform.position.y, player_entity.transform.position.z));
-  render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", player_entity.velocity.x, player_entity.velocity.y, player_entity.velocity.z));
-  render_line(viewport, n++, fmt::format("collided = {}", player_entity.collided));
-  render_line(viewport, n++, fmt::format("grounded = {}", player_entity.grounded));
-  render_line(viewport, n++, fmt::format("average update time = {}", average));
+  render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", player_entity.transform.position.x, player_entity.transform.position.y, player_entity.transform.position.z), ui_renderer);
+  render_line(viewport, n++, fmt::format("velocity: x = {}, y = {}, z = {}", player_entity.velocity.x, player_entity.velocity.y, player_entity.velocity.z), ui_renderer);
+  render_line(viewport, n++, fmt::format("collided = {}", player_entity.collided), ui_renderer);
+  render_line(viewport, n++, fmt::format("grounded = {}", player_entity.grounded), ui_renderer);
+  render_line(viewport, n++, fmt::format("average update time = {}", average), ui_renderer);
 
   if(block)
-    render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level));
+    render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, id = {}, sky = {}, light level = {}", position.x, position.y, position.z, block->id, block->sky, block->light_level), ui_renderer);
   else
-    render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z));
+    render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z), ui_renderer);
 
   if(world.player.selection)
-    render_line(viewport, n++, fmt::format("player.selection: position = {}, {}, {}", world.player.selection->x, world.player.selection->y, world.player.selection->z));
+    render_line(viewport, n++, fmt::format("player.selection: position = {}, {}, {}", world.player.selection->x, world.player.selection->y, world.player.selection->z), ui_renderer);
   else
-    render_line(viewport, n++, "selection: none");
+    render_line(viewport, n++, "selection: none", ui_renderer);
 
   if(world.player.placement)
-    render_line(viewport, n++, fmt::format("player.placement: position = {}, {}, {}", world.player.placement->x, world.player.placement->y, world.player.placement->z));
+    render_line(viewport, n++, fmt::format("player.placement: position = {}, {}, {}", world.player.placement->x, world.player.placement->y, world.player.placement->z), ui_renderer);
   else
-    render_line(viewport, n++, "player.placement: none");
+    render_line(viewport, n++, "player.placement: none", ui_renderer);
 }
 
-void DebugRenderer::render_line(glm::vec2 viewport, size_t n, const std::string& line)
+void DebugRenderer::render_line(glm::vec2 viewport, size_t n, const std::string& line, graphics::UIRenderer& ui_renderer)
 {
   glm::vec2 position = DEBUG_MARGIN + glm::vec2(0.0f, n * DEBUG_FONT_HEIGHT);
-  m_font->render(m_ui_renderer, viewport, position, line.c_str());
+  m_font->render(ui_renderer, viewport, position, line.c_str());
 }
