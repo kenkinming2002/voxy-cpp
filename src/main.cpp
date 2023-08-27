@@ -5,11 +5,11 @@
 #include <physics.hpp>
 #include <player_controller.hpp>
 
+#include <graphics/camera.hpp>
+#include <graphics/ui_renderer.hpp>
 #include <graphics/window.hpp>
 #include <graphics/wireframe_renderer.hpp>
-#include <graphics/ui_renderer.hpp>
 
-#include <camera.hpp>
 #include <timer.hpp>
 
 #include <world_renderer.hpp>
@@ -28,8 +28,10 @@ int main()
   LightManager     light_manager;
 
   graphics::Window            window("voxy", 1024, 720);
+  graphics::Camera            camera;
   graphics::WireframeRenderer wireframer_renderer;
   graphics::UIRenderer        ui_renderer;
+
 
   WorldRenderer world_renderer(load_resource_pack("resource_pack"));
   DebugRenderer debug_renderer;
@@ -57,8 +59,6 @@ int main()
     }
 
     // 2: Rendering
-    Camera camera;
-
     const Player& player        = world.players.front();
     const Entity& player_entity = world.entities.at(player.entity_id);
     camera.transform            =  player_entity.transform;

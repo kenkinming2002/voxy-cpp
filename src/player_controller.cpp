@@ -119,7 +119,7 @@ void PlayerController::update(graphics::Window& window, World& world, LightManag
             }
 }
 
-void PlayerController::render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer)
+void PlayerController::render(const graphics::Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer)
 {
   const Player& player = world.players.front();
   if(player.selection) wireframe_renderer.render_cube(camera, *player.selection, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);

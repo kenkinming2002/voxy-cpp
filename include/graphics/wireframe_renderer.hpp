@@ -1,9 +1,8 @@
 #pragma once
 
-#include <graphics/shader_program.hpp>
+#include <graphics/camera.hpp>
 #include <graphics/mesh.hpp>
-
-#include <camera.hpp>
+#include <graphics/shader_program.hpp>
 
 #include <memory>
 

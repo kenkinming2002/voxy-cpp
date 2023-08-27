@@ -11,13 +11,13 @@ WorldRenderer::WorldRenderer(ResourcePack resource_pack) : m_resource_pack(std::
   m_entity_shader_program = std::make_unique<graphics::ShaderProgram>("assets/entity.vert", "assets/entity.frag");
 }
 
-void WorldRenderer::render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
+void WorldRenderer::render(const graphics::Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
   render_chunks(camera, world);
   render_entites(camera, world, third_person, wireframe_renderer);
 }
 
-void WorldRenderer::render_chunks(const Camera& camera, const World& world)
+void WorldRenderer::render_chunks(const graphics::Camera& camera, const World& world)
 {
   // 1: Mesh building
   struct Vertex
@@ -129,7 +129,7 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
     mesh->draw();
 }
 
-void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
+void WorldRenderer::render_entites(const graphics::Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
   const Player& player = world.players.front();
 

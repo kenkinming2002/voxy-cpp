@@ -1,12 +1,12 @@
 #pragma once
 
-#include <graphics/window.hpp>
-#include <graphics/shader_program.hpp>
+#include <graphics/camera.hpp>
 #include <graphics/mesh.hpp>
+#include <graphics/shader_program.hpp>
+#include <graphics/window.hpp>
 #include <graphics/wireframe_renderer.hpp>
 
 #include <world.hpp>
-#include <camera.hpp>
 
 #include <light_manager.hpp>
 
@@ -29,7 +29,7 @@ public:
 
 public:
   void update(graphics::Window& window, World& world, LightManager& light_manager, float dt);
-  void render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer);
+  void render(const graphics::Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
   bool   m_first = true;

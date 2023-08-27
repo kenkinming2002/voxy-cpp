@@ -22,8 +22,8 @@ spdlog_dep = dependency('spdlog')
 openmp_dep = dependency('openmp')
 
 voxy_exe = executable('voxy', [
-    'src/camera.cpp',
     'src/debug_renderer.cpp',
+    'src/graphics/camera.cpp',
     'src/graphics/font.cpp',
     'src/graphics/mesh.cpp',
     'src/graphics/shader_program.cpp',

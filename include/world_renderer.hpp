@@ -4,12 +4,11 @@
 
 #include <resource_pack.hpp>
 
-#include <camera.hpp>
-
-#include <graphics/shader_program.hpp>
-#include <graphics/texture_array.hpp>
+#include <graphics/camera.hpp>
 #include <graphics/mesh.hpp>
+#include <graphics/shader_program.hpp>
 #include <graphics/texture.hpp>
+#include <graphics/texture_array.hpp>
 #include <graphics/wireframe_renderer.hpp>
 
 #include <glm/glm.hpp>
@@ -29,11 +28,11 @@ public:
   WorldRenderer(ResourcePack resource_pack);
 
 public:
-  void render(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
+  void render(const graphics::Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
-  void render_chunks(const Camera& camera, const World& world);
-  void render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
+  void render_chunks(const graphics::Camera& camera, const World& world);
+  void render_entites(const graphics::Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
   ResourcePack m_resource_pack;
