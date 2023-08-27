@@ -19,12 +19,12 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
   return true;
 }
 
-void PlayerController::update(Application& application, World& world, LightManager& light_manager, float dt)
+void PlayerController::update(graphics::Window& window, World& world, LightManager& light_manager, float dt)
 {
   Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
 
   // 1: Jump
-  if(application.glfw_get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
+  if(window.get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
     if(player_entity.grounded)
     {
       player_entity.grounded = false;
@@ -33,10 +33,10 @@ void PlayerController::update(Application& application, World& world, LightManag
 
   // 2: Movement
   glm::vec3 translation = glm::vec3(0.0f);
-  if(application.glfw_get_key(GLFW_KEY_D) == GLFW_PRESS) translation += player_entity.transform.local_right();
-  if(application.glfw_get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= player_entity.transform.local_right();
-  if(application.glfw_get_key(GLFW_KEY_W) == GLFW_PRESS) translation += player_entity.transform.local_forward();
-  if(application.glfw_get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= player_entity.transform.local_forward();
+  if(window.get_key(GLFW_KEY_D) == GLFW_PRESS) translation += player_entity.transform.local_right();
+  if(window.get_key(GLFW_KEY_A) == GLFW_PRESS) translation -= player_entity.transform.local_right();
+  if(window.get_key(GLFW_KEY_W) == GLFW_PRESS) translation += player_entity.transform.local_forward();
+  if(window.get_key(GLFW_KEY_S) == GLFW_PRESS) translation -= player_entity.transform.local_forward();
 
   if(glm::vec3 direction = translation; direction.z = 0.0f, glm::length(direction) != 0.0f)
     entity_apply_force(player_entity, MOVEMENT_SPEED * glm::normalize(direction), dt);
@@ -46,7 +46,7 @@ void PlayerController::update(Application& application, World& world, LightManag
   // 3: Rotation
   double new_cursor_xpos;
   double new_cursor_ypos;
-  application.glfw_get_cursor_pos(new_cursor_xpos, new_cursor_ypos);
+  window.get_cursor_pos(new_cursor_xpos, new_cursor_ypos);
   if(!m_first)
   {
     double xrel = new_cursor_xpos - m_cursor_xpos;
@@ -79,7 +79,7 @@ void PlayerController::update(Application& application, World& world, LightManag
     world.player.placement.reset();
 
   if(m_cooldown == 0.0f)
-    if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    if(window.get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
       if(world.player.selection)
         if(Block *block = get_block(world, *world.player.selection))
           if(block->id != BLOCK_ID_NONE)
@@ -100,7 +100,7 @@ void PlayerController::update(Application& application, World& world, LightManag
           }
 
   if(m_cooldown == 0.0f)
-    if(application.glfw_get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    if(window.get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
       if(world.player.placement)
         if(Block *block = get_block(world, *world.player.placement))
           if(block->id == BLOCK_ID_NONE)

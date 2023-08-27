@@ -1,10 +1,10 @@
 #pragma once
 
+#include <graphics/window.hpp>
 #include <graphics/shader_program.hpp>
 #include <graphics/mesh.hpp>
 #include <graphics/wireframe_renderer.hpp>
 
-#include <application.hpp>
 #include <world.hpp>
 #include <camera.hpp>
 
@@ -28,7 +28,7 @@ public:
   PlayerController();
 
 public:
-  void update(Application& application, World& world, LightManager& light_manager, float dt);
+  void update(graphics::Window& window, World& world, LightManager& light_manager, float dt);
   void render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer);
 
 private:

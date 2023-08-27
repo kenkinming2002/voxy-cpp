@@ -1,9 +1,9 @@
 #pragma once
 
+#include <graphics/window.hpp>
 #include <graphics/ui_renderer.hpp>
 #include <graphics/font.hpp>
 
-#include <application.hpp>
 #include <world.hpp>
 
 class DebugRenderer
@@ -20,7 +20,7 @@ public:
 
 public:
   void update(float dt);
-  void render(Application& application, const World& world);
+  void render(graphics::Window& window, const World& world);
 
 private:
   void render_line(glm::vec2 viewport, size_t n, const std::string& line);

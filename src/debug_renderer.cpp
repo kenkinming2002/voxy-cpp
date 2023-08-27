@@ -16,7 +16,7 @@ void DebugRenderer::update(float dt)
   m_dts[DT_AVERAGE_COUNT-1] = dt;
 }
 
-void DebugRenderer::render(Application& application, const World& world)
+void DebugRenderer::render(graphics::Window& window, const World& world)
 {
   // 1: Frame time
   float average = 0.0f;
@@ -30,7 +30,7 @@ void DebugRenderer::render(Application& application, const World& world)
   const Block* block    = get_block(world, position);
 
   int width, height;
-  application.glfw_get_framebuffer_size(width, height);
+  window.get_framebuffer_size(width, height);
   glm::vec2 viewport = glm::vec2(width, height);
 
   size_t n = 0;

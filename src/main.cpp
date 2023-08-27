@@ -1,120 +1,83 @@
-#include <application.hpp>
-
-#include <world.hpp>
 #include <world_config.hpp>
-#include <camera.hpp>
-
-#include <light_manager.hpp>
+#include <world.hpp>
 
 #include <world_generator.hpp>
-#include <world_renderer.hpp>
-
+#include <light_manager.hpp>
+#include <physics.hpp>
 #include <player_controller.hpp>
 
-#include <physics.hpp>
-
+#include <graphics/window.hpp>
 #include <graphics/wireframe_renderer.hpp>
 
+#include <camera.hpp>
+#include <timer.hpp>
+
+#include <world_renderer.hpp>
 #include <debug_renderer.hpp>
 
-#include <spdlog/spdlog.h>
-
-class Voxy : public Application
-{
-public:
-  Voxy();
-
-private:
-  void on_key(int key, int scancode, int action, int mods) override;
-
-private:
-  void on_update(float dt) override;
-  void on_render()         override;
-
-private:
-  WorldConfig m_world_config;
-  World       m_world;
-
-  Camera      m_camera;
-  bool        m_third_person;
-
-  std::unique_ptr<WorldGenerator> m_world_generator;
-  std::unique_ptr<WorldRenderer>  m_world_renderer;
-
-  LightManager m_light_manager;
-
-  std::unique_ptr<PlayerController> m_player_controller;
-
-  std::unique_ptr<graphics::WireframeRenderer> m_wireframe_renderer;
-
-  std::unique_ptr<DebugRenderer> m_debug_renderer;
-};
-
-Voxy::Voxy()
-{
-  m_world_config = load_world_config("world");
-  m_world = load_world("world");
-  m_camera = {
-    .aspect = 1024.0f / 720.0f,
-    .fovy   = 45.0f,
-  };
-  m_third_person = true;
-
-  m_world_generator = std::make_unique<WorldGenerator>(m_world_config.generation);
-
-  ResourcePack resource_pack = load_resource_pack("resource_pack");
-  m_world_renderer = std::make_unique<WorldRenderer>(std::move(resource_pack));
-
-  m_player_controller = std::make_unique<PlayerController>();
-
-  m_wireframe_renderer = std::make_unique<graphics::WireframeRenderer>();
-
-  m_debug_renderer = std::make_unique<DebugRenderer>();
-}
-
-void Voxy::on_key(int key, int scancode, int action, int mods)
-{
-  if(key == GLFW_KEY_F5 && action == GLFW_PRESS)
-    m_third_person = !m_third_person;
-}
-
-void Voxy::on_update(float dt)
-{
-  m_world_generator->update(m_world, m_light_manager);
-  m_player_controller->update(*this, m_world, m_light_manager, dt);
-  m_light_manager.update(m_world);
-
-  update_physics(m_world, dt);
-
-  m_debug_renderer->update(dt);
-}
-
-void Voxy::on_render()
-{
-  int width, height;
-  glfw_get_framebuffer_size(width, height);
-
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, width, height);
-
-  const Entity& player_entity = m_world.dimension.entities.at(m_world.player.entity_id);
-
-  m_camera.transform             = player_entity.transform;
-  m_camera.transform.position.z += player_entity.eye;
-  m_camera.aspect = (float)width / (float)height;
-  if(m_third_person)
-    m_camera.transform.position -= player_entity.transform.local_forward() * 5.0f;
-
-  m_world_renderer->render(m_camera, m_world, m_third_person, *m_wireframe_renderer);
-  m_player_controller->render(m_camera, m_world, *m_wireframe_renderer);
-
-  m_debug_renderer->render(*this, m_world);
-}
+#include <resource_pack.hpp>
 
 int main()
 {
-  Voxy voxy;
-  voxy.run();
-}
+  static constexpr float FIXED_DT = 1.0f / 20.0f;
 
+  WorldConfig world_config = load_world_config("world");
+  World       world        = load_world("world");
+
+  WorldGenerator   world_generator(world_config.generation);
+  PlayerController player_controller;
+  LightManager     light_manager;
+
+  graphics::Window            window("voxy", 1024, 720);
+  graphics::WireframeRenderer wireframer_renderer;
+
+  WorldRenderer world_renderer(load_resource_pack("resource_pack"));
+  DebugRenderer debug_renderer;
+
+  bool third_person = false;
+  window.glfw_on_key([&third_person](int key, int scancode, int action, int mods) {
+    if(key == GLFW_KEY_F5 && action == GLFW_PRESS)
+      third_person = !third_person;
+  });
+
+  Timer timer;
+  for(;;)
+  {
+    window.poll_events();
+    if(window.should_close())
+      return 0;
+
+    // 1: Update
+    if(timer.tick(FIXED_DT))
+    {
+      world_generator.update(world, light_manager);
+      player_controller.update(window, world, light_manager, FIXED_DT);
+      light_manager.update(world);
+      update_physics(world, FIXED_DT);
+    }
+
+    // 2: Rendering
+    Camera camera;
+
+    const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+    camera.transform            =  player_entity.transform;
+    camera.transform.position.z += player_entity.eye;
+    if(third_person)
+      camera.transform.position -= player_entity.transform.local_forward() * 5.0f;
+
+    int width, height;
+    window.get_framebuffer_size(width, height);
+    camera.aspect = static_cast<float>(width) / static_cast<float>(height);
+    camera.fovy   = 45.0f;
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width, height);
+
+    world_renderer.render(camera, world, third_person, wireframer_renderer);
+    player_controller.render(camera, world, wireframer_renderer);
+    debug_renderer.render(window, world);
+
+    window.swap_buffers();
+  }
+}
