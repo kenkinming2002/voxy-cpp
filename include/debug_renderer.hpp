@@ -20,7 +20,7 @@ public:
 
 public:
   void update(float dt);
-  void render(graphics::Window& window, const World& world);
+  void render(glm::vec2 viewport, const World& world);
 
 private:
   void render_line(glm::vec2 viewport, size_t n, const std::string& line);

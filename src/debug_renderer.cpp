@@ -16,7 +16,7 @@ void DebugRenderer::update(float dt)
   m_dts[DT_AVERAGE_COUNT-1] = dt;
 }
 
-void DebugRenderer::render(graphics::Window& window, const World& world)
+void DebugRenderer::render(glm::vec2 viewport, const World& world)
 {
   // 1: Frame time
   float average = 0.0f;
@@ -28,10 +28,6 @@ void DebugRenderer::render(graphics::Window& window, const World& world)
   const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
   glm::ivec3   position = glm::floor(player_entity.transform.position);
   const Block* block    = get_block(world, position);
-
-  int width, height;
-  window.get_framebuffer_size(width, height);
-  glm::vec2 viewport = glm::vec2(width, height);
 
   size_t n = 0;
 

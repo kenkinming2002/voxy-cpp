@@ -74,7 +74,7 @@ int main()
 
     world_renderer.render(camera, world, third_person, wireframer_renderer);
     player_controller.render(camera, world, wireframer_renderer);
-    debug_renderer.render(window, world);
+    debug_renderer.render(glm::vec2(width, height), world);
 
     window.swap_buffers();
   }
