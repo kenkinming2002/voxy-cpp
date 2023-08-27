@@ -6,83 +6,61 @@
 #include <GLFW/glfw3.h>
 
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
+#include <fmt/format.h>
 
-#include <thread>
 #include <random>
 
-template<typename Prng>
-static inline std::vector<HeightMap> generate_height_maps(Prng& prng, const TerrainGenerationConfig& config, glm::ivec2 chunk_index)
+WorldGenerationConfig load_world_generation_config(std::string_view path)
 {
-  std::vector<HeightMap> height_maps;
-  for(const LayerGenerationConfig& terrain_layer_config : config.layers)
+  WorldGenerationConfig config;
+
+  YAML::Node root = YAML::LoadFile(fmt::format("{}/config.yaml", path));
+  YAML::Node generation = root["generation"];
+
+  YAML::Node seed = generation["seed"];
+  config.seed = seed.as<std::size_t>();
+
+  YAML::Node terrain = generation["terrain"];
+
+  for(YAML::Node layer : terrain["layers"])
   {
-    size_t seed = prng();
+    LayerGenerationConfig layer_generation_config;
 
-    HeightMap height_map;
-    for(int y=0; y<CHUNK_WIDTH; ++y)
-      for(int x=0; x<CHUNK_WIDTH; ++x)
-        height_map.heights[y][x] = std::max(terrain_layer_config.height_base + noise(seed, coordinates::local_to_global(glm::vec2(x, y), chunk_index), terrain_layer_config.height_noise), 0.0f);
-    height_maps.push_back(height_map);
-  }
-  return height_maps;
-}
+    layer_generation_config.block_id = layer["block_id"].as<std::uint32_t>();
 
-template<typename Prng>
-static inline std::vector<Worm> generate_worms(Prng& prng, const CavesGenerationConfig& config, glm::ivec2 chunk_index)
-{
-  size_t seed_x      = prng();
-  size_t seed_y      = prng() ;
-  size_t seed_z      = prng();
-  size_t seed_radius = prng();
+    layer_generation_config.height_base              = layer["height_base"]                .as<float>();
+    layer_generation_config.height_noise.frequency   = layer["height_noise"]["frequency"]  .as<float>();
+    layer_generation_config.height_noise.amplitude   = layer["height_noise"]["amplitude"]  .as<float>();
+    layer_generation_config.height_noise.lacunarity  = layer["height_noise"]["lacunarity"] .as<float>();
+    layer_generation_config.height_noise.persistence = layer["height_noise"]["persistence"].as<float>();
+    layer_generation_config.height_noise.octaves     = layer["height_noise"]["octaves"]    .as<unsigned>();
 
-  std::vector<Worm> worms;
-
-  int worm_count = std::uniform_int_distribution<int>(0, config.max_per_chunk)(prng);
-  for(int i=0; i<worm_count; ++i)
-  {
-    Worm worm;
-
-    glm::vec3 local_origin;
-    local_origin.x = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
-    local_origin.y = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
-    local_origin.z = std::uniform_real_distribution<float>(config.min_height, config.max_height)(prng);
-    glm::vec3 origin = coordinates::local_to_global(local_origin, chunk_index);
-
-    glm::vec3 position = origin;
-    for(unsigned i=0; i<config.max_segment; ++i)
-    {
-      // 1: Record the node
-      Worm::Node node;
-      node.center = position;
-      node.radius = config.radius_base + noise(seed_radius, position, config.radius_noise);
-      worm.nodes.push_back(node);
-
-      // 2: Advance the worm
-      glm::vec3 direction;
-      direction.x = noise(seed_x, position, config.dig_noise);
-      direction.y = noise(seed_y, position, config.dig_noise);
-      direction.z = noise(seed_z, position, config.dig_noise);
-      if(glm::length2(direction) < 1e-4)
-        direction = glm::vec3(0.0f, 0.0f, 1.0f);
-
-      position += config.step * glm::normalize(direction);
-    }
-
-    worms.push_back(std::move(worm));
+    config.terrain.layers.push_back(layer_generation_config);
   }
 
-  return worms;
-}
+  YAML::Node caves = generation["caves"];
 
-template<typename Prng>
-static inline ChunkInfo generate_chunk_info(Prng& prng_global, Prng& prng_local, const GenerationConfig& config, glm::ivec2 chunk_index)
-{
-  std::vector<HeightMap> height_maps = generate_height_maps(prng_global, config.terrain, chunk_index);
-  std::vector<Worm>      worms       = generate_worms(prng_local, config.caves, chunk_index);
-  return ChunkInfo {
-    .height_maps = std::move(height_maps),
-    .worms       = std::move(worms),
-  };
+  config.caves.max_per_chunk = caves["max_per_chunk"]     .as<unsigned>();
+  config.caves.max_segment   = caves["max_segment"]       .as<unsigned>();
+  config.caves.step          = caves["step"]              .as<float>();
+  config.caves.min_height    = caves["min_height"]        .as<float>();
+  config.caves.max_height    = caves["max_height"]        .as<float>();
+
+  config.caves.dig_noise.frequency   = caves["dig_noise"]["frequency"]     .as<float>();
+  config.caves.dig_noise.amplitude   = caves["dig_noise"]["amplitude"]     .as<float>();
+  config.caves.dig_noise.lacunarity  = caves["dig_noise"]["lacunarity"]    .as<float>();
+  config.caves.dig_noise.persistence = caves["dig_noise"]["persistence"]   .as<float>();
+  config.caves.dig_noise.octaves     = caves["dig_noise"]["octaves"]       .as<unsigned>();
+
+  config.caves.radius_base              = caves["radius_base"]                .as<float>();
+  config.caves.radius_noise.frequency   = caves["radius_noise"]["frequency"]  .as<float>();
+  config.caves.radius_noise.amplitude   = caves["radius_noise"]["amplitude"]  .as<float>();
+  config.caves.radius_noise.lacunarity  = caves["radius_noise"]["lacunarity"] .as<float>();
+  config.caves.radius_noise.persistence = caves["radius_noise"]["persistence"].as<float>();
+  config.caves.radius_noise.octaves     = caves["radius_noise"]["octaves"]    .as<unsigned>();
+
+  return config;
 }
 
 template <class T>
@@ -92,7 +70,7 @@ static inline size_t hash_combine(std::size_t seed, const T& v)
   return seed ^ (hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2));
 }
 
-WorldGenerator::WorldGenerator(GenerationConfig config) : m_config(std::move(config)) {}
+WorldGenerator::WorldGenerator(WorldGenerationConfig config) : m_config(std::move(config)) {}
 
 void WorldGenerator::update(World& world, LightManager& light_manager)
 {
@@ -214,5 +192,80 @@ done:;
     }
 
   chunk.mesh_invalidated = true;
+}
+
+template<typename Prng>
+std::vector<WorldGenerator::HeightMap> WorldGenerator::generate_height_maps(Prng& prng, const TerrainGenerationConfig& config, glm::ivec2 chunk_index)
+{
+  std::vector<HeightMap> height_maps;
+  for(const LayerGenerationConfig& terrain_layer_config : config.layers)
+  {
+    size_t seed = prng();
+
+    HeightMap height_map;
+    for(int y=0; y<CHUNK_WIDTH; ++y)
+      for(int x=0; x<CHUNK_WIDTH; ++x)
+        height_map.heights[y][x] = std::max(terrain_layer_config.height_base + noise(seed, coordinates::local_to_global(glm::vec2(x, y), chunk_index), terrain_layer_config.height_noise), 0.0f);
+    height_maps.push_back(height_map);
+  }
+  return height_maps;
+}
+
+template<typename Prng>
+std::vector<WorldGenerator::Worm> WorldGenerator::generate_worms(Prng& prng, const CavesGenerationConfig& config, glm::ivec2 chunk_index)
+{
+  size_t seed_x      = prng();
+  size_t seed_y      = prng() ;
+  size_t seed_z      = prng();
+  size_t seed_radius = prng();
+
+  std::vector<Worm> worms;
+
+  int worm_count = std::uniform_int_distribution<int>(0, config.max_per_chunk)(prng);
+  for(int i=0; i<worm_count; ++i)
+  {
+    Worm worm;
+
+    glm::vec3 local_origin;
+    local_origin.x = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
+    local_origin.y = std::uniform_real_distribution<float>(0, CHUNK_WIDTH-1)(prng);
+    local_origin.z = std::uniform_real_distribution<float>(config.min_height, config.max_height)(prng);
+    glm::vec3 origin = coordinates::local_to_global(local_origin, chunk_index);
+
+    glm::vec3 position = origin;
+    for(unsigned i=0; i<config.max_segment; ++i)
+    {
+      // 1: Record the node
+      Worm::Node node;
+      node.center = position;
+      node.radius = config.radius_base + noise(seed_radius, position, config.radius_noise);
+      worm.nodes.push_back(node);
+
+      // 2: Advance the worm
+      glm::vec3 direction;
+      direction.x = noise(seed_x, position, config.dig_noise);
+      direction.y = noise(seed_y, position, config.dig_noise);
+      direction.z = noise(seed_z, position, config.dig_noise);
+      if(glm::length2(direction) < 1e-4)
+        direction = glm::vec3(0.0f, 0.0f, 1.0f);
+
+      position += config.step * glm::normalize(direction);
+    }
+
+    worms.push_back(std::move(worm));
+  }
+
+  return worms;
+}
+
+template<typename Prng>
+WorldGenerator::ChunkInfo WorldGenerator::generate_chunk_info(Prng& prng_global, Prng& prng_local, const WorldGenerationConfig& config, glm::ivec2 chunk_index)
+{
+  std::vector<HeightMap> height_maps = generate_height_maps(prng_global, config.terrain, chunk_index);
+  std::vector<Worm>      worms       = generate_worms(prng_local, config.caves, chunk_index);
+  return ChunkInfo {
+    .height_maps = std::move(height_maps),
+    .worms       = std::move(worms),
+  };
 }
 

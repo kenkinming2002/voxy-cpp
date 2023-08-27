@@ -1,4 +1,3 @@
-#include <world_config.hpp>
 #include <world.hpp>
 
 #include <world_generator.hpp>
@@ -21,10 +20,9 @@ int main()
 {
   static constexpr float FIXED_DT = 1.0f / 20.0f;
 
-  WorldConfig world_config = load_world_config("world");
-  World       world        = load_world("world");
+  World world = load_world("world");
 
-  WorldGenerator   world_generator(world_config.generation);
+  WorldGenerator   world_generator(load_world_generation_config("world"));
   PlayerController player_controller;
   LightManager     light_manager;
 

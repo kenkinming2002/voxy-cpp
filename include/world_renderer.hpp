@@ -1,7 +1,6 @@
 #pragma once
 
 #include <world.hpp>
-#include <world_config.hpp>
 
 #include <resource_pack.hpp>
 

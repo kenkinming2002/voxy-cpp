@@ -40,7 +40,6 @@ voxy_exe = executable('voxy', [
     'src/thread_pool.cpp',
     'src/timer.cpp',
     'src/world.cpp',
-    'src/world_config.cpp',
     'src/world_generator.cpp',
     'src/world_renderer.cpp',
   ],
