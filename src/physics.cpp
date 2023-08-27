@@ -56,7 +56,7 @@ static std::optional<SweptAABBResult> swept_aabb(AABB box1, AABB box2, glm::vec3
   return result;
 }
 
-static void entity_update_physics(const Dimension& dimension, Entity& entity, float dt)
+static void entity_update_physics(const World& world, Entity& entity, float dt)
 {
   float friction = entity.grounded ? FRICTION_GROUNDED : FRICTION_AIR;
   entity_apply_force(entity, -friction * entity.velocity,        dt);
@@ -96,7 +96,7 @@ static void entity_update_physics(const Dimension& dimension, Entity& entity, fl
 
   for(const Item& item : items)
   {
-    if(const Block* block = get_block(dimension, item.position); block && block->id != BLOCK_ID_NONE)
+    if(const Block* block = get_block(world, item.position); block && block->id != BLOCK_ID_NONE)
     {
       AABB block_aabb  = { .position = item.position,             .dimension = glm::vec3(1.0f),     };
       if(std::optional<SweptAABBResult> result = swept_aabb(entity_aabb, block_aabb, direction))
@@ -117,6 +117,6 @@ static void entity_update_physics(const Dimension& dimension, Entity& entity, fl
 
 void update_physics(World& world, float dt)
 {
-  for(Entity& entity : world.dimension.entities)
-    entity_update_physics(world.dimension, entity, dt);
+  for(Entity& entity : world.entities)
+    entity_update_physics(world, entity, dt);
 }

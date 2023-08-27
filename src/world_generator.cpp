@@ -74,7 +74,7 @@ WorldGenerator::WorldGenerator(WorldGenerationConfig config) : m_config(std::mov
 
 void WorldGenerator::update(World& world, LightManager& light_manager)
 {
-  const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+  const Entity& player_entity = world.entities.at(world.player.entity_id);
   glm::ivec2 center = {
     std::floor(player_entity.transform.position.x / CHUNK_WIDTH),
     std::floor(player_entity.transform.position.y / CHUNK_WIDTH),
@@ -95,7 +95,7 @@ void WorldGenerator::try_load(World& world, LightManager& light_manager, glm::iv
 
 void WorldGenerator::try_load(World& world, LightManager& light_manager, glm::ivec2 chunk_index)
 {
-  if(world.dimension.chunks.find(chunk_index) != world.dimension.chunks.end())
+  if(world.chunks.find(chunk_index) != world.chunks.end())
     return;
 
   // 0: Setup
@@ -127,7 +127,7 @@ void WorldGenerator::try_load(World& world, LightManager& light_manager, glm::iv
     return;
 
   // 2: Chunk Generation
-  auto [it, success] = world.dimension.chunks.try_emplace(chunk_index);
+  auto [it, success] = world.chunks.try_emplace(chunk_index);
   assert(success);
   Chunk& chunk = it->second;
 

@@ -59,7 +59,7 @@ int main()
     // 2: Rendering
     Camera camera;
 
-    const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+    const Entity& player_entity = world.entities.at(world.player.entity_id);
     camera.transform            =  player_entity.transform;
     camera.transform.position.z += player_entity.eye;
     if(third_person)

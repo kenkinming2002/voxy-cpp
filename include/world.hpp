@@ -59,16 +59,11 @@ struct Chunk
   mutable bool                           mesh_invalidated;
 };
 
-struct Dimension
+struct World
 {
   std::unordered_map<glm::ivec2, Chunk> chunks;
   std::vector<Entity>                   entities;
-};
-
-struct World
-{
-  Dimension dimension;
-  Player    player;
+  Player                                player;
 };
 
 /**********
@@ -86,9 +81,6 @@ void entity_apply_force   (Entity& entity, glm::vec3 force, float dt, float max)
       Block* get_block(      Chunk& chunk, glm::ivec3 position);
 const Block* get_block(const Chunk& chunk, glm::ivec3 position);
 
-      Block* get_block(      Dimension& dimension, glm::ivec3 position);
-const Block* get_block(const Dimension& dimension, glm::ivec3 position);
-
       Block* get_block(      World& world, glm::ivec3 position);
 const Block* get_block(const World& world, glm::ivec3 position);
 
@@ -101,8 +93,6 @@ void explode(Chunk& chunk, glm::vec3 center, float radius);
  * Invalidate them ALL!!! *
  **************************/
 void invalidate_mesh (Chunk& chunk);
-
-void invalidate_mesh(Dimension& dimension, glm::ivec3 position);
 
 void invalidate_mesh(World& world, glm::ivec3 position);
 

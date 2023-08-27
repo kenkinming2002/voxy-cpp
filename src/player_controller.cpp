@@ -21,7 +21,7 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
 
 void PlayerController::update(graphics::Window& window, World& world, LightManager& light_manager, float dt)
 {
-  Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+  Entity& player_entity = world.entities.at(world.player.entity_id);
 
   // 1: Jump
   if(window.get_key(GLFW_KEY_SPACE) == GLFW_PRESS)

@@ -25,7 +25,7 @@ void DebugRenderer::render(glm::vec2 viewport, const World& world, graphics::UIR
   average /= DT_AVERAGE_COUNT;
 
   // 2: Current block
-  const Entity& player_entity = world.dimension.entities.at(world.player.entity_id);
+  const Entity& player_entity = world.entities.at(world.player.entity_id);
   glm::ivec3   position = glm::floor(player_entity.transform.position);
   const Block* block    = get_block(world, position);
 

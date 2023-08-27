@@ -16,7 +16,7 @@ void LightManager::update(World& world)
      *************/
     for(auto& [position, invalidation] : m_invalidations)
     {
-      invalidation.block = get_block(world.dimension, position);
+      invalidation.block = get_block(world, position);
       if(!invalidation.block)
         continue;
 

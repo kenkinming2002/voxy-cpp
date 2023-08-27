@@ -32,7 +32,7 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
   std::vector<uint32_t> indices;
   std::vector<Vertex>   vertices;
 
-  for(auto& [chunk_index, chunk] : world.dimension.chunks)
+  for(auto& [chunk_index, chunk] : world.chunks)
     if(chunk.mesh_invalidated)
     {
       chunk.mesh_invalidated = false;
@@ -132,12 +132,12 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
 void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
   m_entity_shader_program->use();
-  for(size_t i=0; i<world.dimension.entities.size(); ++i)
+  for(size_t i=0; i<world.entities.size(); ++i)
   {
     if(!third_person && i == world.player.entity_id)
       continue;
 
-    const Entity&         entity          = world.dimension.entities[i];
+    const Entity&         entity          = world.entities[i];
     const EntityResource& entity_resource = m_resource_pack.entities.at(entity.id);
 
     glm::mat4 view       = camera.view();
@@ -153,12 +153,12 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
     entity_resource.mesh->draw();
   }
 
-  for(size_t i=0; i<world.dimension.entities.size(); ++i)
+  for(size_t i=0; i<world.entities.size(); ++i)
   {
     if(!third_person && i == world.player.entity_id)
       continue;
 
-    const Entity& entity = world.dimension.entities[i];
+    const Entity& entity = world.entities[i];
 
     AABB entity_aabb = entity_get_aabb(entity);
     wireframe_renderer.render_cube(camera, entity_aabb.position, entity_aabb.dimension, glm::vec3(0.6f, 0.6f, 0.6f), 5.0f);

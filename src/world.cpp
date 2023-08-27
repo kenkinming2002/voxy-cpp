@@ -63,34 +63,24 @@ const Block* get_block(const Chunk& chunk, glm::ivec3 position)
   return &chunk.blocks[position.z][position.y][position.x];
 }
 
-Block* get_block(Dimension& dimension, glm::ivec3 position)
-{
-  auto [local_position, chunk_index] = coordinates::split(position);
-  auto it = dimension.chunks.find(chunk_index);
-  if(it == dimension.chunks.end())
-    return nullptr;
-
-  return ::get_block(it->second, local_position);
-}
-
-const Block* get_block(const Dimension& dimension, glm::ivec3 position)
-{
-  auto [local_position, chunk_index] = coordinates::split(position);
-  auto it = dimension.chunks.find(chunk_index);
-  if(it == dimension.chunks.end())
-    return nullptr;
-
-  return ::get_block(it->second, local_position);
-}
-
 Block* get_block(World& world, glm::ivec3 position)
 {
-  return get_block(world.dimension, position);
+  auto [local_position, chunk_index] = coordinates::split(position);
+  auto it = world.chunks.find(chunk_index);
+  if(it == world.chunks.end())
+    return nullptr;
+
+  return ::get_block(it->second, local_position);
 }
 
 const Block* get_block(const World& world, glm::ivec3 position)
 {
-  return get_block(world.dimension, position);
+  auto [local_position, chunk_index] = coordinates::split(position);
+  auto it = world.chunks.find(chunk_index);
+  if(it == world.chunks.end())
+    return nullptr;
+
+  return ::get_block(it->second, local_position);
 }
 
 /************************
@@ -120,45 +110,38 @@ void invalidate_mesh(Chunk& chunk)
   chunk.mesh_invalidated = true;
 }
 
-void invalidate_mesh(Dimension& dimension, glm::ivec3 position)
-{
-  auto [local_position, chunk_index] = coordinates::split(position);
-  if(auto it = dimension.chunks.find(chunk_index); it != dimension.chunks.end())
-    invalidate_mesh(it->second);
-}
-
 void invalidate_mesh(World& world, glm::ivec3 position)
 {
-  invalidate_mesh(world.dimension, position);
+  auto [local_position, chunk_index] = coordinates::split(position);
+  if(auto it = world.chunks.find(chunk_index); it != world.chunks.end())
+    invalidate_mesh(it->second);
 }
 
 World load_world(std::string_view path)
 {
   // That was a lie, we are just creating a new world for now
   return World{
-    .dimension = {
-      .entities = {
-        {
-          .id = 0,
-          .transform = {
-            .position = glm::vec3(0.0f, 0.0f, 50.0f),
-            .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-          },
-          .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
-          .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye       = 1.5f,
+    .entities = {
+      {
+        .id = 0,
+        .transform = {
+          .position = glm::vec3(0.0f, 0.0f, 50.0f),
+          .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         },
-        {
-          .id = 0,
-          .transform = {
-            .position = glm::vec3(0.0f, 0.0f, 50.0f),
-            .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-          },
-          .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
-          .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-          .eye       = 1.5f,
+        .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
+        .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
+        .eye       = 1.5f,
+      },
+      {
+        .id = 0,
+        .transform = {
+          .position = glm::vec3(0.0f, 0.0f, 50.0f),
+          .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         },
-      }
+        .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
+        .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
+        .eye       = 1.5f,
+      },
     },
     .player = {
       .entity_id = 0,
