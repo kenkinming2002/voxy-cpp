@@ -63,7 +63,7 @@ struct World
 {
   std::unordered_map<glm::ivec2, Chunk> chunks;
   std::vector<Entity>                   entities;
-  Player                                player;
+  std::vector<Player>                   players;
 };
 
 /**********

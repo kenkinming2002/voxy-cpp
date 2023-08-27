@@ -120,34 +120,36 @@ void invalidate_mesh(World& world, glm::ivec3 position)
 World load_world(std::string_view path)
 {
   // That was a lie, we are just creating a new world for now
-  return World{
-    .entities = {
-      {
-        .id = 0,
-        .transform = {
-          .position = glm::vec3(0.0f, 0.0f, 50.0f),
-          .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-        },
-        .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
-        .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-        .eye       = 1.5f,
+  World world;
+  world.entities = {
+    {
+      .id = 0,
+      .transform = {
+        .position = glm::vec3(0.0f, 0.0f, 50.0f),
+        .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
       },
-      {
-        .id = 0,
-        .transform = {
-          .position = glm::vec3(0.0f, 0.0f, 50.0f),
-          .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-        },
-        .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
-        .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
-        .eye       = 1.5f,
-      },
+      .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
+      .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
+      .eye       = 1.5f,
     },
-    .player = {
+    {
+      .id = 0,
+      .transform = {
+        .position = glm::vec3(0.0f, 0.0f, 50.0f),
+        .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+      },
+      .velocity  = glm::vec3(0.0f, 0.0f, 0.0f),
+      .dimension = glm::vec3(0.9f, 0.9f, 1.9f),
+      .eye       = 1.5f,
+    },
+  };
+  world.players = {
+    {
       .entity_id = 0,
       .placement = std::nullopt,
       .selection = std::nullopt,
     },
   };
+  return world;
 }
 

@@ -21,7 +21,8 @@ static bool aabb_collide(glm::vec3 position1, glm::vec3 dimension1, glm::vec3 po
 
 void PlayerController::update(graphics::Window& window, World& world, LightManager& light_manager, float dt)
 {
-  Entity& player_entity = world.entities.at(world.player.entity_id);
+  Player& player        = world.players.front();
+  Entity& player_entity = world.entities.at(player.entity_id);
 
   // 1: Jump
   if(window.get_key(GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -63,25 +64,25 @@ void PlayerController::update(graphics::Window& window, World& world, LightManag
   // 4: Block placement/destruction
   m_cooldown = std::max(m_cooldown - dt, 0.0f);
 
-  world.player.selection.reset();
-  world.player.placement.reset();
+  player.selection.reset();
+  player.placement.reset();
   ray_cast(player_entity.transform.position + glm::vec3(0.0f, 0.0f, player_entity.eye), player_entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
       const Block *block = get_block(world, block_position);
       if(block && block->id != BLOCK_ID_NONE)
-        world.player.selection = block_position;
+        player.selection = block_position;
       else
-        world.player.placement = block_position;
+        player.placement = block_position;
       return block && block->id != BLOCK_ID_NONE;
   });
 
   // Can only place against a selected block
-  if(!world.player.selection)
-    world.player.placement.reset();
+  if(!player.selection)
+    player.placement.reset();
 
   if(m_cooldown == 0.0f)
     if(window.get_mouse_button(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-      if(world.player.selection)
-        if(Block *block = get_block(world, *world.player.selection))
+      if(player.selection)
+        if(Block *block = get_block(world, *player.selection))
           if(block->id != BLOCK_ID_NONE)
           {
             if(block->destroy_level != 15)
@@ -89,11 +90,11 @@ void PlayerController::update(graphics::Window& window, World& world, LightManag
             else
               block->id = BLOCK_ID_NONE;
 
-            invalidate_mesh(world, *world.player.selection);
-            light_manager.invalidate(*world.player.selection);
+            invalidate_mesh(world, *player.selection);
+            light_manager.invalidate(*player.selection);
             for(glm::ivec3 direction : DIRECTIONS)
             {
-              glm::ivec3 neighbour_position = *world.player.selection + direction;
+              glm::ivec3 neighbour_position = *player.selection + direction;
               invalidate_mesh(world, neighbour_position);
             }
             m_cooldown = ACTION_COOLDOWN;
@@ -101,17 +102,17 @@ void PlayerController::update(graphics::Window& window, World& world, LightManag
 
   if(m_cooldown == 0.0f)
     if(window.get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-      if(world.player.placement)
-        if(Block *block = get_block(world, *world.player.placement))
+      if(player.placement)
+        if(Block *block = get_block(world, *player.placement))
           if(block->id == BLOCK_ID_NONE)
-            if(!aabb_collide(player_entity.transform.position, player_entity.dimension, *world.player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+            if(!aabb_collide(player_entity.transform.position, player_entity.dimension, *player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
             {
               block->id = BLOCK_ID_STONE;
-              invalidate_mesh(world, *world.player.placement);
-              light_manager.invalidate(*world.player.placement);
+              invalidate_mesh(world, *player.placement);
+              light_manager.invalidate(*player.placement);
               for(glm::ivec3 direction : DIRECTIONS)
               {
-                glm::ivec3 neighbour_position = *world.player.placement + direction;
+                glm::ivec3 neighbour_position = *player.placement + direction;
                 invalidate_mesh(world, neighbour_position);
               }
               m_cooldown = ACTION_COOLDOWN;
@@ -120,7 +121,8 @@ void PlayerController::update(graphics::Window& window, World& world, LightManag
 
 void PlayerController::render(const Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer)
 {
-  if(world.player.selection) wireframe_renderer.render_cube(camera, *world.player.selection, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);
-  if(world.player.placement) wireframe_renderer.render_cube(camera, *world.player.placement, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);
+  const Player& player = world.players.front();
+  if(player.selection) wireframe_renderer.render_cube(camera, *player.selection, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);
+  if(player.placement) wireframe_renderer.render_cube(camera, *player.placement, glm::vec3(1.0f), glm::vec3(0.6f, 0.6f, 0.6f), UI_SELECTION_THICKNESS);
 }
 

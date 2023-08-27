@@ -131,10 +131,12 @@ void WorldRenderer::render_chunks(const Camera& camera, const World& world)
 
 void WorldRenderer::render_entites(const Camera& camera, const World& world, bool third_person, graphics::WireframeRenderer& wireframe_renderer)
 {
+  const Player& player = world.players.front();
+
   m_entity_shader_program->use();
   for(size_t i=0; i<world.entities.size(); ++i)
   {
-    if(!third_person && i == world.player.entity_id)
+    if(!third_person && i == player.entity_id)
       continue;
 
     const Entity&         entity          = world.entities[i];
@@ -155,7 +157,7 @@ void WorldRenderer::render_entites(const Camera& camera, const World& world, boo
 
   for(size_t i=0; i<world.entities.size(); ++i)
   {
-    if(!third_person && i == world.player.entity_id)
+    if(!third_person && i == player.entity_id)
       continue;
 
     const Entity& entity = world.entities[i];

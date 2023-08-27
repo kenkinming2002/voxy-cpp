@@ -74,7 +74,8 @@ WorldGenerator::WorldGenerator(WorldGenerationConfig config) : m_config(std::mov
 
 void WorldGenerator::update(World& world, LightManager& light_manager)
 {
-  const Entity& player_entity = world.entities.at(world.player.entity_id);
+  const Player& player        = world.players.front();
+  const Entity& player_entity = world.entities.at(player.entity_id);
   glm::ivec2 center = {
     std::floor(player_entity.transform.position.x / CHUNK_WIDTH),
     std::floor(player_entity.transform.position.y / CHUNK_WIDTH),
