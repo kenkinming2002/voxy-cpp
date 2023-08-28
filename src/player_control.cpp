@@ -56,20 +56,22 @@ void update_player_control(World& world, LightManager& light_manager, float dt)
     // 4: Block placement/destruction
     player.cooldown = std::max(player.cooldown - dt, 0.0f);
 
-    player.selection.reset();
-    player.placement.reset();
-    ray_cast(player_entity.transform.position + glm::vec3(0.0f, 0.0f, player_entity.eye), player_entity.transform.local_forward(), RAY_CAST_LENGTH, [&](glm::ivec3 block_position) -> bool {
-        const Block *block = get_block(world, block_position);
-        if(block && block->id != BLOCK_ID_NONE)
-          player.selection = block_position;
-        else
-          player.placement = block_position;
-        return block && block->id != BLOCK_ID_NONE;
-    });
-
-    // Can only place against a selected block
-    if(!player.selection)
-      player.placement.reset();
+    RayCastBlocksResult ray_cast_result = ray_cast_blocks(world, player_entity.transform.position + glm::vec3(0.0f, 0.0f, player_entity.eye), player_entity.transform.local_forward(), RAY_CAST_LENGTH);
+    switch(ray_cast_result.type)
+    {
+    case RayCastBlocksResult::Type::INSIDE_BLOCK:
+      player.selection = ray_cast_result.position;
+      player.placement = std::nullopt;
+      break;
+    case RayCastBlocksResult::Type::HIT:
+      player.selection = ray_cast_result.position;
+      player.placement = ray_cast_result.position + ray_cast_result.normal;
+      break;
+    case RayCastBlocksResult::Type::NONE:
+      player.selection = std::nullopt;
+      player.placement = std::nullopt;
+      break;
+    }
 
     if(player.cooldown == 0.0f)
       if(player.mouse_button_left)

@@ -37,6 +37,7 @@ voxy_exe = executable('voxy', [
     'src/physics.cpp',
     'src/player_control.cpp',
     'src/player_ui.cpp',
+    'src/ray_cast.cpp',
     'src/resource_pack.cpp',
     'src/thread_pool.cpp',
     'src/timer.cpp',
