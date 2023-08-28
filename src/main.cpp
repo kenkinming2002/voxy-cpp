@@ -3,7 +3,7 @@
 #include <world_generator.hpp>
 #include <light_manager.hpp>
 #include <physics.hpp>
-#include <player_controller.hpp>
+#include <player_control.hpp>
 
 #include <graphics/camera.hpp>
 #include <graphics/ui_renderer.hpp>
@@ -14,6 +14,7 @@
 
 #include <world_renderer.hpp>
 #include <debug_renderer.hpp>
+#include <player_ui.hpp>
 
 #include <resource_pack.hpp>
 
@@ -24,7 +25,6 @@ int main()
   World world = load_world("world");
 
   WorldGenerator   world_generator(load_world_generation_config("world"));
-  PlayerController player_controller;
   LightManager     light_manager;
 
   graphics::Window            window("voxy", 1024, 720);
@@ -83,9 +83,9 @@ int main()
 
       // 2: Actual Update
       world_generator.update(world, light_manager);
-      player_controller.update(world, light_manager, FIXED_DT);
-      light_manager.update(world);
+      update_player_control(world, light_manager, FIXED_DT);
       update_physics(world, FIXED_DT);
+      light_manager.update(world);
     }
 
     // 2: Rendering
@@ -106,7 +106,7 @@ int main()
     glViewport(0, 0, width, height);
 
     world_renderer.render(camera, world, third_person, wireframer_renderer);
-    player_controller.render(camera, world, wireframer_renderer);
+    render_player_ui(camera, world, wireframer_renderer);
     debug_renderer.render(glm::vec2(width, height), world, ui_renderer);
 
     window.swap_buffers();

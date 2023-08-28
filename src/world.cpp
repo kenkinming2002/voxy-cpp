@@ -139,6 +139,8 @@ World load_world(std::string_view path)
       .cursor_motion_x = 0.0,
       .cursor_motion_y = 0.0,
 
+      .cooldown = 0.0f,
+
       .placement = std::nullopt,
       .selection = std::nullopt,
     },
