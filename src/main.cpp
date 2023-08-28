@@ -32,7 +32,6 @@ int main()
   graphics::WireframeRenderer wireframer_renderer;
   graphics::UIRenderer        ui_renderer;
 
-
   WorldRenderer world_renderer(load_resource_pack("resource_pack"));
   DebugRenderer debug_renderer;
 
@@ -41,6 +40,10 @@ int main()
     if(key == GLFW_KEY_F5 && action == GLFW_PRESS)
       third_person = !third_person;
   });
+
+  bool   cursor_first = false;
+  double cursor_xpos;
+  double cursor_ypos;
 
   Timer timer;
   for(;;)
@@ -52,8 +55,35 @@ int main()
     // 1: Update
     if(timer.tick(FIXED_DT))
     {
+      // 1: Input Handling
+      world.players.front().key_space = window.get_key(GLFW_KEY_SPACE) == GLFW_PRESS;
+      world.players.front().key_w     = window.get_key(GLFW_KEY_W)     == GLFW_PRESS;
+      world.players.front().key_a     = window.get_key(GLFW_KEY_A)     == GLFW_PRESS;
+      world.players.front().key_s     = window.get_key(GLFW_KEY_S)     == GLFW_PRESS;
+      world.players.front().key_d     = window.get_key(GLFW_KEY_D)     == GLFW_PRESS;
+
+      world.players.front().mouse_button_left  = window.get_mouse_button(GLFW_MOUSE_BUTTON_LEFT)  == GLFW_PRESS;
+      world.players.front().mouse_button_right = window.get_mouse_button(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+
+      double new_cursor_xpos;
+      double new_cursor_ypos;
+      window.get_cursor_pos(new_cursor_xpos, new_cursor_ypos);
+      if(cursor_first)
+      {
+        world.players.front().cursor_motion_x = 0.0f;
+        world.players.front().cursor_motion_y = 0.0f;
+      }
+      else
+      {
+        world.players.front().cursor_motion_x = new_cursor_xpos - cursor_xpos;
+        world.players.front().cursor_motion_y = new_cursor_ypos - cursor_ypos;
+      }
+      cursor_xpos = new_cursor_xpos;
+      cursor_ypos = new_cursor_ypos;
+
+      // 2: Actual Update
       world_generator.update(world, light_manager);
-      player_controller.update(window, world, light_manager, FIXED_DT);
+      player_controller.update(world, light_manager, FIXED_DT);
       light_manager.update(world);
       update_physics(world, FIXED_DT);
     }

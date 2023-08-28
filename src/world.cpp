@@ -127,6 +127,18 @@ World load_world(std::string_view path)
   world.players = {
     {
       .entity_id = 0,
+
+      .key_w = false,
+      .key_a = false,
+      .key_s = false,
+      .key_d = false,
+
+      .mouse_button_left  = false,
+      .mouse_button_right = false,
+
+      .cursor_motion_x = 0.0,
+      .cursor_motion_y = 0.0,
+
       .placement = std::nullopt,
       .selection = std::nullopt,
     },

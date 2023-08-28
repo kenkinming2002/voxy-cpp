@@ -28,13 +28,9 @@ public:
   PlayerController();
 
 public:
-  void update(graphics::Window& window, World& world, LightManager& light_manager, float dt);
+  void update(World& world, LightManager& light_manager, float dt);
   void render(const graphics::Camera& camera, const World& world, graphics::WireframeRenderer& wireframe_renderer);
 
 private:
-  bool   m_first = true;
-  double m_cursor_xpos;
-  double m_cursor_ypos;
-
   float m_cooldown = 0.0f;
 };

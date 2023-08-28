@@ -40,6 +40,19 @@ struct Entity
 struct Player
 {
   size_t entity_id;
+
+  bool key_space : 1;
+  bool key_w     : 1;
+  bool key_a     : 1;
+  bool key_s     : 1;
+  bool key_d     : 1;
+
+  bool mouse_button_left  : 1;
+  bool mouse_button_right : 1;
+
+  double cursor_motion_x;
+  double cursor_motion_y;
+
   std::optional<glm::ivec3> placement;
   std::optional<glm::ivec3> selection;
 };
