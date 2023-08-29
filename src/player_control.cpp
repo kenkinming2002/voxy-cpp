@@ -57,26 +57,28 @@ void update_player_control(World& world, LightManager& light_manager, float dt)
     player.cooldown = std::max(player.cooldown - dt, 0.0f);
 
     RayCastBlocksResult ray_cast_result = ray_cast_blocks(world, player_entity.transform.position + glm::vec3(0.0f, 0.0f, player_entity.eye), player_entity.transform.local_forward(), RAY_CAST_LENGTH);
+
+    std::optional<glm::ivec3> selection, placement;
     switch(ray_cast_result.type)
     {
     case RayCastBlocksResult::Type::INSIDE_BLOCK:
-      player.selection = ray_cast_result.position;
-      player.placement = std::nullopt;
+      selection = ray_cast_result.position;
+      placement = std::nullopt;
       break;
     case RayCastBlocksResult::Type::HIT:
-      player.selection = ray_cast_result.position;
-      player.placement = ray_cast_result.position + ray_cast_result.normal;
+      selection = ray_cast_result.position;
+      placement = ray_cast_result.position + ray_cast_result.normal;
       break;
     case RayCastBlocksResult::Type::NONE:
-      player.selection = std::nullopt;
-      player.placement = std::nullopt;
+      selection = std::nullopt;
+      placement = std::nullopt;
       break;
     }
 
     if(player.cooldown == 0.0f)
       if(player.mouse_button_left)
-        if(player.selection)
-          if(Block *block = get_block(world, *player.selection))
+        if(selection)
+          if(Block *block = get_block(world, *selection))
             if(block->id != BLOCK_ID_NONE)
             {
               if(block->destroy_level != 15)
@@ -84,11 +86,11 @@ void update_player_control(World& world, LightManager& light_manager, float dt)
               else
                 block->id = BLOCK_ID_NONE;
 
-              invalidate_mesh(world, *player.selection);
-              light_manager.invalidate(*player.selection);
+              invalidate_mesh(world, *selection);
+              light_manager.invalidate(*selection);
               for(glm::ivec3 direction : DIRECTIONS)
               {
-                glm::ivec3 neighbour_position = *player.selection + direction;
+                glm::ivec3 neighbour_position = *selection + direction;
                 invalidate_mesh(world, neighbour_position);
               }
               player.cooldown = ACTION_COOLDOWN;
@@ -96,17 +98,17 @@ void update_player_control(World& world, LightManager& light_manager, float dt)
 
     if(player.cooldown == 0.0f)
       if(player.mouse_button_right)
-        if(player.placement)
-          if(Block *block = get_block(world, *player.placement))
+        if(placement)
+          if(Block *block = get_block(world, *placement))
             if(block->id == BLOCK_ID_NONE)
-              if(!aabb_collide(player_entity.transform.position, player_entity.dimension, *player.placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
+              if(!aabb_collide(player_entity.transform.position, player_entity.dimension, *placement, glm::vec3(1.0f, 1.0f, 1.0f))) // Cannot place a block that collide with the player
               {
                 block->id = BLOCK_ID_STONE;
-                invalidate_mesh(world, *player.placement);
-                light_manager.invalidate(*player.placement);
+                invalidate_mesh(world, *placement);
+                light_manager.invalidate(*placement);
                 for(glm::ivec3 direction : DIRECTIONS)
                 {
-                  glm::ivec3 neighbour_position = *player.placement + direction;
+                  glm::ivec3 neighbour_position = *placement + direction;
                   invalidate_mesh(world, neighbour_position);
                 }
                 player.cooldown = ACTION_COOLDOWN;

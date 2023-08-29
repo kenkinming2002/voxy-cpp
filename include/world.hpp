@@ -54,9 +54,6 @@ struct Player
   double cursor_motion_y;
 
   float cooldown;
-
-  std::optional<glm::ivec3> placement;
-  std::optional<glm::ivec3> selection;
 };
 
 struct Block

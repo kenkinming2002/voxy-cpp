@@ -1,6 +1,10 @@
 #include <debug_renderer.hpp>
 
+#include <ray_cast.hpp>
+
 #include <fmt/format.h>
+
+static constexpr float RAY_CAST_LENGTH = 20.0f;
 
 DebugRenderer::DebugRenderer()
 {
@@ -30,6 +34,27 @@ void DebugRenderer::render(glm::vec2 viewport, const World& world, graphics::UIR
   glm::ivec3   position = glm::floor(player_entity.transform.position);
   const Block* block    = get_block(world, position);
 
+  // 3: Raycast
+  RayCastBlocksResult ray_cast_result = ray_cast_blocks(world, player_entity.transform.position + glm::vec3(0.0f, 0.0f, player_entity.eye), player_entity.transform.local_forward(), RAY_CAST_LENGTH);
+
+  std::optional<glm::ivec3> selection, placement;
+  switch(ray_cast_result.type)
+  {
+    case RayCastBlocksResult::Type::INSIDE_BLOCK:
+      selection = ray_cast_result.position;
+      placement = std::nullopt;
+      break;
+    case RayCastBlocksResult::Type::HIT:
+      selection = ray_cast_result.position;
+      placement = ray_cast_result.position + ray_cast_result.normal;
+      break;
+    case RayCastBlocksResult::Type::NONE:
+      selection = std::nullopt;
+      placement = std::nullopt;
+      break;
+  }
+
+
   size_t n = 0;
 
   render_line(viewport, n++, fmt::format("position: x = {}, y = {}, z = {}", player_entity.transform.position.x, player_entity.transform.position.y, player_entity.transform.position.z), ui_renderer);
@@ -43,15 +68,15 @@ void DebugRenderer::render(glm::vec2 viewport, const World& world, graphics::UIR
   else
     render_line(viewport, n++, fmt::format("block: position = {}, {}, {}, not yet generated", position.x, position.y, position.z), ui_renderer);
 
-  if(player.selection)
-    render_line(viewport, n++, fmt::format("player.selection: position = {}, {}, {}", player.selection->x, player.selection->y, player.selection->z), ui_renderer);
+  if(selection)
+    render_line(viewport, n++, fmt::format("selection: position = {}, {}, {}", selection->x, selection->y, selection->z), ui_renderer);
   else
     render_line(viewport, n++, "selection: none", ui_renderer);
 
-  if(player.placement)
-    render_line(viewport, n++, fmt::format("player.placement: position = {}, {}, {}", player.placement->x, player.placement->y, player.placement->z), ui_renderer);
+  if(placement)
+    render_line(viewport, n++, fmt::format("placement: position = {}, {}, {}", placement->x, placement->y, placement->z), ui_renderer);
   else
-    render_line(viewport, n++, "player.placement: none", ui_renderer);
+    render_line(viewport, n++, "placement: none", ui_renderer);
 }
 
 void DebugRenderer::render_line(glm::vec2 viewport, size_t n, const std::string& line, graphics::UIRenderer& ui_renderer)
