@@ -1,6 +1,7 @@
 #ifndef TRANSFORM_HPP
 #define TRANSFORM_HPP
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
